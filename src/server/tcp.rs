@@ -494,7 +494,7 @@ async fn handle_client(
 
   // Cleanup
   clients.write().await.remove(&client_id);
-  subs.remove_client(client_id);
+  subs.remove_client(client_id).await;
   write_task.abort();
 
   tracing::debug!("TCP client {} disconnected", client_id);

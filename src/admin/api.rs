@@ -1036,7 +1036,7 @@ async fn handle_ws_connection(socket: WebSocket, state: AppState) {
 
   // Cleanup
   state.ws_clients.write().await.remove(&client_id);
-  state.subs.remove_client(client_id);
+  state.subs.remove_client(client_id).await;
   send_task.abort();
 }
 

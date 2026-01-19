@@ -4,6 +4,7 @@
 //! - Connection limits per IP address
 //! - Request rate limiting using token bucket algorithm
 //! - Concurrent query limiting per client
+//! - Optional PostgreSQL backend for distributed rate limiting
 
 use std::collections::HashMap;
 use std::net::IpAddr;
@@ -15,16 +16,20 @@ use parking_lot::RwLock;
 use uuid::Uuid;
 
 use super::config::LimitsSection;
+use crate::db::DatabaseBackend;
 
 /// Rate limiter for managing connections and request rates.
+/// Supports both in-memory (single-instance) and PostgreSQL-backed (distributed) modes.
 pub struct RateLimiter {
   config: LimitsSection,
-  /// Connections per IP: IP -> count
+  /// Connections per IP: IP -> count (in-memory fallback)
   connections: RwLock<HashMap<IpAddr, u32>>,
-  /// Token buckets per IP: IP -> TokenBucket
+  /// Token buckets per IP: IP -> TokenBucket (in-memory fallback)
   buckets: RwLock<HashMap<IpAddr, TokenBucket>>,
   /// Concurrent queries per client: client_id -> count
   concurrent_queries: RwLock<HashMap<Uuid, Arc<AtomicU32>>>,
+  /// Optional database backend for distributed rate limiting
+  backend: Option<Arc<dyn DatabaseBackend>>,
 }
 
 /// Token bucket for rate limiting.
@@ -72,17 +77,31 @@ impl RateLimiter {
       connections: RwLock::new(HashMap::new()),
       buckets: RwLock::new(HashMap::new()),
       concurrent_queries: RwLock::new(HashMap::new()),
+      backend: None,
+    }
+  }
+
+  /// Create a RateLimiter with a database backend for distributed rate limiting
+  pub fn with_backend(config: LimitsSection, backend: Arc<dyn DatabaseBackend>) -> Self {
+    Self {
+      config,
+      connections: RwLock::new(HashMap::new()),
+      buckets: RwLock::new(HashMap::new()),
+      concurrent_queries: RwLock::new(HashMap::new()),
+      backend: Some(backend),
     }
   }
 
   /// Check if a new connection from this IP is allowed.
   /// If allowed, increments the connection count and returns Ok.
   /// If not allowed, returns Err with a message.
+  /// Uses PostgreSQL for distributed tracking when backend is available.
   pub fn check_connection(&self, ip: IpAddr) -> Result<(), RateLimitError> {
     if self.config.max_connections_per_ip == 0 {
       return Ok(()); // Unlimited
     }
 
+    // Use in-memory tracking (PostgreSQL tracking is async, used separately)
     let mut conns = self.connections.write();
     let count = conns.entry(ip).or_insert(0);
 
@@ -97,8 +116,39 @@ impl RateLimiter {
     Ok(())
   }
 
+  /// Async version of check_connection that uses PostgreSQL for distributed tracking
+  pub async fn check_connection_async(&self, ip: IpAddr) -> Result<(), RateLimitError> {
+    if self.config.max_connections_per_ip == 0 {
+      return Ok(()); // Unlimited
+    }
+
+    // Try PostgreSQL-backed check first for distributed tracking
+    if let Some(ref backend) = self.backend {
+      match backend
+        .connection_acquire(ip, self.config.max_connections_per_ip)
+        .await
+      {
+        Ok(allowed) if allowed => return Ok(()),
+        Ok(_) => {
+          return Err(RateLimitError::TooManyConnections {
+            ip,
+            limit: self.config.max_connections_per_ip,
+          })
+        }
+        Err(e) => {
+          // Log error and fall back to in-memory
+          tracing::warn!("PostgreSQL rate limit check failed, using in-memory: {}", e);
+        }
+      }
+    }
+
+    // Fallback to in-memory
+    self.check_connection(ip)
+  }
+
   /// Release a connection slot for an IP.
   pub fn release_connection(&self, ip: IpAddr) {
+    // Release from in-memory tracking
     let mut conns = self.connections.write();
     if let Some(count) = conns.get_mut(&ip) {
       *count = count.saturating_sub(1);
@@ -106,6 +156,19 @@ impl RateLimiter {
         conns.remove(&ip);
       }
     }
+  }
+
+  /// Async version of release_connection that also releases from PostgreSQL
+  pub async fn release_connection_async(&self, ip: IpAddr) {
+    // Release from PostgreSQL if available
+    if let Some(ref backend) = self.backend {
+      if let Err(e) = backend.connection_release(ip).await {
+        tracing::warn!("PostgreSQL connection release failed: {}", e);
+      }
+    }
+
+    // Also release from in-memory
+    self.release_connection(ip);
   }
 
   /// Check if a request is allowed under rate limiting.
@@ -128,6 +191,36 @@ impl RateLimiter {
         retry_after: Duration::from_secs_f64(1.0 / bucket.rate),
       })
     }
+  }
+
+  /// Async version of check_request that uses PostgreSQL for distributed rate limiting
+  pub async fn check_request_async(&self, ip: IpAddr) -> Result<(), RateLimitError> {
+    if self.config.requests_per_second == 0 {
+      return Ok(()); // Unlimited
+    }
+
+    // Try PostgreSQL-backed check first for distributed rate limiting
+    if let Some(ref backend) = self.backend {
+      match backend
+        .rate_limit_check(ip, self.config.requests_per_second, self.config.burst_size)
+        .await
+      {
+        Ok(allowed) if allowed => return Ok(()),
+        Ok(_) => {
+          return Err(RateLimitError::RateLimited {
+            ip,
+            retry_after: Duration::from_secs_f64(1.0 / self.config.requests_per_second as f64),
+          })
+        }
+        Err(e) => {
+          // Log error and fall back to in-memory
+          tracing::warn!("PostgreSQL rate limit check failed, using in-memory: {}", e);
+        }
+      }
+    }
+
+    // Fallback to in-memory
+    self.check_request(ip)
   }
 
   /// Get a query permit for a client. Returns a guard that releases the permit on drop.

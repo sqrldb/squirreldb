@@ -38,8 +38,8 @@ impl Daemon {
 
     Self {
       config,
-      backend,
-      subs: Arc::new(SubscriptionManager::new()),
+      backend: backend.clone(),
+      subs: Arc::new(SubscriptionManager::with_backend(backend)),
       engine_pool,
       rate_limiter,
       shutdown_tx,

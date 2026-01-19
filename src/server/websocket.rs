@@ -173,7 +173,7 @@ async fn handle_client(
   }
 
   clients.write().await.remove(&client_id);
-  subs.remove_client(client_id);
+  subs.remove_client(client_id).await;
   rate_limiter.release_connection(peer_ip);
   send_task.abort();
 }

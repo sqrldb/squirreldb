@@ -1,22 +1,21 @@
-# Build stage
-FROM rust:1.84-bookworm AS builder
+# Build stage - using Alpine for better Docker Desktop SSL compatibility
+FROM rust:1.84-alpine AS builder
 
 WORKDIR /app
 
-# Install build dependencies and update CA certificates
-RUN apt-get update && apt-get install -y \
-    ca-certificates \
-    pkg-config \
-    libssl-dev \
+# Install build dependencies
+RUN apk add --no-cache \
+    musl-dev \
+    pkgconfig \
+    openssl-dev \
+    openssl \
     git \
-    && update-ca-certificates \
-    && rm -rf /var/lib/apt/lists/*
+    ca-certificates
 
 # Workaround for Docker Desktop SSL issues
 ENV SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt
 ENV CARGO_HTTP_CHECK_REVOKE=false
 ENV CARGO_NET_GIT_FETCH_WITH_CLI=true
-ENV CARGO_REGISTRIES_CRATES_IO_PROTOCOL=sparse
 
 # Copy manifests (excluding rust-toolchain.toml to use image's Rust version)
 COPY Cargo.toml Cargo.lock* ./
@@ -43,11 +42,9 @@ RUN touch src/lib.rs src/bin/sqrld.rs src/bin/sqrl.rs
 RUN cargo build --release
 
 # Runtime stage
-FROM debian:bookworm-slim
+FROM alpine:3.19
 
-RUN apt-get update && apt-get install -y \
-    ca-certificates \
-    && rm -rf /var/lib/apt/lists/*
+RUN apk add --no-cache ca-certificates libgcc
 
 WORKDIR /app
 
@@ -60,7 +57,7 @@ COPY squirreldb.example.yaml /app/squirreldb.example.yaml
 COPY migrations /app/migrations
 
 # Create non-root user
-RUN useradd -r -s /bin/false squirrel && \
+RUN adduser -D -s /bin/false squirrel && \
     mkdir -p /app/data && \
     chown -R squirrel:squirrel /app
 

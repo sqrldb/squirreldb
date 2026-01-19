@@ -465,6 +465,55 @@ impl DatabaseBackend for SqliteBackend {
       .await
       .map_err(|e| anyhow::anyhow!("{}", e))
   }
+
+  // Subscription filter methods - SQLite uses in-memory filtering (stubs for trait compatibility)
+  async fn add_subscription_filter(
+    &self,
+    _client_id: Uuid,
+    _subscription_id: &str,
+    _collection: &str,
+    _compiled_sql: Option<&str>,
+  ) -> Result<(), anyhow::Error> {
+    // SQLite uses in-memory subscription management, no DB-side filtering
+    Ok(())
+  }
+
+  async fn remove_subscription_filter(
+    &self,
+    _client_id: Uuid,
+    _subscription_id: &str,
+  ) -> Result<(), anyhow::Error> {
+    Ok(())
+  }
+
+  async fn remove_client_filters(&self, _client_id: Uuid) -> Result<u64, anyhow::Error> {
+    Ok(0)
+  }
+
+  // Rate limiting methods - SQLite uses in-memory rate limiting (stubs for trait compatibility)
+  async fn rate_limit_check(
+    &self,
+    _ip: std::net::IpAddr,
+    _rate: u32,
+    _capacity: u32,
+  ) -> Result<bool, anyhow::Error> {
+    // SQLite doesn't support distributed rate limiting, always allow
+    // The actual rate limiting happens in-memory via RateLimiter
+    Ok(true)
+  }
+
+  async fn connection_acquire(
+    &self,
+    _ip: std::net::IpAddr,
+    _max_connections: u32,
+  ) -> Result<bool, anyhow::Error> {
+    // SQLite uses in-memory connection tracking
+    Ok(true)
+  }
+
+  async fn connection_release(&self, _ip: std::net::IpAddr) -> Result<(), anyhow::Error> {
+    Ok(())
+  }
 }
 
 #[inline]

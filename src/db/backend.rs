@@ -120,4 +120,43 @@ pub trait DatabaseBackend: Send + Sync {
   async fn delete_token(&self, id: Uuid) -> Result<bool, anyhow::Error>;
   async fn list_tokens(&self) -> Result<Vec<ApiTokenInfo>, anyhow::Error>;
   async fn validate_token(&self, token_hash: &str) -> Result<bool, anyhow::Error>;
+
+  // Subscription filter methods for PostgreSQL-side filtering
+  /// Register a subscription filter in the database for efficient server-side filtering
+  async fn add_subscription_filter(
+    &self,
+    client_id: Uuid,
+    subscription_id: &str,
+    collection: &str,
+    compiled_sql: Option<&str>,
+  ) -> Result<(), anyhow::Error>;
+
+  /// Remove a subscription filter from the database
+  async fn remove_subscription_filter(
+    &self,
+    client_id: Uuid,
+    subscription_id: &str,
+  ) -> Result<(), anyhow::Error>;
+
+  /// Remove all subscription filters for a client
+  async fn remove_client_filters(&self, client_id: Uuid) -> Result<u64, anyhow::Error>;
+
+  // Rate limiting methods (for distributed rate limiting)
+  /// Check if a request is allowed under rate limiting (atomic check and consume)
+  async fn rate_limit_check(
+    &self,
+    ip: std::net::IpAddr,
+    rate: u32,
+    capacity: u32,
+  ) -> Result<bool, anyhow::Error>;
+
+  /// Acquire a connection slot for an IP address
+  async fn connection_acquire(
+    &self,
+    ip: std::net::IpAddr,
+    max_connections: u32,
+  ) -> Result<bool, anyhow::Error>;
+
+  /// Release a connection slot for an IP address
+  async fn connection_release(&self, ip: std::net::IpAddr) -> Result<(), anyhow::Error>;
 }

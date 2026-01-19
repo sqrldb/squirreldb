@@ -39,13 +39,16 @@ impl MessageHandler {
       }
       ClientMessage::Subscribe { id, query } => match self.engine_pool.parse_query(&query) {
         Ok(spec) => {
-          self.subs.add_subscription(client_id, id.clone(), spec);
+          self
+            .subs
+            .add_subscription(client_id, id.clone(), spec)
+            .await;
           ServerMessage::subscribed(id)
         }
         Err(e) => ServerMessage::error(id, e.to_string()),
       },
       ClientMessage::Unsubscribe { id } => {
-        self.subs.remove_subscription(client_id, &id);
+        self.subs.remove_subscription(client_id, &id).await;
         ServerMessage::Unsubscribed { id }
       }
       ClientMessage::Insert {

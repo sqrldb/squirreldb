@@ -1,9 +1,11 @@
 use parking_lot::RwLock;
 use rquickjs::{Context, Runtime};
 use std::collections::HashMap;
+use std::sync::Arc;
 use tokio::sync::broadcast;
 use uuid::Uuid;
 
+use crate::db::DatabaseBackend;
 use crate::types::{Change, ChangeEvent, ChangeOperation, Document, QuerySpec, ServerMessage};
 
 #[derive(Clone)]
@@ -14,6 +16,7 @@ struct Subscription {
 
 /// Manages subscriptions with O(1) lookup by collection.
 /// Uses a collection index to eliminate O(N×M) iteration when processing changes.
+/// Also registers compiled SQL filters in PostgreSQL for server-side filtering.
 pub struct SubscriptionManager {
   /// Client ID -> (Subscription ID -> Subscription)
   subs: RwLock<HashMap<Uuid, HashMap<String, Subscription>>>,
@@ -22,6 +25,8 @@ pub struct SubscriptionManager {
   collection_index: RwLock<HashMap<String, Vec<(Uuid, String)>>>,
   out_tx: broadcast::Sender<(Uuid, ServerMessage)>,
   runtime: Runtime,
+  /// Optional database backend for registering subscription filters in PostgreSQL
+  backend: Option<Arc<dyn DatabaseBackend>>,
 }
 
 impl SubscriptionManager {
@@ -34,6 +39,21 @@ impl SubscriptionManager {
       collection_index: RwLock::new(HashMap::new()),
       out_tx,
       runtime,
+      backend: None,
+    }
+  }
+
+  /// Create a SubscriptionManager with a database backend for PostgreSQL-side filtering
+  pub fn with_backend(backend: Arc<dyn DatabaseBackend>) -> Self {
+    let (out_tx, _) = broadcast::channel(4096);
+    let runtime = Runtime::new().expect("JS runtime");
+    runtime.set_memory_limit(10 * 1024 * 1024);
+    Self {
+      subs: RwLock::new(HashMap::new()),
+      collection_index: RwLock::new(HashMap::new()),
+      out_tx,
+      runtime,
+      backend: Some(backend),
     }
   }
 
@@ -41,8 +61,26 @@ impl SubscriptionManager {
     self.out_tx.subscribe()
   }
 
-  pub fn add_subscription(&self, client: Uuid, id: String, query: QuerySpec) {
+  /// Add a subscription and optionally register its SQL filter in PostgreSQL
+  pub async fn add_subscription(&self, client: Uuid, id: String, query: QuerySpec) {
     let collection = query.table.clone();
+
+    // Extract compiled SQL filter if available (for PostgreSQL-side filtering)
+    let compiled_sql = query
+      .filter
+      .as_ref()
+      .and_then(|f| f.compiled_sql.as_ref())
+      .map(|s| s.as_str());
+
+    // Register filter in PostgreSQL for server-side filtering (if backend available)
+    if let Some(ref backend) = self.backend {
+      if let Err(e) = backend
+        .add_subscription_filter(client, &id, &collection, compiled_sql)
+        .await
+      {
+        tracing::warn!("Failed to register subscription filter in DB: {}", e);
+      }
+    }
 
     // Add to main subscriptions map
     self.subs.write().entry(client).or_default().insert(
@@ -62,7 +100,15 @@ impl SubscriptionManager {
       .push((client, id));
   }
 
-  pub fn remove_subscription(&self, client: Uuid, id: &str) {
+  /// Remove a subscription and unregister its filter from PostgreSQL
+  pub async fn remove_subscription(&self, client: Uuid, id: &str) {
+    // Remove filter from PostgreSQL
+    if let Some(ref backend) = self.backend {
+      if let Err(e) = backend.remove_subscription_filter(client, id).await {
+        tracing::warn!("Failed to remove subscription filter from DB: {}", e);
+      }
+    }
+
     let mut subs = self.subs.write();
     if let Some(client_subs) = subs.get_mut(&client) {
       // Get the collection name before removing
@@ -82,7 +128,15 @@ impl SubscriptionManager {
     }
   }
 
-  pub fn remove_client(&self, client: Uuid) {
+  /// Remove all subscriptions for a client and unregister their filters from PostgreSQL
+  pub async fn remove_client(&self, client: Uuid) {
+    // Remove all filters for this client from PostgreSQL
+    if let Some(ref backend) = self.backend {
+      if let Err(e) = backend.remove_client_filters(client).await {
+        tracing::warn!("Failed to remove client filters from DB: {}", e);
+      }
+    }
+
     let mut subs = self.subs.write();
     if let Some(client_subs) = subs.remove(&client) {
       // Remove all subscriptions from collection index

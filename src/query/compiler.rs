@@ -35,6 +35,118 @@ impl QueryCompiler {
     self.compile_expression(body, param)
   }
 
+  /// Generate SQL for accessing a JSON array field (for array operations)
+  fn json_array(&self, field: &str) -> String {
+    match self.dialect {
+      SqlDialect::Postgres => {
+        let parts: Vec<&str> = field.split('.').collect();
+        if parts.len() == 1 {
+          format!("data->'{}'", parts[0])
+        } else {
+          let mut result = "data".to_string();
+          for part in &parts {
+            result.push_str(&format!("->'{}'", part));
+          }
+          result
+        }
+      }
+      SqlDialect::Sqlite => format!("json_extract(data, '$.{}')", field),
+    }
+  }
+
+  /// Generate SQL for array length operation
+  fn json_array_length(&self, field: &str) -> String {
+    match self.dialect {
+      SqlDialect::Postgres => format!("jsonb_array_length({})", self.json_array(field)),
+      SqlDialect::Sqlite => format!("json_array_length({})", self.json_array(field)),
+    }
+  }
+
+  /// Generate SQL for array contains operation (checks if array contains a value)
+  fn json_array_contains(&self, field: &str, value: &str) -> Option<String> {
+    // Validate and escape the value
+    let (is_string, clean_value) = if (value.starts_with('"') && value.ends_with('"'))
+      || (value.starts_with('\'') && value.ends_with('\''))
+    {
+      let inner = &value[1..value.len() - 1];
+      let escaped = escape_string(inner).ok()?;
+      (true, escaped)
+    } else if validate_numeric(value).is_ok() {
+      (false, value.to_string())
+    } else {
+      return None;
+    };
+
+    match self.dialect {
+      SqlDialect::Postgres => {
+        // Use the ? operator for JSONB array containment
+        if is_string {
+          Some(format!("{} ? '{}'", self.json_array(field), clean_value))
+        } else {
+          // For numbers, use @> containment operator
+          Some(format!(
+            "{} @> '[{}]'::jsonb",
+            self.json_array(field),
+            clean_value
+          ))
+        }
+      }
+      SqlDialect::Sqlite => {
+        // SQLite: use json_each to check for value in array
+        if is_string {
+          Some(format!(
+            "EXISTS(SELECT 1 FROM json_each({}) WHERE value = '{}')",
+            self.json_array(field),
+            clean_value
+          ))
+        } else {
+          Some(format!(
+            "EXISTS(SELECT 1 FROM json_each({}) WHERE value = {})",
+            self.json_array(field),
+            clean_value
+          ))
+        }
+      }
+    }
+  }
+
+  /// Generate SQL for string startsWith operation
+  fn string_starts_with(&self, field: &str, value: &str) -> Option<String> {
+    let inner = extract_string_value(value)?;
+    let escaped = escape_string(inner).ok()?;
+    // Escape LIKE wildcards in the value itself
+    let like_escaped = escaped.replace('%', "\\%").replace('_', "\\_");
+    Some(format!(
+      "{} LIKE '{}%'",
+      self.dialect.json_text(field),
+      like_escaped
+    ))
+  }
+
+  /// Generate SQL for string endsWith operation
+  fn string_ends_with(&self, field: &str, value: &str) -> Option<String> {
+    let inner = extract_string_value(value)?;
+    let escaped = escape_string(inner).ok()?;
+    let like_escaped = escaped.replace('%', "\\%").replace('_', "\\_");
+    Some(format!(
+      "{} LIKE '%{}'",
+      self.dialect.json_text(field),
+      like_escaped
+    ))
+  }
+
+  /// Generate SQL for string contains operation
+  fn string_contains(&self, field: &str, value: &str) -> Option<String> {
+    let inner = extract_string_value(value)?;
+    let escaped = escape_string(inner).ok()?;
+    let like_escaped = escaped.replace('%', "\\%").replace('_', "\\_");
+    Some(format!(
+      "{} LIKE '%{}%'",
+      self.dialect.json_text(field),
+      like_escaped
+    ))
+  }
+
   /// Compile a JS expression to SQL, handling logical operators && and ||
   fn compile_expression(&self, expr: &str, param: &str) -> Option<String> {
     let expr = expr.trim();
@@ -112,11 +224,38 @@ impl QueryCompiler {
   /// Compile a single comparison expression
   fn compile_comparison(&self, expr: &str, param: &str) -> Option<String> {
     let prefix = format!("{}.", param);
+
+    // Handle negation: !doc.field
+    if let Some(negated) = expr.strip_prefix('!') {
+      let inner = negated.trim();
+      if let Some(rest) = inner.strip_prefix(&prefix) {
+        let field = rest.trim();
+        if is_valid_field_path(field) && validate_identifier(field).is_ok() {
+          return Some(format!(
+            "({} = false OR {} IS NULL)",
+            self.dialect.json_bool(field),
+            self.dialect.json_text(field)
+          ));
+        }
+      }
+      return None;
+    }
+
     if !expr.starts_with(&prefix) {
       return None;
     }
 
     let rest = &expr[prefix.len()..];
+
+    // Try array/string method calls first
+    if let Some(sql) = self.try_compile_method_call(rest) {
+      return Some(sql);
+    }
+
+    // Try .length comparison (e.g., doc.items.length > 5)
+    if let Some(sql) = self.try_compile_length_comparison(rest) {
+      return Some(sql);
+    }
 
     // Try to parse as comparison with possibly nested field
     if let Some((field, op, value)) = parse_comparison_nested(rest) {
@@ -127,6 +266,102 @@ impl QueryCompiler {
     let field = rest.trim();
     if is_valid_field_path(field) && validate_identifier(field).is_ok() {
       return Some(format!("{} = true", self.dialect.json_bool(field)));
+    }
+
+    None
+  }
+
+  /// Try to compile method calls like .includes(), .startsWith(), .endsWith()
+  fn try_compile_method_call(&self, rest: &str) -> Option<String> {
+    // Match patterns like: field.includes('value') or field.startsWith("value")
+    // Regex-like parsing: find method name and argument
+
+    // Look for .includes(
+    if let Some(pos) = rest.find(".includes(") {
+      let field = &rest[..pos];
+      if !is_valid_field_path(field) || validate_identifier(field).is_err() {
+        return None;
+      }
+      let after = &rest[pos + 10..]; // skip ".includes("
+      let end = after.find(')')?;
+      let arg = after[..end].trim();
+      return self.json_array_contains(field, arg);
+    }
+
+    // Look for .startsWith(
+    if let Some(pos) = rest.find(".startsWith(") {
+      let field = &rest[..pos];
+      if !is_valid_field_path(field) || validate_identifier(field).is_err() {
+        return None;
+      }
+      let after = &rest[pos + 12..]; // skip ".startsWith("
+      let end = after.find(')')?;
+      let arg = after[..end].trim();
+      return self.string_starts_with(field, arg);
+    }
+
+    // Look for .endsWith(
+    if let Some(pos) = rest.find(".endsWith(") {
+      let field = &rest[..pos];
+      if !is_valid_field_path(field) || validate_identifier(field).is_err() {
+        return None;
+      }
+      let after = &rest[pos + 10..]; // skip ".endsWith("
+      let end = after.find(')')?;
+      let arg = after[..end].trim();
+      return self.string_ends_with(field, arg);
+    }
+
+    // Look for .contains( (alias for string contains, not array)
+    // Note: For clarity, we use .includes() for arrays and this could be string contains
+    if let Some(pos) = rest.find(".contains(") {
+      let field = &rest[..pos];
+      if !is_valid_field_path(field) || validate_identifier(field).is_err() {
+        return None;
+      }
+      let after = &rest[pos + 10..]; // skip ".contains("
+      let end = after.find(')')?;
+      let arg = after[..end].trim();
+      return self.string_contains(field, arg);
+    }
+
+    None
+  }
+
+  /// Try to compile .length comparisons like doc.items.length > 5
+  fn try_compile_length_comparison(&self, rest: &str) -> Option<String> {
+    // Find .length followed by comparison operator
+    let length_pos = rest.find(".length")?;
+    let field = &rest[..length_pos];
+
+    if !is_valid_field_path(field) || validate_identifier(field).is_err() {
+      return None;
+    }
+
+    let after_length = &rest[length_pos + 7..].trim(); // skip ".length"
+
+    // Parse comparison operator and value
+    for op in ["===", "!==", "==", "!=", ">=", "<=", ">", "<"] {
+      if let Some(remainder) = after_length.strip_prefix(op) {
+        let value = remainder.trim();
+        if validate_numeric(value).is_ok() {
+          let sql_op = match op {
+            "===" | "==" => "=",
+            "!==" | "!=" => "!=",
+            ">" => ">",
+            "<" => "<",
+            ">=" => ">=",
+            "<=" => "<=",
+            _ => return None,
+          };
+          return Some(format!(
+            "{} {} {}",
+            self.json_array_length(field),
+            sql_op,
+            value
+          ));
+        }
+      }
     }
 
     None
@@ -223,4 +458,15 @@ fn parse_comparison_nested(s: &str) -> Option<(String, String, String)> {
     }
   }
   None
+}
+
+/// Extract string value from quoted string (returns inner content)
+fn extract_string_value(value: &str) -> Option<&str> {
+  if (value.starts_with('"') && value.ends_with('"'))
+    || (value.starts_with('\'') && value.ends_with('\''))
+  {
+    Some(&value[1..value.len() - 1])
+  } else {
+    None
+  }
 }

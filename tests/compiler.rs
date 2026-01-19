@@ -92,23 +92,85 @@ fn test_compile_numeric_lte() {
   }
 }
 
+// Tests for array operations (now compiled to SQL)
 #[test]
-fn test_fallback_to_js_complex_expression() {
+fn test_compile_array_includes_postgres() {
   let compiler = QueryCompiler::new(SqlDialect::Postgres);
   let result = compiler.compile_predicate("doc => doc.tags.includes('rust')");
   match result {
-    CompiledFilter::Js(js) => assert_eq!(js, "doc => doc.tags.includes('rust')"),
-    _ => panic!("Expected JS filter"),
+    CompiledFilter::Sql(sql) => assert_eq!(sql, "data->'tags' ? 'rust'"),
+    _ => panic!("Expected SQL filter"),
   }
 }
 
 #[test]
-fn test_fallback_to_js_method_call() {
+fn test_compile_array_includes_sqlite() {
+  let compiler = QueryCompiler::new(SqlDialect::Sqlite);
+  let result = compiler.compile_predicate("doc => doc.tags.includes('rust')");
+  match result {
+    CompiledFilter::Sql(sql) => {
+      assert_eq!(
+        sql,
+        "EXISTS(SELECT 1 FROM json_each(json_extract(data, '$.tags')) WHERE value = 'rust')"
+      )
+    }
+    _ => panic!("Expected SQL filter"),
+  }
+}
+
+// Tests for string operations (now compiled to SQL)
+#[test]
+fn test_compile_string_starts_with_postgres() {
   let compiler = QueryCompiler::new(SqlDialect::Postgres);
   let result = compiler.compile_predicate("doc => doc.name.startsWith('A')");
   match result {
-    CompiledFilter::Js(js) => assert!(js.contains("startsWith")),
-    _ => panic!("Expected JS filter"),
+    CompiledFilter::Sql(sql) => assert_eq!(sql, "data->>'name' LIKE 'A%'"),
+    _ => panic!("Expected SQL filter"),
+  }
+}
+
+#[test]
+fn test_compile_string_ends_with_postgres() {
+  let compiler = QueryCompiler::new(SqlDialect::Postgres);
+  let result = compiler.compile_predicate("doc => doc.name.endsWith('son')");
+  match result {
+    CompiledFilter::Sql(sql) => assert_eq!(sql, "data->>'name' LIKE '%son'"),
+    _ => panic!("Expected SQL filter"),
+  }
+}
+
+// Tests for array length operations
+#[test]
+fn test_compile_array_length_postgres() {
+  let compiler = QueryCompiler::new(SqlDialect::Postgres);
+  let result = compiler.compile_predicate("doc => doc.items.length > 5");
+  match result {
+    CompiledFilter::Sql(sql) => assert_eq!(sql, "jsonb_array_length(data->'items') > 5"),
+    _ => panic!("Expected SQL filter"),
+  }
+}
+
+#[test]
+fn test_compile_array_length_sqlite() {
+  let compiler = QueryCompiler::new(SqlDialect::Sqlite);
+  let result = compiler.compile_predicate("doc => doc.items.length >= 3");
+  match result {
+    CompiledFilter::Sql(sql) => {
+      assert_eq!(sql, "json_array_length(json_extract(data, '$.items')) >= 3")
+    }
+    _ => panic!("Expected SQL filter"),
+  }
+}
+
+// Test for expressions that still fall back to JS
+#[test]
+fn test_fallback_to_js_unsupported_method() {
+  let compiler = QueryCompiler::new(SqlDialect::Postgres);
+  // .slice() is not supported, should fall back to JS
+  let result = compiler.compile_predicate("doc => doc.items.slice(0, 5).length > 0");
+  match result {
+    CompiledFilter::Js(js) => assert!(js.contains("slice")),
+    _ => panic!("Expected JS filter for unsupported method"),
   }
 }
 
