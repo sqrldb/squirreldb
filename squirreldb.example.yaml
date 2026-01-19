@@ -1,0 +1,43 @@
+# SquirrelDB Configuration
+# Copy to squirreldb.yaml and customize
+#
+# Environment variables can be referenced with $VAR or ${VAR} syntax
+
+# Backend: postgres or sqlite
+backend: sqlite
+
+server:
+  host: "0.0.0.0"
+  port: 8080
+  admin_port: 8081
+  protocols:
+    rest: true
+    websocket: true
+    sse: false
+    tcp: true
+
+# PostgreSQL settings (when backend: postgres)
+postgres:
+  url: "postgres://localhost/squirreldb"  # or $DATABASE_URL
+  max_connections: 20
+
+# SQLite settings (when backend: sqlite)
+sqlite:
+  path: "squirreldb.db"
+
+# Authentication (protects Admin UI only)
+auth:
+  enabled: false
+  # admin_token: "your-secret-token"
+
+# Rate limiting
+limits:
+  max_connections_per_ip: 100
+  requests_per_second: 100
+  burst_size: 50
+  query_timeout_ms: 30000
+  max_concurrent_queries: 10
+  max_message_size: 16777216  # 16MB
+
+logging:
+  level: "info"  # trace, debug, info, warn, error

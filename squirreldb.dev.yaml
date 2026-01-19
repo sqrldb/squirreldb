@@ -1,0 +1,15 @@
+# SquirrelDB Development Configuration
+# SQLite backend for local development
+
+backend: sqlite
+
+server:
+  host: "0.0.0.0"
+  port: 8080
+  admin_port: 8081
+
+sqlite:
+  path: "/app/data/squirreldb.db"
+
+logging:
+  level: "debug"

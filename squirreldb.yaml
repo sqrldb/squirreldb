@@ -1,0 +1,38 @@
+# SquirrelDB Configuration
+# Copy to squirreldb.yaml and customize
+#
+# Environment variables can be referenced with $VAR or ${VAR} syntax:
+#   url: $DATABASE_URL
+#   url: ${DATABASE_URL}
+
+# Backend: postgres or sqlite
+backend: sqlite
+
+server:
+  host: "0.0.0.0"
+  ports:
+    http: 8080
+    admin: 8081
+    tcp: 8082
+  protocols:
+    rest: true       # Enable REST API endpoints
+    websocket: true  # Enable WebSocket connections
+    sse: false       # Enable Server-Sent Events (coming soon)
+    tcp: true        # Enable native TCP wire protocol
+
+# PostgreSQL settings (when backend: postgres)
+postgres:
+  url: $DATABASE_URL # or "postgres://localhost/squirreldb"
+  max_connections: 20
+
+# SQLite settings (when backend: sqlite)
+sqlite:
+  path: "test.db"
+
+logging:
+  level: "info" # debug, info, warn, error
+
+# Authentication settings
+auth:
+  enabled: false     # Master switch for API token authentication
+  admin_token: ""    # Optional: separate token for admin UI (if set, admin UI requires this token)

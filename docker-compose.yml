@@ -1,0 +1,35 @@
+version: "3.8"
+
+services:
+  squirreldb:
+    build: .
+    ports:
+      - "8080:8080"   # WebSocket / REST API
+      - "8081:8081"   # Admin UI
+    environment:
+      - RUST_LOG=info
+      - DATABASE_URL=postgres://squirreldb:squirreldb@postgres:5432/squirreldb
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./squirreldb.yaml:/app/squirreldb.yaml:ro
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: squirreldb
+      POSTGRES_PASSWORD: squirreldb
+      POSTGRES_DB: squirreldb
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U squirreldb"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

@@ -1,0 +1,18 @@
+version: "3.8"
+
+# Development setup with SQLite (no external dependencies)
+services:
+  squirreldb:
+    build: .
+    ports:
+      - "8080:8080"   # WebSocket / REST API
+      - "8081:8081"   # Admin UI
+    environment:
+      - RUST_LOG=debug
+    volumes:
+      - ./squirreldb.dev.yaml:/app/squirreldb.yaml:ro
+      - squirreldb_data:/app/data
+    restart: unless-stopped
+
+volumes:
+  squirreldb_data:

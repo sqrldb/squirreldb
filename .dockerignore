@@ -1,0 +1,39 @@
+# Build artifacts
+target/
+debug/
+
+# Git
+.git/
+.github/
+.gitignore
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Docker files (avoid recursive builds)
+docker-compose*.yml
+
+# Config files (not needed in build)
+squirreldb.yaml
+squirreldb.dev.yaml
+
+# Documentation (keep README for reference)
+*.md
+!README.md
+
+# Test files
+tests/
+benches/
+
+# SDKs (separate projects)
+sdks/
+
+# Data files
+*.db
+*.log
+
+# Misc
+.DS_Store

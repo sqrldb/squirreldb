@@ -1,0 +1,1536 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <path d="M 112 354 L 112 373 L 121 377 L 121 357 L 115 354 Z" fill="#1a1a1a" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 112 315 L 112 334 L 121 337 L 121 318 Z" fill="#1a1a1a" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 346 243 L 345 246 L 345 253 L 346 254 L 352 254 L 356 252 L 350 245 Z" fill="#1a1a1a" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 0 0 L 0 511 L 511 511 L 511 0 Z M 97 346 L 101 345 L 112 350 L 133 354 L 158 355 L 159 356 L 159 374 L 161 382 L 160 383 L 128 382 L 113 379 L 103 375 L 97 369 Z M 97 306 L 100 305 L 104 308 L 113 311 L 128 314 L 171 315 L 172 319 L 168 327 L 163 345 L 161 347 L 132 346 L 131 345 L 120 344 L 104 338 L 97 331 Z M 212 251 L 211 255 L 198 271 L 188 286 L 177 306 L 154 307 L 153 308 L 126 306 L 109 302 L 103 299 L 96 292 L 95 288 L 95 267 L 96 266 L 99 266 L 110 271 L 110 290 L 119 293 L 119 276 L 118 275 L 119 272 L 136 273 L 137 274 L 158 274 L 134 272 L 108 266 L 102 263 L 99 260 L 99 258 L 110 252 L 123 248 L 139 246 L 140 245 L 149 245 L 150 244 L 185 244 L 186 245 L 204 247 L 210 249 Z M 318 228 L 319 227 L 326 227 L 345 233 L 368 247 L 376 254 L 376 256 L 371 260 L 356 265 L 346 265 L 339 263 L 331 258 L 324 250 L 318 236 Z M 233 179 L 233 204 L 238 226 L 220 244 L 215 244 L 202 240 L 192 239 L 191 238 L 183 238 L 182 237 L 152 237 L 151 238 L 141 238 L 140 239 L 133 239 L 123 241 L 105 247 L 102 246 L 102 244 L 117 229 L 127 222 L 145 215 L 160 214 L 156 211 L 144 206 L 134 204 L 117 204 L 116 203 L 116 201 L 120 197 L 138 185 L 160 176 L 178 172 L 186 172 L 187 171 L 213 172 L 231 177 Z M 309 138 L 312 138 L 316 141 L 332 160 L 342 180 L 341 184 L 329 183 L 322 174 L 308 160 L 299 153 L 299 151 Z M 434 266 L 431 278 L 424 293 L 411 306 L 403 310 L 387 315 L 338 325 L 321 331 L 315 334 L 306 341 L 324 337 L 328 335 L 333 335 L 334 336 L 330 356 L 330 362 L 329 363 L 329 374 L 328 375 L 328 386 L 327 387 L 313 387 L 312 386 L 303 386 L 302 385 L 284 383 L 253 376 L 237 371 L 235 369 L 235 367 L 250 344 L 237 349 L 228 354 L 226 354 L 225 351 L 241 334 L 262 317 L 282 305 L 284 305 L 293 311 L 300 313 L 317 313 L 304 311 L 290 304 L 280 294 L 276 286 L 275 282 L 276 279 L 278 279 L 284 284 L 295 288 L 312 288 L 336 283 L 354 277 L 384 264 L 388 264 L 406 273 L 408 275 L 408 280 L 412 288 L 415 284 L 420 272 L 398 260 L 395 257 L 395 255 L 388 241 L 382 233 L 373 224 L 366 219 L 351 211 L 339 207 L 310 203 L 304 192 L 294 178 L 280 164 L 265 154 L 257 171 L 256 182 L 255 183 L 255 192 L 256 193 L 256 201 L 259 214 L 267 233 L 254 244 L 232 266 L 221 279 L 207 298 L 190 328 L 203 312 L 232 284 L 254 268 L 256 268 L 257 271 L 234 298 L 207 335 L 189 366 L 181 385 L 180 391 L 178 393 L 175 393 L 170 387 L 166 377 L 166 360 L 167 359 L 168 349 L 174 329 L 185 305 L 202 278 L 215 261 L 233 241 L 248 227 L 241 203 L 241 178 L 246 159 L 253 146 L 261 136 L 267 137 L 294 156 L 313 175 L 322 188 L 341 190 L 354 194 L 371 202 L 381 209 L 396 224 L 405 238 L 410 250 Z" fill="#1a1a1a" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 98 345 L 98 368 L 102 373 L 108 376 L 123 380 L 141 381 L 142 382 L 160 382 L 158 375 L 158 356 L 141 356 L 140 355 L 124 354 L 108 350 Z M 112 353 L 115 353 L 122 356 L 122 376 L 121 377 L 115 376 L 111 373 L 111 354 Z" fill="#fefefe" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 98 305 L 98 331 L 103 336 L 111 340 L 127 344 L 151 345 L 152 346 L 162 345 L 166 329 L 172 316 L 134 316 L 133 315 L 126 315 L 106 310 Z M 112 314 L 115 314 L 122 317 L 122 337 L 121 338 L 113 336 L 111 334 L 111 315 Z" fill="#fefefe" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 116 273 L 117 273 Z" fill="#fefefe" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 211 252 L 200 248 L 186 247 L 185 246 L 150 246 L 149 247 L 140 247 L 119 251 L 100 259 L 102 261 L 114 266 L 128 269 L 148 271 L 149 272 L 159 272 L 160 275 L 159 276 L 137 276 L 136 275 L 119 274 L 120 275 L 121 293 L 116 294 L 109 291 L 108 287 L 108 274 L 109 272 L 102 270 L 97 267 L 97 290 L 103 297 L 109 300 L 120 303 L 125 303 L 132 305 L 145 305 L 146 306 L 173 305 L 177 303 L 186 286 L 196 271 Z" fill="#fefefe" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 320 229 L 320 236 L 326 250 L 335 259 L 346 263 L 357 263 L 369 259 L 375 255 L 358 242 L 345 235 L 331 230 Z M 344 243 L 345 242 L 350 243 L 357 250 L 357 253 L 351 256 L 346 256 L 343 253 Z" fill="#fefefe" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 231 179 L 214 174 L 187 173 L 186 174 L 178 174 L 163 177 L 136 188 L 117 202 L 133 202 L 134 203 L 144 204 L 156 209 L 161 213 L 161 215 L 160 216 L 152 216 L 151 217 L 141 218 L 127 224 L 116 232 L 103 246 L 109 243 L 123 239 L 140 237 L 141 236 L 151 236 L 152 235 L 190 236 L 191 237 L 202 238 L 219 243 L 236 226 L 231 203 Z" fill="#fefefe" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 310 139 L 305 147 L 300 152 L 308 158 L 324 174 L 329 181 L 340 182 L 339 177 L 330 160 L 319 146 Z" fill="#fefefe" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 432 266 L 408 250 L 406 244 L 397 228 L 381 211 L 371 204 L 357 197 L 341 192 L 322 190 L 311 175 L 295 159 L 282 149 L 267 139 L 262 137 L 255 146 L 248 159 L 243 178 L 243 203 L 245 213 L 249 223 L 249 228 L 217 261 L 204 278 L 188 303 L 177 326 L 170 348 L 169 359 L 168 360 L 168 377 L 172 387 L 177 392 L 178 391 L 181 380 L 187 366 L 205 335 L 232 298 L 257 269 L 242 278 L 224 293 L 206 311 L 193 327 L 191 327 L 190 324 L 200 306 L 219 279 L 231 265 L 256 240 L 265 233 L 256 210 L 254 201 L 254 192 L 253 191 L 255 171 L 257 165 L 264 153 L 267 153 L 275 158 L 290 171 L 300 183 L 310 201 L 323 202 L 342 206 L 363 215 L 373 222 L 384 233 L 390 241 L 397 255 L 397 257 L 420 270 L 421 275 L 417 284 L 413 289 L 411 289 L 409 287 L 406 280 L 406 275 L 389 267 L 387 265 L 351 280 L 319 289 L 312 289 L 311 290 L 291 289 L 280 283 L 277 279 L 279 289 L 282 294 L 290 302 L 301 308 L 316 311 L 317 314 L 316 315 L 300 315 L 291 312 L 284 307 L 282 307 L 262 319 L 240 337 L 224 354 L 247 343 L 250 344 L 250 347 L 239 363 L 237 369 L 256 375 L 260 375 L 283 381 L 310 384 L 311 385 L 325 385 L 326 386 L 327 364 L 328 363 L 328 356 L 332 336 L 306 343 L 305 340 L 315 332 L 326 327 L 349 320 L 391 312 L 411 304 L 422 293 L 429 278 Z" fill="#fefefe" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 179 389 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 173 389 L 177 393 L 178 392 L 176 392 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 321 386 L 325 386 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 171 386 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 309 385 L 310 385 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 301 384 L 302 384 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 170 384 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 294 383 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 288 382 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 169 382 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 282 381 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 277 380 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 182 380 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 272 379 L 273 379 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 268 378 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 168 378 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 263 377 L 264 377 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 259 376 L 260 376 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 327 375 L 327 379 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 255 375 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 184 375 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 252 374 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 248 373 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 185 373 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 245 372 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 242 371 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 239 370 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 167 367 L 167 370 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 188 366 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 328 364 L 328 366 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 189 364 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 190 362 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 240 361 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 241 359 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 168 358 L 168 359 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 193 357 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 329 356 L 329 358 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 243 356 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 223 355 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 194 355 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 225 354 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 227 353 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 229 352 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 169 352 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 330 350 L 330 351 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 233 350 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 235 349 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 237 348 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 229 348 L 228 349 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 198 348 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 249 347 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 170 347 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 199 346 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 244 345 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 331 344 L 331 345 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 247 344 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 250 343 L 252 343 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 201 343 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 171 343 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 307 342 L 308 342 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 312 341 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 304 341 L 303 343 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 316 340 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 203 340 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 172 340 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 332 339 L 332 340 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 320 339 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 323 338 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 327 337 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 309 337 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 205 337 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 331 336 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 206 335 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 315 333 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 244 333 L 241 336 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 317 332 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 319 331 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 209 331 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 175 331 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 321 330 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 326 328 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 211 328 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 176 328 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 329 327 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 251 327 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 335 325 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 338 324 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 255 324 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 214 324 L 213 325 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 191 324 L 187 332 L 189 331 L 189 328 L 193 326 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 342 323 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 178 323 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 345 322 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 192 322 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 349 321 L 350 321 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 259 321 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 216 321 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 179 321 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 354 320 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 198 320 L 197 321 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 193 320 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 359 319 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 180 319 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 364 318 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 263 318 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 218 318 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 194 318 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 370 317 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 181 317 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 375 316 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 266 316 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 380 315 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 384 314 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 315 314 L 316 314 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 300 314 L 301 314 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 269 314 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 221 314 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 388 313 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 296 313 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 197 313 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 392 312 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 319 312 L 321 313 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 205 312 L 203 314 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 395 311 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 311 311 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 291 311 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 274 311 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 198 311 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 398 310 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 307 310 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 289 310 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 276 310 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 224 310 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 401 309 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 303 309 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 404 308 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 200 308 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 406 307 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 298 307 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 285 307 L 286 308 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 281 307 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 408 306 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 296 306 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 283 306 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 201 306 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 157 306 L 164 306 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 141 306 L 145 306 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 294 305 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 228 305 L 227 306 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 174 305 L 176 305 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 130 305 L 131 305 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 124 304 L 125 304 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 291 303 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 203 303 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 119 303 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 414 302 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 230 302 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 114 302 L 115 302 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 189 301 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 111 301 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 205 300 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 108 300 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 106 299 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 180 298 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 104 298 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 284 297 L 288 301 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 234 297 L 233 298 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 207 297 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 192 296 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 181 296 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 421 295 L 420 296 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 209 294 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 193 294 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 118 294 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 99 294 L 101 296 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 281 293 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 183 293 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 238 292 L 237 293 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 113 292 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 280 291 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 211 291 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 195 291 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 184 291 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 110 291 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 97 291 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 424 290 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 227 290 L 225 292 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 411 289 L 412 290 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 309 289 L 311 289 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 296 289 L 297 289 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 425 288 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 318 288 L 319 288 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 291 288 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 197 288 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 186 288 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 414 287 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 324 287 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 278 287 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 242 287 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 214 287 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 426 286 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 328 286 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 286 286 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 187 286 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 120 286 L 120 293 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 332 285 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 199 285 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 416 284 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 336 284 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 234 284 L 233 285 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 408 283 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 339 283 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 217 283 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 189 283 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 417 282 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 342 282 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 201 282 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 428 281 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 345 281 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 247 281 L 246 282 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 418 280 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 407 280 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 348 280 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 278 280 L 277 284 L 278 282 L 280 282 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 239 280 L 238 281 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 191 280 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 429 279 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 351 279 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 203 279 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 419 278 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 221 278 L 220 279 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 356 277 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 243 277 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 193 277 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 430 276 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 359 276 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 420 275 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 361 275 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 252 275 L 251 276 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 246 275 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 206 275 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 195 274 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 165 274 L 168 274 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 126 274 L 128 274 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 109 274 L 109 287 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 431 273 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 403 273 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 366 273 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 249 273 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 115 273 L 118 274 L 119 273 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 401 272 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 226 272 L 225 273 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 137 275 L 161 275 L 159 273 L 156 273 L 155 275 L 149 275 L 148 272 L 146 272 L 145 275 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 112 272 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 420 271 L 421 272 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 399 271 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 371 271 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 252 271 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 209 271 L 208 272 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 197 271 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 138 271 L 140 271 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 108 271 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 432 270 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 397 270 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 254 270 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 132 270 L 133 270 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 395 269 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 376 269 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 127 269 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 102 269 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 415 268 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 393 268 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 378 268 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 257 268 L 258 268 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 121 268 L 122 268 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 391 267 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 381 267 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 212 267 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 200 267 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 116 267 L 117 267 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 412 266 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 389 266 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 383 266 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 113 266 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 431 265 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 410 265 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 110 265 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 408 264 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 107 264 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 428 263 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 358 263 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 344 263 L 345 263 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 234 263 L 232 265 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 105 263 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 362 262 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 341 262 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 216 262 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 204 262 L 203 263 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 103 262 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 425 261 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 403 261 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 401 260 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 367 260 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 100 260 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 422 259 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 399 259 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 207 258 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 101 258 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 419 257 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 373 257 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 103 257 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 375 256 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 105 256 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 416 255 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 396 255 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 222 255 L 221 256 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 107 255 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 354 254 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 413 253 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 395 253 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 328 253 L 332 257 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 112 253 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 115 252 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 371 251 L 372 252 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 211 251 L 210 254 L 212 252 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 118 251 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 208 250 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 122 250 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 325 249 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 205 249 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 126 249 L 127 249 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 408 248 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 367 248 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 201 248 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 131 248 L 132 248 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 344 247 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 324 247 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 195 247 L 196 247 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 137 247 L 139 247 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 407 246 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 364 246 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 186 246 L 188 246 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 145 246 L 149 246 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 323 245 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 162 245 L 174 245 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 103 245 L 102 246 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 350 244 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 109 244 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 390 243 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 360 243 L 361 244 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 322 243 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 217 243 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 112 243 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 346 242 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 214 242 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 115 242 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 389 241 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 357 241 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 256 241 L 253 244 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 210 241 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 119 241 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 321 240 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 206 240 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 123 240 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 201 239 L 202 239 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 128 239 L 129 239 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 352 238 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 196 238 L 197 238 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 134 238 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 386 237 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 350 237 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 320 237 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 189 237 L 190 237 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 141 237 L 142 237 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 176 236 L 180 236 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 152 236 L 159 236 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 111 236 L 108 239 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 263 235 L 262 236 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 401 234 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 343 234 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 341 233 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 243 233 L 230 246 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 382 232 L 383 233 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 338 232 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 335 231 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 332 230 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 265 230 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 118 230 L 117 231 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 327 229 L 328 229 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 319 229 L 321 228 L 319 228 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 264 228 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 122 227 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 263 226 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 249 226 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 395 225 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 125 225 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 262 224 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 373 223 L 375 225 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 248 223 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 236 222 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 130 222 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 369 220 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 247 220 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 260 219 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 137 219 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 366 218 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 235 218 L 235 219 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 140 218 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 246 217 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 144 217 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 363 216 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 259 216 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 163 216 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 149 216 L 151 216 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 361 215 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 385 214 L 391 220 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 359 214 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 245 214 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 234 214 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 258 213 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 355 212 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 159 212 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 353 211 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 351 210 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 257 210 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 156 210 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 379 209 L 380 210 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 348 209 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 244 209 L 244 210 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 233 209 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 154 209 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 345 208 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 152 208 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 376 207 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 342 207 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 150 207 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 338 206 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 256 206 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 147 206 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 373 205 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 334 205 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 143 205 L 144 205 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 329 204 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 243 204 L 243 205 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 139 204 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 370 203 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 321 203 L 323 203 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 131 203 L 133 203 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 116 203 L 117 203 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 368 202 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 311 202 L 314 202 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 366 201 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 232 201 L 232 203 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 364 200 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 255 200 L 255 201 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 362 199 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 360 198 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 121 198 L 120 199 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 355 196 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 307 196 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 352 195 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 349 194 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 306 194 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 126 194 L 125 195 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 346 193 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 342 192 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 129 192 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 337 191 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 131 191 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 330 190 L 331 190 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 303 189 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 134 189 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 301 186 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 318 184 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 242 184 L 242 196 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 299 183 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 254 183 L 254 191 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 146 183 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 341 182 L 340 183 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 334 182 L 335 182 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 148 182 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 316 181 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 151 181 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 153 180 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 340 179 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 156 179 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 326 178 L 327 179 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 229 178 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 159 178 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 294 177 L 296 179 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 226 177 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 162 177 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 312 176 L 313 177 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 243 176 L 243 177 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 223 176 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 166 176 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 255 175 L 255 176 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 220 175 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 171 175 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 338 174 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 215 174 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 176 174 L 177 174 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 322 173 L 323 174 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 206 173 L 208 173 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 183 173 L 186 173 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 337 172 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 289 171 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 256 171 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 244 171 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 336 170 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 335 168 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 257 168 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 245 167 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 334 166 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 258 165 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 301 164 L 307 170 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 246 164 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 280 163 L 281 164 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 331 161 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 247 161 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 308 159 L 309 160 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 275 159 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 328 157 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 293 157 L 294 158 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 272 157 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 262 157 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 269 155 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 263 155 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 302 154 L 303 155 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 267 154 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 325 153 L 326 154 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 288 153 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 265 153 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 300 151 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 285 151 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 253 149 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 281 148 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 320 147 L 321 148 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 304 147 L 303 148 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 278 146 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 275 144 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 256 144 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 307 143 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 272 142 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 313 140 L 315 142 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 309 140 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 269 140 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 259 140 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 264 137 Z" fill="#d3d3d4" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 178 393 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 172 388 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 317 386 L 320 386 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 180 386 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 307 385 L 308 385 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 170 385 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 299 384 L 300 384 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 292 383 L 293 383 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 181 383 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 286 382 L 287 382 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 281 381 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 327 380 L 327 382 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 276 380 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 271 379 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 168 379 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 267 378 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 183 378 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 262 377 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 258 376 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 251 374 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 244 372 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 241 371 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 186 371 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 167 371 L 167 373 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 187 369 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 236 368 L 236 369 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 328 367 L 328 368 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 188 367 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 237 366 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 189 365 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 238 364 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 167 364 L 167 366 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 190 363 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 239 362 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 191 361 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 329 359 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 192 359 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 242 357 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 168 356 L 168 357 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 244 354 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 330 352 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 196 352 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 246 351 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 231 351 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 169 351 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 227 350 L 226 351 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 197 350 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 248 348 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 238 348 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 240 347 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 331 346 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 242 346 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 170 346 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 245 345 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 200 345 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 248 344 L 251 344 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 306 342 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 202 342 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 171 342 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 332 341 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 311 341 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 315 340 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 319 339 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 172 339 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 308 338 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 326 337 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 330 336 L 333 336 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 173 336 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 312 335 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 314 334 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 207 334 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 174 333 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 188 331 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 322 330 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 247 330 L 245 332 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 210 330 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 175 330 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 324 329 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 327 328 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 191 328 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 212 327 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 332 326 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 252 326 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 336 325 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 177 325 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 339 324 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 343 323 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 256 323 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 215 323 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 346 322 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 196 322 L 195 323 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 351 321 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 355 320 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 260 320 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 217 320 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 360 319 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 365 318 L 366 318 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 371 317 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 264 317 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 219 317 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 376 316 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 381 315 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 267 315 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 202 315 L 201 316 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 196 315 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 385 314 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 313 314 L 314 314 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 302 314 L 303 314 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 182 314 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 389 313 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 297 313 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 222 313 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 393 312 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 316 312 L 319 313 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 294 312 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 272 312 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 183 312 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 396 311 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 310 311 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 399 310 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 306 310 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 199 310 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 184 310 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 402 309 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 288 309 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 277 309 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 225 309 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 300 308 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 279 308 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 185 308 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 284 306 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 186 306 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 165 306 L 167 306 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 138 306 L 140 306 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 410 305 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 202 305 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 129 305 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 292 304 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 229 304 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 187 304 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 177 304 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 123 304 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 413 303 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 118 303 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 289 302 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 188 302 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 178 302 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 231 301 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 215 301 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 110 301 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 179 300 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 190 299 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 191 297 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 102 297 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 283 296 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 235 296 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 182 295 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 119 294 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 116 293 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 98 293 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 423 292 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 239 291 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 279 290 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 212 290 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 185 290 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 298 289 L 308 289 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 196 289 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 317 288 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 292 288 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 229 288 L 228 289 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 410 287 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 323 287 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 289 287 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 327 286 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 243 286 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 215 286 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 198 286 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 415 285 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 409 285 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 331 285 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 188 285 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 427 284 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 335 284 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 283 284 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 338 283 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 235 283 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 200 283 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 428 282 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 341 282 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 218 282 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 190 282 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 344 281 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 347 280 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 248 280 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 350 279 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 240 279 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 407 278 L 407 279 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 353 278 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 276 278 L 276 279 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 430 277 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 419 277 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 358 276 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 244 276 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 223 276 L 222 277 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 205 276 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 194 276 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 431 274 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 420 274 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 405 274 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 363 274 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 247 274 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 162 274 L 164 274 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 129 274 L 130 274 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 117 274 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 365 273 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 254 273 L 253 274 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 207 273 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 196 273 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 154 273 L 155 273 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 120 273 L 121 273 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 368 272 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 250 272 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 144 272 L 145 272 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 111 272 L 114 273 L 114 272 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 137 271 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 418 270 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 373 270 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 228 270 L 227 271 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 198 270 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 130 270 L 131 270 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 105 270 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 416 269 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 375 269 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 255 269 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 125 269 L 126 269 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 211 268 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 120 268 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 100 268 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 413 267 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 380 267 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 98 267 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 433 266 L 433 267 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 390 266 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 201 266 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 112 266 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 385 265 L 388 265 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 109 265 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 430 264 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 350 264 L 353 264 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 406 263 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 359 263 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 215 263 L 214 264 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 104 263 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 427 262 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 340 262 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 365 261 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 338 261 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 205 261 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 101 261 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 424 260 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 368 260 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 336 260 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 370 259 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 421 258 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 397 258 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 372 258 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 333 258 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 239 258 L 235 262 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 220 257 L 219 258 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 208 257 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 418 256 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 396 256 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 351 255 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 346 255 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 415 254 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 375 254 L 376 255 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 109 254 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 356 253 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 344 253 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 111 253 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 327 252 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 114 252 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 394 251 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 212 251 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 409 250 L 410 251 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 370 250 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 209 250 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 121 250 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 393 249 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 206 249 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 125 249 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 344 248 L 344 249 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 202 248 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 130 248 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 392 247 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 366 247 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 229 247 L 226 250 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 197 247 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 136 247 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 101 247 L 102 247 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 323 246 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 189 246 L 190 246 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 143 246 L 144 246 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 104 246 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 407 245 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 391 245 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 363 245 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 351 245 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 252 245 L 249 248 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 175 245 L 179 245 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 156 245 L 161 245 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 107 245 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 110 244 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 406 243 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 345 243 L 348 243 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 216 243 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 113 243 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 213 242 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 116 242 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 405 241 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 321 241 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 222 241 L 220 243 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 209 241 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 120 241 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 388 240 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 205 240 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 124 240 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 107 240 L 106 241 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 404 239 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 354 239 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 200 239 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 130 239 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 320 238 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 195 238 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 135 238 L 136 238 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 403 237 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 261 237 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 187 237 L 188 237 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 143 237 L 145 237 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 385 236 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 348 236 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 160 236 L 175 236 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 402 235 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 346 235 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 344 234 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 114 233 L 112 235 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 400 232 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 339 232 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 266 232 L 266 233 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 336 231 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 245 231 L 244 232 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 333 230 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 319 230 L 319 233 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 398 229 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 329 229 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 119 229 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 322 228 L 323 228 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 249 227 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 396 226 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 376 226 L 381 231 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 123 226 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 237 225 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 248 224 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 262 223 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 128 223 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 392 221 L 393 222 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 370 221 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 261 221 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 247 221 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 236 221 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 132 221 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 134 220 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 367 219 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 260 218 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 246 218 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 139 218 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 364 217 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 235 217 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 143 217 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 148 216 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 245 215 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 162 214 L 163 215 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 357 213 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 234 213 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 383 212 L 384 213 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 157 211 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 350 210 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 257 209 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 378 208 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 341 207 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 233 207 L 233 208 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 149 207 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 375 206 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 337 206 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 243 206 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 146 206 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 333 205 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 256 205 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 142 205 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 372 204 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 327 204 L 328 204 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 138 204 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 320 203 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 118 203 L 130 203 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 310 202 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 116 202 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 309 200 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 308 198 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 255 198 L 255 199 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 232 198 L 232 200 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 358 197 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 242 197 L 242 199 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 123 196 L 122 197 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 353 195 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 350 194 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 347 193 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 343 192 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 338 191 L 339 191 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 304 191 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 332 190 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 132 190 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 321 188 L 324 189 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 302 188 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 137 187 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 139 186 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 319 185 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 141 185 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 143 184 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 339 183 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 332 182 L 333 182 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 317 182 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 298 182 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 328 181 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 150 181 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 242 180 L 242 183 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 155 179 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 314 178 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 230 178 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 158 178 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 325 177 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 255 177 L 255 178 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 227 177 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 339 176 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 293 176 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 224 176 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 165 176 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 221 175 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 170 175 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 243 174 L 243 175 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 216 174 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 175 174 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 209 173 L 210 173 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 181 173 L 182 173 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 256 172 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 308 171 L 309 172 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 244 170 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 317 168 L 321 172 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 258 166 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 282 165 L 283 166 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 333 164 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 259 163 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 310 161 L 314 165 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 298 161 L 300 163 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 260 161 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 276 160 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 261 159 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 329 158 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 273 158 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 248 158 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 304 156 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 270 156 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 249 156 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 327 155 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 291 155 L 292 156 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 264 154 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 250 154 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 287 152 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 251 152 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 284 150 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 252 150 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 322 149 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 302 149 L 301 150 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 280 147 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 254 147 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 277 145 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 306 144 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 274 143 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 308 141 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 271 141 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 258 141 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 268 139 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 310 138 L 312 139 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 266 138 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 263 136 L 261 137 Z" fill="#9f9fa0" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 179 390 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 180 387 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 171 387 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 315 386 L 316 386 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 305 385 L 306 385 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 298 384 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 181 384 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 327 383 L 327 384 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 291 383 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 169 383 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 285 382 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 137 382 L 141 382 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 280 381 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 182 381 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 128 381 L 129 381 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 275 380 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 168 380 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 160 380 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 122 380 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 270 379 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 117 379 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 266 378 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 113 378 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 110 377 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 184 376 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 118 376 L 118 377 L 120 377 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 107 376 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 254 375 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 159 375 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 115 375 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 105 375 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 185 374 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 167 374 L 167 375 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 103 374 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 247 373 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 238 370 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 328 369 L 328 370 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 98 369 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 167 362 L 167 363 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 329 360 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 240 360 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 194 356 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 159 356 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 121 356 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 243 355 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 224 355 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 168 355 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 141 355 L 145 355 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 118 355 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 195 354 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 131 354 L 132 354 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 330 353 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 124 353 L 125 353 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 245 352 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 225 352 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 119 352 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 234 350 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 169 350 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 111 350 L 112 353 L 115 351 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 247 349 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 236 349 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 108 349 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 331 347 L 331 348 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 199 347 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 103 347 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 144 346 L 161 346 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 101 346 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 250 345 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 170 345 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 132 345 L 133 345 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 125 344 L 126 344 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 98 344 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 251 343 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 163 343 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 121 343 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 332 342 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 305 342 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 117 342 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 310 341 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 314 340 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 318 339 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 307 339 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 204 339 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 164 339 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 108 339 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 322 338 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 238 338 L 231 345 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 172 338 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 121 338 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 106 338 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 333 337 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 104 337 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 329 336 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 311 336 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 206 336 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 116 336 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 173 335 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 165 335 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 113 335 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 316 333 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 208 333 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 99 333 L 101 335 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 318 332 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 166 332 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 320 331 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 325 329 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 167 329 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 249 328 L 248 329 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 330 327 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 190 327 L 189 330 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 176 327 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 333 326 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 213 326 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 253 325 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 340 324 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 169 324 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 347 322 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 257 322 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 178 322 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 352 321 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 193 321 L 191 325 L 194 324 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 170 321 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 356 320 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 179 320 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 361 319 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 261 319 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 194 319 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 171 319 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 367 318 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 180 318 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 372 317 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 200 317 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 195 317 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 377 316 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 220 316 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 181 316 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 163 316 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 158 316 L 159 316 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 150 316 L 151 316 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 118 316 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 382 315 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 134 315 L 137 315 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 115 315 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 386 314 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 311 314 L 312 314 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 304 314 L 305 314 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 126 314 L 127 314 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 390 313 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 298 313 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 270 313 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 120 313 L 121 313 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 315 312 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 223 312 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 198 312 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 116 312 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 309 311 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 292 311 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 112 311 L 112 314 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 305 310 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 290 310 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 275 310 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 109 310 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 302 309 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 106 309 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 226 308 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 407 307 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 297 307 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 201 307 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 102 307 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 295 306 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 282 306 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 168 306 L 170 306 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 136 306 L 137 306 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 128 305 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 99 305 L 100 306 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 412 304 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 122 304 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 117 303 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 214 302 L 206 310 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 204 302 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 113 302 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 232 300 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 189 300 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 107 300 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 418 299 L 417 300 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 206 299 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 105 299 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 181 297 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 208 296 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 282 295 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 236 295 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 221 295 L 216 300 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 192 295 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 422 294 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 210 293 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 280 292 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 194 292 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 184 292 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 114 292 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 97 292 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 111 291 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 240 290 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 425 289 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 213 289 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 413 288 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 315 288 L 316 288 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 293 288 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 278 288 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 426 287 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 322 287 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 290 287 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 230 287 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 187 287 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 326 286 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 287 286 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 330 285 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 285 285 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 277 285 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 244 285 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 216 285 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 334 284 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 416 283 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 282 283 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 408 282 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 236 282 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 417 281 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 219 281 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 429 280 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 276 280 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 202 280 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 418 279 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 192 279 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 352 278 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 277 278 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 250 278 L 249 279 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 241 278 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 355 277 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 204 277 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 407 276 L 407 277 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 360 275 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 224 275 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 119 275 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 161 274 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 131 274 L 132 274 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 152 273 L 153 273 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 122 273 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 113 273 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 367 272 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 255 272 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 197 272 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 143 272 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 115 272 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 432 271 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 400 271 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 370 271 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 136 271 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 109 271 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 398 270 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 253 270 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 129 270 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 106 270 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 396 269 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 210 269 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 199 269 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 124 269 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 103 269 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 414 268 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 394 268 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 377 268 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 230 268 L 229 269 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 119 268 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 392 267 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 258 267 L 259 267 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 115 267 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 411 266 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 382 266 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 432 265 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 409 265 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 213 265 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 202 265 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 354 264 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 348 264 L 349 264 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 106 264 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 429 263 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 360 263 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 343 263 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 404 262 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 363 262 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 102 262 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 402 261 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 366 261 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 400 260 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 206 260 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 334 259 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 218 259 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 99 259 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 420 257 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 396 257 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 374 257 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 102 257 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 209 256 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 104 256 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 417 255 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 350 255 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 242 255 L 240 257 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 106 255 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 395 254 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 353 254 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 345 254 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 374 253 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 412 252 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 326 251 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 225 251 L 223 253 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 117 251 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 356 250 L 357 251 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 344 250 L 344 252 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 210 250 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 120 250 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 369 249 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 248 249 L 246 251 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 324 248 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 203 248 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 129 248 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 408 247 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 198 247 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 135 247 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 352 246 L 353 247 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 191 246 L 192 246 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 142 246 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 105 246 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 180 245 L 182 245 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 153 245 L 155 245 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 108 245 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 362 244 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 345 244 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 322 244 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 219 244 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 389 242 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 359 242 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 212 242 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 117 242 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 105 242 L 104 243 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 208 241 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 121 241 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 356 240 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 204 240 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 125 240 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 387 239 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 320 239 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 199 239 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 131 239 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 260 238 L 259 239 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 225 238 L 223 240 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 193 238 L 194 238 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 137 238 L 138 238 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 185 237 L 186 237 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 146 237 L 147 237 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 384 235 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 319 234 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 265 234 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 342 233 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 115 232 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 337 231 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 399 230 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 324 228 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 248 228 L 246 230 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 120 228 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 397 227 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 264 227 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 263 225 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 237 224 L 236 227 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 126 224 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 394 223 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 371 222 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 246 219 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 136 219 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 142 217 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 362 216 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 147 216 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 360 215 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 259 215 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 160 213 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 258 212 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 234 212 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 382 211 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 352 211 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 244 211 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 155 210 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 347 209 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 153 209 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 344 208 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 257 208 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 151 208 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 243 207 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 233 206 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 332 205 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 326 204 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 256 204 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 136 204 L 137 204 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 318 203 L 319 203 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 115 203 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 369 202 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 367 201 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 365 200 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 242 200 L 242 201 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 118 200 L 117 201 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 363 199 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 361 198 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 356 196 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 255 196 L 255 197 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 232 196 L 232 197 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 306 195 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 124 195 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 351 194 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 348 193 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 305 193 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 127 193 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 344 192 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 340 191 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 130 191 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 333 190 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 325 189 L 326 189 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 135 188 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 320 186 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 300 185 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 337 183 L 338 183 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 145 183 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 331 182 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 147 182 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 341 181 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 297 181 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 327 180 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 232 180 L 232 181 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 152 180 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 255 179 L 255 180 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 242 179 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 340 178 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 161 177 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 324 176 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 225 176 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 292 175 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 169 175 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 217 174 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 174 174 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 338 173 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 310 173 L 311 174 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 256 173 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 211 173 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 180 173 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 192 172 L 198 172 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 337 171 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 336 169 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 257 169 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 244 169 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 335 167 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 284 167 L 286 169 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 315 166 L 316 167 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 245 166 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 246 163 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 332 162 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 277 161 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 247 160 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 330 159 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 296 159 L 297 160 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 274 159 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 305 157 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 271 157 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 263 156 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 268 155 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 299 152 L 300 153 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 323 150 L 324 151 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 283 149 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 253 148 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 305 145 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 255 145 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 276 144 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 257 142 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 309 139 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+  <path d="M 260 138 Z" fill="#726a65" fill-rule="evenodd" clip-rule="evenodd"/>
+</svg>
