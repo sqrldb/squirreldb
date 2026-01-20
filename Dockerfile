@@ -1,5 +1,5 @@
 # Build stage - using Alpine for better Docker Desktop SSL compatibility
-FROM rust:1.84-alpine AS builder
+FROM rust:1.90-alpine AS builder
 
 WORKDIR /app
 
