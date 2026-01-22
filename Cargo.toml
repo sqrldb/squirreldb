@@ -78,14 +78,14 @@ comfy-table = "7"
 # MCP (Model Context Protocol)
 rmcp = { version = "0.13", features = ["server", "transport-io", "transport-streamable-http-server"] }
 
-# Unix terminal control (for password prompts)
-[target.'cfg(unix)'.dependencies]
-libc = "0.2"
-
 # Performance
 parking_lot = "0.12"
 mimalloc = { version = "0.1", default-features = false }
 lru = "0.12"
+
+# Unix terminal control (for password prompts)
+[target.'cfg(unix)'.dependencies]
+libc = "0.2"
 
 [dev-dependencies]
 tokio-test = "0.4"
