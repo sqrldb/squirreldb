@@ -86,6 +86,7 @@ fn test_protocols_serialization() {
     websocket: false,
     sse: true,
     tcp: true,
+    mcp: false,
   };
 
   let yaml = serde_yaml::to_string(&protocols).unwrap();

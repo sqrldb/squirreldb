@@ -5,6 +5,7 @@ use tokio::sync::broadcast;
 use super::{RateLimiter, ServerConfig, TcpServer, WebSocketServer};
 use crate::admin::{emit_log, AdminServer};
 use crate::db::DatabaseBackend;
+use crate::mcp::McpServer;
 use crate::query::QueryEnginePool;
 use crate::subscriptions::SubscriptionManager;
 
@@ -129,6 +130,27 @@ impl Daemon {
         "TCP wire protocol server disabled",
       );
       tracing::info!("TCP wire protocol server disabled");
+    }
+
+    // Start MCP SSE server if enabled
+    if self.config.server.protocols.mcp {
+      let mcp_addr = self.config.mcp_address();
+      let backend = self.backend.clone();
+      let engine_pool = self.engine_pool.clone();
+      emit_log(
+        "info",
+        "squirreldb::mcp",
+        &format!("Starting MCP SSE server on {}", mcp_addr),
+      );
+      tracing::info!("SquirrelDB MCP SSE on {}", mcp_addr);
+      tokio::spawn(async move {
+        if let Err(e) = McpServer::run_sse(&mcp_addr, backend, engine_pool).await {
+          tracing::error!("MCP server error: {}", e);
+        }
+      });
+    } else {
+      emit_log("warn", "squirreldb::mcp", "MCP SSE server disabled");
+      tracing::info!("MCP SSE server disabled");
     }
 
     // Start WebSocket server only if enabled

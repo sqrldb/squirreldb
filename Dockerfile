@@ -1,35 +1,36 @@
-# Build stage - using Alpine for better Docker Desktop SSL compatibility
-FROM rust:1.90-alpine AS builder
+FROM rust:1.90-slim-bookworm AS builder
 
 WORKDIR /app
 
-# Install build dependencies
-RUN apk add --no-cache \
-    musl-dev \
-    pkgconfig \
-    openssl-dev \
-    openssl \
-    git \
-    ca-certificates
+# Install build dependencies and update CA certificates
+RUN apt-get update && apt-get install -y --no-install-recommends \
+  pkg-config \
+  libssl-dev \
+  ca-certificates \
+  curl \
+  && update-ca-certificates \
+  && rm -rf /var/lib/apt/lists/*
 
-# Workaround for Docker Desktop SSL issues
-ENV SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt
-ENV CARGO_HTTP_CHECK_REVOKE=false
-ENV CARGO_NET_GIT_FETCH_WITH_CLI=true
-
-# Copy manifests (excluding rust-toolchain.toml to use image's Rust version)
+# Copy manifests and vendored dependencies
 COPY Cargo.toml Cargo.lock* ./
+COPY vendor vendor
+
+# Configure cargo to use vendored dependencies (bypasses network)
+# Put config in project dir AND home dir to ensure it's found
+RUN mkdir -p .cargo /root/.cargo && \
+  printf '[source.crates-io]\nreplace-with = "vendored-sources"\n\n[source.vendored-sources]\ndirectory = "vendor"\n' > .cargo/config.toml && \
+  cp .cargo/config.toml /root/.cargo/config.toml
 
 # Create dummy src and benches to cache dependencies
 RUN mkdir -p src/bin src/admin/static benches && \
-    echo "fn main() {}" > src/bin/sqrld.rs && \
-    echo "fn main() {}" > src/bin/sqrl.rs && \
-    echo "pub fn dummy() {}" > src/lib.rs && \
-    echo "fn main() {}" > benches/database.rs && \
-    echo "fn main() {}" > benches/query_engine.rs
+  echo "fn main() {}" > src/bin/sqrld.rs && \
+  echo "fn main() {}" > src/bin/sqrl.rs && \
+  echo "pub fn dummy() {}" > src/lib.rs && \
+  echo "fn main() {}" > benches/database.rs && \
+  echo "fn main() {}" > benches/query_engine.rs
 
-# Build dependencies only (keep dummy benches for final build)
-RUN cargo build --release && rm -rf src
+# Build dependencies only (offline - using vendored sources)
+RUN cargo build --release --offline && rm -rf src
 
 # Copy actual source
 COPY src src
@@ -39,12 +40,15 @@ COPY migrations migrations
 RUN touch src/lib.rs src/bin/sqrld.rs src/bin/sqrl.rs
 
 # Build release binaries
-RUN cargo build --release
+RUN cargo build --release --offline
 
-# Runtime stage
-FROM alpine:3.19
+# Runtime stage - use Debian slim for glibc compatibility
+FROM debian:bookworm-slim
 
-RUN apk add --no-cache ca-certificates libgcc
+RUN apt-get update && apt-get install -y --no-install-recommends \
+  ca-certificates \
+  libssl3 \
+  && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
@@ -57,9 +61,9 @@ COPY squirreldb.example.yaml /app/squirreldb.example.yaml
 COPY migrations /app/migrations
 
 # Create non-root user
-RUN adduser -D -s /bin/false squirrel && \
-    mkdir -p /app/data && \
-    chown -R squirrel:squirrel /app
+RUN useradd -r -s /bin/false squirrel && \
+  mkdir -p /app/data && \
+  chown -R squirrel:squirrel /app
 
 USER squirrel
 
@@ -72,6 +76,6 @@ ENV RUST_LOG=info
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
-    CMD sqrl status || exit 1
+  CMD sqrl status || exit 1
 
 CMD ["sqrld"]

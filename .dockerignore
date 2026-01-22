@@ -5,7 +5,6 @@ debug/
 # Git
 .git/
 .github/
-.gitignore
 
 # IDE
 .idea/
@@ -13,22 +12,20 @@ debug/
 *.swp
 *.swo
 
-# Docker files (avoid recursive builds)
+# Docker files
 docker-compose*.yml
 
-# Config files (not needed in build)
+# Config files
 squirreldb.yaml
 squirreldb.dev.yaml
 
-# Documentation (keep README for reference)
+# Documentation
 *.md
-!README.md
 
 # Test files
 tests/
-benches/
 
-# SDKs (separate projects)
+# SDKs
 sdks/
 
 # Data files
@@ -37,3 +34,4 @@ sdks/
 
 # Misc
 .DS_Store
+.gitignore

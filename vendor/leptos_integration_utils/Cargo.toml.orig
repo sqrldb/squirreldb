@@ -1,0 +1,23 @@
+[package]
+name = "leptos_integration_utils"
+version = { workspace = true }
+edition = "2021"
+authors = ["Greg Johnston"]
+license = "MIT"
+repository = "https://github.com/leptos-rs/leptos"
+description = "Utilities to help build server integrations for the Leptos web framework."
+rust-version.workspace = true
+
+[dependencies]
+futures = "0.3"
+leptos = { workspace = true, features = ["ssr"] }
+leptos_hot_reload = { workspace = true }
+leptos_meta = { workspace = true, features = ["ssr"] }
+leptos_config = { workspace = true }
+tracing = "0.1.37"
+
+[features]
+experimental-islands = []
+
+[package.metadata.docs.rs]
+rustdoc-args = ["--generate-link-to-definition"]

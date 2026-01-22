@@ -1,0 +1,195 @@
+[package]
+name = "server_fn"
+version = { workspace = true }
+edition = "2021"
+authors = ["Greg Johnston", "Ben Wishovich"]
+license = "MIT"
+repository = "https://github.com/leptos-rs/leptos"
+description = "RPC for any web framework."
+readme = "../README.md"
+rust-version.workspace = true
+
+[dependencies]
+server_fn_macro_default = { workspace = true }
+# used for hashing paths in #[server] macro
+const_format = "0.2"
+xxhash-rust = { version = "0.8", features = ["const_xxh64"] }
+# used across multiple features
+serde = { version = "1", features = ["derive"] }
+send_wrapper = { version = "0.6", features = ["futures"], optional = true }
+
+# registration system
+inventory = { version = "0.3", optional = true }
+dashmap = "5"
+once_cell = "1"
+
+## servers 
+# actix 
+actix-web = { version = "4", optional = true }
+
+# axum
+axum = { version = "0.7", optional = true, default-features = false, features = [
+  "multipart",
+] }
+tower = { version = "0.4", optional = true }
+tower-layer = { version = "0.3", optional = true }
+
+## input encodings 
+serde_qs = { version = "0.12", optional = true }
+multer = { version = "3", optional = true }
+
+## output encodings 
+# serde 
+serde_json = "1"
+serde-lite = { version = "0.5", features = ["derive"], optional = true }
+futures = "0.3"
+http = { version = "1" }
+ciborium = { version = "0.2", optional = true }
+hyper = { version = "1", optional = true }
+bytes = "1"
+thiserror = "1"
+http-body-util = { version = "0.1.0", optional = true }
+rkyv = { version = "0.7", features = [
+  "validation",
+  "uuid",
+  "strict",
+], optional = true }
+rmp-serde = { version = "1.1", optional = true }
+
+# client
+gloo-net = { version = "0.6", optional = true }
+js-sys = { version = "0.3", optional = true }
+wasm-bindgen = { version = "0.2", optional = true }
+wasm-bindgen-futures = { version = "0.4", optional = true }
+wasm-streams = { version = "0.4", optional = true }
+web-sys = { version = "0.3", optional = true, features = [
+  "console",
+  "ReadableStream",
+  "ReadableStreamDefaultReader",
+] }
+
+# reqwest client 
+reqwest = { version = "0.12", default-features = false, optional = true, features = [
+  "multipart",
+  "stream",
+] }
+url = "2"
+
+[features]
+default = ["json", "cbor"]
+axum-no-default = [
+  "ssr",
+  "dep:axum",
+  "dep:hyper",
+  "dep:http-body-util",
+  "dep:tower",
+  "dep:tower-layer",
+]
+form-redirects = []
+actix = ["ssr", "dep:actix-web", "dep:send_wrapper"]
+axum = ["axum/default", "axum-no-default"]
+browser = [
+  "dep:gloo-net",
+  "dep:js-sys",
+  "dep:send_wrapper",
+  "dep:wasm-bindgen",
+  "dep:web-sys",
+  "dep:wasm-streams",
+  "dep:wasm-bindgen-futures",
+]
+json = []
+serde-lite = ["dep:serde-lite"]
+multipart = ["browser", "dep:multer"]
+url = ["dep:serde_qs"]
+cbor = ["dep:ciborium"]
+rkyv = ["dep:rkyv"]
+msgpack = ["dep:rmp-serde"]
+default-tls = ["reqwest?/default-tls"]
+rustls = ["reqwest?/rustls-tls"]
+reqwest = ["dep:reqwest"]
+ssr = ["inventory"]
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--generate-link-to-definition"]
+
+# disables some feature combos for testing in CI
+[package.metadata.cargo-all-features]
+denylist = [
+  "rustls",
+  "default-tls",
+  "form-redirects",
+  "gloo-net",
+  "js-sys",
+  "wasm-bindgen",
+  "web-sys",
+  "tower",
+  "tower-layer",
+  "send_wrapper",
+  "ciborium",
+  "hyper",
+  "inventory",
+  "rkyv",
+]
+skip_feature_sets = [
+  [
+    "actix",
+    "axum",
+  ],
+  [
+    "browser",
+    "actix",
+  ],
+  [
+    "browser",
+    "axum",
+  ],
+  [
+    "browser",
+    "reqwest",
+  ],
+  [
+    "default-tls",
+    "rustls",
+  ],
+  [
+    "browser",
+    "ssr",
+  ],
+  [
+    "axum-no-default",
+    "actix",
+  ],
+  [
+    "axum-no-default",
+    "browser",
+  ],
+  [
+    "rkyv",
+    "json",
+  ],
+  [
+    "rkyv",
+    "cbor",
+  ],
+  [
+    "rkyv",
+    "url",
+  ],
+  [
+    "rkyv",
+    "serde-lite",
+  ],
+  [
+    "url",
+    "json",
+  ],
+  [
+    "url",
+    "cbor",
+  ],
+  [
+    "url",
+    "serde-lite",
+  ],
+]

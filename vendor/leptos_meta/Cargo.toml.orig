@@ -1,0 +1,34 @@
+[package]
+name = "leptos_meta"
+version = "0.6.15"
+edition = "2021"
+authors = ["Greg Johnston"]
+license = "MIT"
+repository = "https://github.com/leptos-rs/leptos"
+description = "Tools to set HTML metadata in the Leptos web framework."
+rust-version.workspace = true
+
+[dependencies]
+cfg-if = "1"
+leptos = { workspace = true }
+tracing = "0.1"
+wasm-bindgen = "0.2"
+indexmap = "2"
+
+[dependencies.web-sys]
+version = "0.3"
+features = ["HtmlLinkElement", "HtmlMetaElement", "HtmlTitleElement"]
+
+[features]
+default = []
+csr = ["leptos/csr"]
+hydrate = ["leptos/hydrate"]
+ssr = ["leptos/ssr"]
+nightly = ["leptos/nightly"]
+
+[package.metadata.cargo-all-features]
+denylist = ["nightly"]
+skip_feature_sets = [["csr", "ssr"], ["csr", "hydrate"], ["ssr", "hydrate"]]
+
+[package.metadata.docs.rs]
+rustdoc-args = ["--generate-link-to-definition"]

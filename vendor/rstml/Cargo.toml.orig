@@ -1,0 +1,42 @@
+[package]
+name = "rstml"
+description = "Rust templating for XML-based formats (HTML, SVG, MathML) implemented on top of proc-macro::TokenStreams"
+version = "0.11.2"
+authors = ["vldm <me@vldm.cc>","stoically <stoically@protonmail.com>"]
+keywords = ["syn", "jsx", "rsx", "html", "macro"]
+edition = "2018"
+repository = "https://github.com/rs-tml/rstml"
+readme = "README.md"
+license = "MIT"
+resolver = "2"
+include = ["/src", "LICENSE"]
+
+[lib]
+bench = false
+
+[dependencies]
+proc-macro2 = "1.0.47"
+quote = "1.0.21"
+syn = { version = "2.0.15", features = ["full", "parsing", "extra-traits"] }
+thiserror = "1.0.37"
+syn_derive = "0.1.6"
+proc-macro2-diagnostics = { version = "0.10", default-features = false }
+
+[dev-dependencies]
+proc-macro2 = {version = "1.0.47", features = ["span-locations"]}
+criterion = "0.4.0"
+eyre = "0.6.8"
+
+[[bench]]
+name = "bench"
+harness = false
+path = "benches/bench.rs"
+
+[workspace]
+members = [
+    "examples/html-to-string-macro"
+]
+
+[features]
+default = ["colors"]
+colors = ["proc-macro2-diagnostics/colors"]

@@ -1,0 +1,56 @@
+[package]
+name = "leptos_macro"
+version = { workspace = true }
+edition = "2021"
+authors = ["Greg Johnston"]
+license = "MIT"
+repository = "https://github.com/leptos-rs/leptos"
+description = "view macro for the Leptos web framework."
+readme = "../README.md"
+rust-version.workspace = true
+
+[lib]
+proc-macro = true
+
+[dependencies]
+attribute-derive = { version = "0.9", features = ["syn-full"]}
+cfg-if = "1"
+html-escape = "0.2"
+itertools = "0.12"
+prettyplease = "0.2.4"
+proc-macro-error2 = { version = "2", default-features = false }
+proc-macro2 = "1"
+quote = "1"
+syn = { version = "2", features = ["full"] }
+rstml = "0.11.0"
+leptos_hot_reload = { workspace = true }
+server_fn_macro = { workspace = true }
+convert_case = "0.6.0"
+uuid = { version = "1", features = ["v4"] }
+tracing = "0.1.37"
+
+[dev-dependencies]
+log = "0.4"
+typed-builder = "0.18"
+trybuild = "1"
+leptos = { path = "../leptos" }
+insta = "1.29"
+serde = "1"
+
+[features]
+csr = []
+hydrate = []
+ssr = ["server_fn_macro/ssr"]
+nightly = ["server_fn_macro/nightly"]
+tracing = []
+experimental-islands = []
+trace-component-props = []
+actix = ["server_fn_macro/actix"]
+axum = ["server_fn_macro/axum"]
+
+[package.metadata.cargo-all-features]
+denylist = ["nightly", "tracing", "trace-component-props"]
+skip_feature_sets = [["csr", "hydrate"], ["hydrate", "csr"], ["hydrate", "ssr"]]
+
+[package.metadata.docs.rs]
+rustdoc-args = ["--generate-link-to-definition"]

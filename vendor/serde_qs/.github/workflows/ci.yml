@@ -1,0 +1,71 @@
+name: Rust CI checks
+on:
+  push:
+
+jobs:
+  lint:
+    name: Run lint checks
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        rust:
+          - stable
+          - 1.61.0
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install Rust stable toolchain
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+          components: rustfmt, clippy
+      - name: Check Rust formatting
+        uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: --all -- --check
+      - name: Check clippy
+        uses: actions-rs/clippy-check@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          args: --all-targets -- -D warnings
+
+  test:
+    name: Run tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        rust:
+          - stable
+          - 1.61.0
+        feature:
+          - ""
+          - actix4
+          - actix3
+          - warp
+          - axum
+        exclude:
+        - rust: 1.61.0
+          feature: actix4
+        - rust: 1.61.0
+          feature: actix3
+        - rust: 1.61.0
+          feature: warp
+        - rust: 1.61.0
+          feature: axum
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-test-${{ hashFiles('Cargo.toml') }}
+      - name: Install Rust stable toolchain
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ matrix.rust }}
+      - name: Run test ${{ matrix.feature }}
+        run: |
+          cargo test --all-targets --features "${{ matrix.feature }}"
+          cargo test --doc --features "${{ matrix.feature }}"

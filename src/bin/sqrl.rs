@@ -1,5 +1,7 @@
 use clap::Parser;
-use squirreldb::client::{run_init, run_status, run_users, ClientArgs, Commands, Connection, Repl};
+use squirreldb::client::{
+  run_init, run_mcp, run_status, run_users, ClientArgs, Commands, Connection, Repl,
+};
 use squirreldb::types::ServerMessage;
 
 #[tokio::main]
@@ -21,6 +23,9 @@ async fn main() -> Result<(), anyhow::Error> {
       }
       Commands::Users { pg_url, action } => {
         return run_users(pg_url, action).await;
+      }
+      Commands::Mcp { pg_url, sqlite } => {
+        return run_mcp(pg_url.as_deref(), sqlite.as_deref()).await;
       }
     }
   }

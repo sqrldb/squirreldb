@@ -103,6 +103,8 @@ pub struct PortsSection {
   pub admin: u16,
   #[serde(default = "default_tcp_port")]
   pub tcp: u16,
+  #[serde(default = "default_mcp_port")]
+  pub mcp: u16,
 }
 
 fn default_http_port() -> u16 {
@@ -114,6 +116,9 @@ fn default_admin_port() -> u16 {
 fn default_tcp_port() -> u16 {
   8082
 }
+fn default_mcp_port() -> u16 {
+  8083
+}
 
 impl Default for PortsSection {
   fn default() -> Self {
@@ -121,6 +126,7 @@ impl Default for PortsSection {
       http: default_http_port(),
       admin: default_admin_port(),
       tcp: default_tcp_port(),
+      mcp: default_mcp_port(),
     }
   }
 }
@@ -135,6 +141,8 @@ pub struct ProtocolsSection {
   pub sse: bool,
   #[serde(default = "default_true")]
   pub tcp: bool,
+  #[serde(default)]
+  pub mcp: bool,
 }
 
 fn default_true() -> bool {
@@ -148,6 +156,7 @@ impl Default for ProtocolsSection {
       websocket: true,
       sse: false,
       tcp: true,
+      mcp: false,
     }
   }
 }
@@ -301,5 +310,9 @@ impl ServerConfig {
 
   pub fn tcp_address(&self) -> String {
     format!("{}:{}", self.server.host, self.server.ports.tcp)
+  }
+
+  pub fn mcp_address(&self) -> String {
+    format!("{}:{}", self.server.host, self.server.ports.mcp)
   }
 }

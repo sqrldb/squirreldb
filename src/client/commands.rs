@@ -43,6 +43,13 @@ pub enum Commands {
     #[command(subcommand)]
     action: UsersAction,
   },
+  /// Start MCP stdio server for Claude Desktop integration
+  Mcp {
+    #[arg(long)]
+    pg_url: Option<String>,
+    #[arg(long)]
+    sqlite: Option<String>,
+  },
 }
 
 #[derive(Subcommand)]
@@ -92,6 +99,48 @@ pub async fn run_init(pg_url: Option<&str>, sqlite: Option<&str>) -> Result<(), 
   backend.init_schema().await?;
   println!("Schema initialized");
   Ok(())
+}
+
+pub async fn run_mcp(pg_url: Option<&str>, sqlite: Option<&str>) -> Result<(), anyhow::Error> {
+  use std::sync::Arc;
+
+  use crate::db::{DatabaseBackend, PostgresBackend, SqliteBackend};
+  use crate::mcp::McpServer;
+  use crate::query::QueryEnginePool;
+  use crate::server::ServerConfig;
+
+  // Load config or use defaults
+  let config = ServerConfig::find_and_load()?.unwrap_or_default();
+
+  // Create backend from args or config
+  let backend: Arc<dyn DatabaseBackend> = if let Some(path) = sqlite {
+    Arc::new(SqliteBackend::new(path).await?)
+  } else if let Some(url) = pg_url {
+    Arc::new(PostgresBackend::new(url, config.postgres.max_connections)?)
+  } else {
+    // Fall back to config
+    match config.backend {
+      crate::server::BackendType::Sqlite => {
+        Arc::new(SqliteBackend::new(&config.sqlite.path).await?)
+      }
+      crate::server::BackendType::Postgres => Arc::new(PostgresBackend::new(
+        &config.postgres.url,
+        config.postgres.max_connections,
+      )?),
+    }
+  };
+
+  // Initialize schema
+  backend.init_schema().await?;
+
+  // Create engine pool
+  let pool_size = std::thread::available_parallelism()
+    .map(|n| n.get())
+    .unwrap_or(4);
+  let engine_pool = Arc::new(QueryEnginePool::new(pool_size, backend.dialect()));
+
+  // Run MCP server over stdio
+  McpServer::run_stdio(backend, engine_pool).await
 }
 
 pub async fn run_status(host: &str) -> Result<(), anyhow::Error> {
