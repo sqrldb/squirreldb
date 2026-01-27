@@ -202,6 +202,12 @@ impl QueryEngine {
 
   /// Batch filter: compile the function once, call for each document.
   /// This is 10-50x faster than re-parsing for each document.
+  ///
+  /// The filter function receives the document data merged with metadata:
+  /// - `$id`: document ID
+  /// - `$created_at`: creation timestamp
+  /// - `$updated_at`: update timestamp
+  /// - All fields from `data` are accessible directly (e.g., `r.username`)
   pub fn js_filter_batch(
     &self,
     docs: &[Document],
@@ -219,8 +225,10 @@ impl QueryEngine {
 
       let mut out = Vec::with_capacity(docs.len());
       for doc in docs {
-        let data_str = serde_json::to_string(&doc.data)?;
-        let val: Value = json_parse.call((data_str,))?;
+        // Merge document metadata with data for filtering
+        let filter_obj = self.build_filter_object(doc);
+        let obj_str = serde_json::to_string(&filter_obj)?;
+        let val: Value = json_parse.call((obj_str,))?;
         if filter_fn.call::<_, bool>((val,))? {
           out.push(doc.clone());
         }
@@ -229,12 +237,38 @@ impl QueryEngine {
     })
   }
 
+  /// Build a merged object for filtering that includes both data fields and metadata.
+  /// Metadata fields use $ prefix to avoid conflicts with user data.
+  fn build_filter_object(&self, doc: &Document) -> serde_json::Value {
+    let mut obj = match &doc.data {
+      serde_json::Value::Object(map) => map.clone(),
+      _ => serde_json::Map::new(),
+    };
+    // Add document metadata with $ prefix
+    obj.insert("$id".to_string(), serde_json::Value::String(doc.id.to_string()));
+    obj.insert(
+      "$created_at".to_string(),
+      serde_json::Value::String(doc.created_at.to_string()),
+    );
+    obj.insert(
+      "$updated_at".to_string(),
+      serde_json::Value::String(doc.updated_at.to_string()),
+    );
+    serde_json::Value::Object(obj)
+  }
+
   fn js_map(&self, docs: &[Document], code: &str) -> Result<serde_json::Value, anyhow::Error> {
     self.js_map_batch(docs, code)
   }
 
   /// Batch map: compile the function once, call for each document.
   /// This is 10-50x faster than re-parsing for each document.
+  ///
+  /// The map function receives the document data merged with metadata:
+  /// - `$id`: document ID
+  /// - `$created_at`: creation timestamp
+  /// - `$updated_at`: update timestamp
+  /// - All fields from `data` are accessible directly (e.g., `r.username`)
   pub fn js_map_batch(
     &self,
     docs: &[Document],
@@ -253,8 +287,10 @@ impl QueryEngine {
 
       let mut out = Vec::with_capacity(docs.len());
       for doc in docs {
-        let data_str = serde_json::to_string(&doc.data)?;
-        let val: Value = json_parse.call((data_str,))?;
+        // Merge document metadata with data for mapping
+        let map_obj = self.build_filter_object(doc);
+        let obj_str = serde_json::to_string(&map_obj)?;
+        let val: Value = json_parse.call((obj_str,))?;
         let result: Value = map_fn.call((val,))?;
         let result_str: String = json_stringify.call((result,))?;
         out.push(serde_json::from_str(&result_str)?);
