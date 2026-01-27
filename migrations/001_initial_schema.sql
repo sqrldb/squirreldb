@@ -1,9 +1,14 @@
 -- SquirrelDB Initial Schema
 -- This file is for reference; schema is applied via code in db/schema.rs
 
+-- JavaScript-friendly UUID alias
+CREATE OR REPLACE FUNCTION uuid() RETURNS UUID AS $$
+  SELECT gen_random_uuid();
+$$ LANGUAGE SQL;
+
 -- Documents table
 CREATE TABLE IF NOT EXISTS documents (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid(),
     collection VARCHAR(255) NOT NULL,
     data JSONB NOT NULL,
     created_at TIMESTAMPTZ DEFAULT NOW(),

@@ -49,9 +49,14 @@ postgres:
 SquirrelDB automatically creates the required schema on first run:
 
 ```sql
+-- JavaScript-friendly UUID alias
+CREATE OR REPLACE FUNCTION uuid() RETURNS UUID AS $$
+  SELECT gen_random_uuid();
+$$ LANGUAGE SQL;
+
 -- Documents table
 CREATE TABLE IF NOT EXISTS documents (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid(),
     collection VARCHAR(255) NOT NULL,
     data JSONB NOT NULL,
     created_at TIMESTAMPTZ DEFAULT NOW(),
@@ -93,6 +98,14 @@ $$ LANGUAGE plpgsql;
 CREATE TRIGGER document_changes_trigger
 AFTER INSERT OR UPDATE OR DELETE ON documents
 FOR EACH ROW EXECUTE FUNCTION capture_document_changes();
+```
+
+### Built-in Functions
+
+SquirrelDB provides a `uuid()` function as a JavaScript-friendly alias for PostgreSQL's `gen_random_uuid()`. This function is used as the default for all document primary keys and can be used in custom queries:
+
+```sql
+SELECT uuid();  -- Returns a new random UUID
 ```
 
 ## Connection Pooling

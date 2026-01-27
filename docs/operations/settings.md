@@ -245,7 +245,7 @@ If you can't access after enabling auth:
 -- Add a token hash manually
 INSERT INTO api_tokens (id, name, token_hash, created_at)
 VALUES (
-  gen_random_uuid(),
+  uuid(),
   'emergency',
   'hash-of-known-token',
   NOW()

@@ -412,12 +412,14 @@ Request with Token
 
 ```sql
 CREATE TABLE api_tokens (
-  id UUID PRIMARY KEY,
+  id UUID PRIMARY KEY DEFAULT uuid(),
   name TEXT NOT NULL UNIQUE,
   token_hash TEXT NOT NULL,  -- SHA-256
   created_at TIMESTAMP
 );
 ```
+
+Note: The `uuid()` function is a built-in alias for `gen_random_uuid()` that provides a JavaScript-friendly name.
 
 ## Performance Considerations
 

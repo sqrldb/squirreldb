@@ -22,7 +22,7 @@ SquirrelDB stores data as **documents**. A document is a JSON object with system
 
 | Field | Description |
 |-------|-------------|
-| `id` | Unique identifier (UUID v4, auto-generated) |
+| `id` | Unique identifier (UUID v4, auto-generated via `uuid()` function) |
 | `collection` | The table/collection this document belongs to |
 | `data` | Your actual data (any valid JSON) |
 | `created_at` | Timestamp when document was created |

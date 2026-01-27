@@ -9,8 +9,13 @@ use super::sanitize::{validate_collection_name, validate_identifier, validate_li
 use crate::types::{Change, ChangeOperation, Document, OrderBySpec, OrderDirection};
 
 const SCHEMA: &str = r#"
+-- JavaScript-friendly UUID alias
+CREATE OR REPLACE FUNCTION uuid() RETURNS UUID AS $$
+  SELECT gen_random_uuid();
+$$ LANGUAGE SQL;
+
 CREATE TABLE IF NOT EXISTS documents (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid(),
     collection VARCHAR(255) NOT NULL,
     data JSONB NOT NULL,
     created_at TIMESTAMPTZ DEFAULT NOW(),
@@ -314,7 +319,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 CREATE TABLE IF NOT EXISTS api_tokens (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid(),
     name VARCHAR(255) NOT NULL UNIQUE,
     token_hash VARCHAR(64) NOT NULL,
     created_at TIMESTAMPTZ DEFAULT NOW()
@@ -809,5 +814,80 @@ impl DatabaseBackend for PostgresBackend {
       .execute("SELECT sqrl_connection_release($1::inet)", &[&ip_str])
       .await?;
     Ok(())
+  }
+}
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+
+  #[test]
+  fn test_schema_defines_uuid_function() {
+    assert!(
+      SCHEMA.contains("CREATE OR REPLACE FUNCTION uuid()"),
+      "Schema must define uuid() function"
+    );
+    assert!(
+      SCHEMA.contains("SELECT gen_random_uuid()"),
+      "uuid() function must alias gen_random_uuid()"
+    );
+  }
+
+  #[test]
+  fn test_schema_uuid_function_defined_before_tables() {
+    let uuid_fn_pos = SCHEMA
+      .find("CREATE OR REPLACE FUNCTION uuid()")
+      .expect("uuid() function not found");
+    let documents_table_pos = SCHEMA
+      .find("CREATE TABLE IF NOT EXISTS documents")
+      .expect("documents table not found");
+    let api_tokens_table_pos = SCHEMA
+      .find("CREATE TABLE IF NOT EXISTS api_tokens")
+      .expect("api_tokens table not found");
+
+    assert!(
+      uuid_fn_pos < documents_table_pos,
+      "uuid() function must be defined before documents table"
+    );
+    assert!(
+      uuid_fn_pos < api_tokens_table_pos,
+      "uuid() function must be defined before api_tokens table"
+    );
+  }
+
+  #[test]
+  fn test_schema_documents_table_uses_uuid_default() {
+    assert!(
+      SCHEMA.contains("id UUID PRIMARY KEY DEFAULT uuid()"),
+      "documents table must use uuid() as default for id"
+    );
+  }
+
+  #[test]
+  fn test_schema_api_tokens_table_uses_uuid_default() {
+    let api_tokens_section = SCHEMA
+      .find("CREATE TABLE IF NOT EXISTS api_tokens")
+      .map(|start| &SCHEMA[start..])
+      .and_then(|s| s.find(");").map(|end| &s[..end]))
+      .expect("api_tokens table not found");
+
+    assert!(
+      api_tokens_section.contains("id UUID PRIMARY KEY DEFAULT uuid()"),
+      "api_tokens table must use uuid() as default for id"
+    );
+  }
+
+  #[test]
+  fn test_schema_no_gen_random_uuid_in_table_defaults() {
+    // Ensure we're using the uuid() alias, not gen_random_uuid() directly in table defaults
+    let lines: Vec<&str> = SCHEMA.lines().collect();
+    for line in lines {
+      if line.contains("DEFAULT gen_random_uuid()") {
+        panic!(
+          "Table defaults should use uuid() alias, not gen_random_uuid() directly: {}",
+          line
+        );
+      }
+    }
   }
 }

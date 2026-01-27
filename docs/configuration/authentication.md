@@ -342,7 +342,7 @@ This happens when all tokens have been deleted. Create a new token through the s
 ```sql
 INSERT INTO api_tokens (id, name, token_hash, created_at)
 VALUES (
-  gen_random_uuid(),
+  uuid(),
   'emergency-admin',
   -- SHA-256 hash of 'sqrl_emergency123...'
   'your_hash_here',
