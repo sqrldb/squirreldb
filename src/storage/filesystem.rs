@@ -5,7 +5,7 @@ use tokio::fs::{self, File};
 use tokio::io::{AsyncReadExt, AsyncSeekExt, AsyncWriteExt};
 use uuid::Uuid;
 
-use super::error::S3Error;
+use super::error::StorageError;
 
 /// Local filesystem storage for S3 objects
 pub struct LocalFileStorage {
@@ -20,7 +20,7 @@ impl LocalFileStorage {
   }
 
   /// Initialize storage directory structure
-  pub async fn init(&self) -> Result<(), S3Error> {
+  pub async fn init(&self) -> Result<(), StorageError> {
     fs::create_dir_all(&self.base_path).await?;
     fs::create_dir_all(self.base_path.join("buckets")).await?;
     fs::create_dir_all(self.base_path.join("multipart")).await?;
@@ -63,7 +63,7 @@ impl LocalFileStorage {
     key: &str,
     version_id: Uuid,
     data: &[u8],
-  ) -> Result<(String, String, i64), S3Error> {
+  ) -> Result<(String, String, i64), StorageError> {
     let path = self.object_path(bucket, key, version_id);
 
     // Create parent directories
@@ -84,10 +84,10 @@ impl LocalFileStorage {
   }
 
   /// Read object data
-  pub async fn read_object(&self, storage_path: &str) -> Result<Vec<u8>, S3Error> {
+  pub async fn read_object(&self, storage_path: &str) -> Result<Vec<u8>, StorageError> {
     let path = Path::new(storage_path);
     if !path.exists() {
-      return Err(S3Error::no_such_key(storage_path));
+      return Err(StorageError::no_such_key(storage_path));
     }
     let data = fs::read(path).await?;
     Ok(data)
@@ -99,10 +99,10 @@ impl LocalFileStorage {
     storage_path: &str,
     start: u64,
     end: Option<u64>,
-  ) -> Result<Vec<u8>, S3Error> {
+  ) -> Result<Vec<u8>, StorageError> {
     let path = Path::new(storage_path);
     if !path.exists() {
-      return Err(S3Error::no_such_key(storage_path));
+      return Err(StorageError::no_such_key(storage_path));
     }
 
     let mut file = File::open(path).await?;
@@ -121,7 +121,7 @@ impl LocalFileStorage {
   }
 
   /// Delete object data
-  pub async fn delete_object(&self, storage_path: &str) -> Result<(), S3Error> {
+  pub async fn delete_object(&self, storage_path: &str) -> Result<(), StorageError> {
     let path = Path::new(storage_path);
     if path.exists() {
       fs::remove_file(path).await?;
@@ -135,7 +135,7 @@ impl LocalFileStorage {
     upload_id: Uuid,
     part_number: i32,
     data: &[u8],
-  ) -> Result<(String, String, i64), S3Error> {
+  ) -> Result<(String, String, i64), StorageError> {
     let path = self.part_path(upload_id, part_number);
 
     // Create parent directories
@@ -155,10 +155,10 @@ impl LocalFileStorage {
   }
 
   /// Read multipart part
-  pub async fn read_part(&self, storage_path: &str) -> Result<Vec<u8>, S3Error> {
+  pub async fn read_part(&self, storage_path: &str) -> Result<Vec<u8>, StorageError> {
     let path = Path::new(storage_path);
     if !path.exists() {
-      return Err(S3Error::internal_error(format!(
+      return Err(StorageError::internal_error(format!(
         "Part not found: {}",
         storage_path
       )));
@@ -174,7 +174,7 @@ impl LocalFileStorage {
     key: &str,
     version_id: Uuid,
     part_paths: &[String],
-  ) -> Result<(String, String, i64), S3Error> {
+  ) -> Result<(String, String, i64), StorageError> {
     let final_path = self.object_path(bucket, key, version_id);
 
     // Create parent directories
@@ -205,7 +205,7 @@ impl LocalFileStorage {
   }
 
   /// Clean up multipart upload directory
-  pub async fn cleanup_multipart(&self, upload_id: Uuid) -> Result<(), S3Error> {
+  pub async fn cleanup_multipart(&self, upload_id: Uuid) -> Result<(), StorageError> {
     let path = self.base_path.join("multipart").join(upload_id.to_string());
     if path.exists() {
       fs::remove_dir_all(path).await?;
@@ -214,14 +214,14 @@ impl LocalFileStorage {
   }
 
   /// Initialize bucket storage directory
-  pub async fn init_bucket(&self, bucket: &str) -> Result<(), S3Error> {
+  pub async fn init_bucket(&self, bucket: &str) -> Result<(), StorageError> {
     let bucket_path = self.base_path.join("buckets").join(bucket);
     fs::create_dir_all(bucket_path.join("objects")).await?;
     Ok(())
   }
 
   /// Delete bucket storage directory
-  pub async fn delete_bucket(&self, bucket: &str) -> Result<(), S3Error> {
+  pub async fn delete_bucket(&self, bucket: &str) -> Result<(), StorageError> {
     let bucket_path = self.base_path.join("buckets").join(bucket);
     if bucket_path.exists() {
       fs::remove_dir_all(bucket_path).await?;
@@ -254,7 +254,7 @@ impl LocalFileStorage {
     dst_bucket: &str,
     dst_key: &str,
     dst_version_id: Uuid,
-  ) -> Result<(String, String, i64), S3Error> {
+  ) -> Result<(String, String, i64), StorageError> {
     let data = self.read_object(src_path).await?;
     self
       .write_object(dst_bucket, dst_key, dst_version_id, &data)

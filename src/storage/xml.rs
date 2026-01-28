@@ -165,7 +165,7 @@ pub fn list_parts_xml(
   bucket: &str,
   key: &str,
   upload_id: &str,
-  parts: &[S3Part],
+  parts: &[MultipartPart],
   max_parts: i32,
   is_truncated: bool,
 ) -> String {
@@ -205,7 +205,7 @@ pub fn list_parts_xml(
 /// Build XML for ListMultipartUploadsResult
 pub fn list_multipart_uploads_xml(
   bucket: &str,
-  uploads: &[S3MultipartUpload],
+  uploads: &[MultipartUpload],
   max_uploads: i32,
   is_truncated: bool,
 ) -> String {

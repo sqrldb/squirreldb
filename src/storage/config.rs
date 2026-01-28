@@ -1,9 +1,9 @@
 use serde::{Deserialize, Serialize};
 
-/// S3 feature configuration
+/// Storage feature configuration
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct S3Config {
-  /// Port for the S3 HTTP server
+pub struct StorageConfig {
+  /// Port for the storage HTTP server
   pub port: u16,
 
   /// Path for storing object data
@@ -22,11 +22,11 @@ pub struct S3Config {
   pub region: String,
 }
 
-impl Default for S3Config {
+impl Default for StorageConfig {
   fn default() -> Self {
     Self {
       port: 9000,
-      storage_path: "./data/s3".into(),
+      storage_path: "./data/storage".into(),
       max_object_size: 5 * 1024 * 1024 * 1024,
       max_part_size: 5 * 1024 * 1024 * 1024,
       min_part_size: 5 * 1024 * 1024,
@@ -35,8 +35,8 @@ impl Default for S3Config {
   }
 }
 
-impl From<&crate::server::S3Section> for S3Config {
-  fn from(section: &crate::server::S3Section) -> Self {
+impl From<&crate::server::StorageSection> for StorageConfig {
+  fn from(section: &crate::server::StorageSection) -> Self {
     Self {
       port: section.port,
       storage_path: section.storage_path.clone(),

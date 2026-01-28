@@ -12,10 +12,10 @@ use axum::{
 };
 use std::sync::Arc;
 
-use super::server::S3State;
+use super::server::StorageState;
 
 /// Build S3 API router
-pub fn build_router(state: Arc<S3State>) -> Router {
+pub fn build_router(state: Arc<StorageState>) -> Router {
   Router::new()
     // Service level operations
     .route("/", get(list_buckets))

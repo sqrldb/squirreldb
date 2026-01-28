@@ -5,29 +5,29 @@ use sha2::{Digest, Sha256};
 use std::collections::BTreeMap;
 
 use super::AuthContext;
-use crate::s3::error::S3Error;
-use crate::s3::server::S3State;
+use crate::storage::error::StorageError;
+use crate::storage::server::StorageState;
 
 type HmacSha256 = Hmac<Sha256>;
 
 /// Verify AWS Signature Version 4 authentication
-pub async fn verify_sigv4(state: &S3State, request: &Request) -> Result<AuthContext, S3Error> {
+pub async fn verify_sigv4(state: &StorageState, request: &Request) -> Result<AuthContext, StorageError> {
   // Parse Authorization header
   let auth_header = request
     .headers()
     .get("authorization")
     .and_then(|v| v.to_str().ok())
-    .ok_or_else(|| S3Error::access_denied("Missing Authorization header"))?;
+    .ok_or_else(|| StorageError::access_denied("Missing Authorization header"))?;
 
   let auth = parse_auth_header(auth_header)?;
 
   // Get the access key from the database
   let (secret_key, owner_id) = state
     .backend
-    .get_s3_access_key(&auth.credential.access_key_id)
+    .get_storage_access_key(&auth.credential.access_key_id)
     .await
-    .map_err(|_| S3Error::access_denied("Invalid access key"))?
-    .ok_or_else(|| S3Error::access_denied("Access key not found"))?;
+    .map_err(|_| StorageError::access_denied("Invalid access key"))?
+    .ok_or_else(|| StorageError::access_denied("Access key not found"))?;
 
   // Get x-amz-date or Date header
   let request_date = get_request_date(request)?;
@@ -36,8 +36,8 @@ pub async fn verify_sigv4(state: &S3State, request: &Request) -> Result<AuthCont
   let now = Utc::now();
   let time_diff = (now - request_date).num_minutes().abs();
   if time_diff > 15 {
-    return Err(S3Error::new(
-      crate::s3::error::S3ErrorCode::RequestTimeTooSkewed,
+    return Err(StorageError::new(
+      crate::storage::error::StorageErrorCode::RequestTimeTooSkewed,
       "Request time is too skewed",
     ));
   }
@@ -65,8 +65,8 @@ pub async fn verify_sigv4(state: &S3State, request: &Request) -> Result<AuthCont
 
   // Compare signatures
   if calculated_signature != auth.signature {
-    return Err(S3Error::new(
-      crate::s3::error::S3ErrorCode::SignatureDoesNotMatch,
+    return Err(StorageError::new(
+      crate::storage::error::StorageErrorCode::SignatureDoesNotMatch,
       "The request signature we calculated does not match the signature you provided",
     ));
   }
@@ -93,11 +93,11 @@ struct Credential {
   service: String,
 }
 
-fn parse_auth_header(header: &str) -> Result<ParsedAuth, S3Error> {
+fn parse_auth_header(header: &str) -> Result<ParsedAuth, StorageError> {
   // Format: AWS4-HMAC-SHA256 Credential=.../.../.../s3/aws4_request, SignedHeaders=..., Signature=...
   let header = header
     .strip_prefix("AWS4-HMAC-SHA256 ")
-    .ok_or_else(|| S3Error::access_denied("Invalid auth algorithm"))?;
+    .ok_or_else(|| StorageError::access_denied("Invalid auth algorithm"))?;
 
   let mut credential = None;
   let mut signed_headers = None;
@@ -114,18 +114,18 @@ fn parse_auth_header(header: &str) -> Result<ParsedAuth, S3Error> {
   }
 
   Ok(ParsedAuth {
-    credential: credential.ok_or_else(|| S3Error::access_denied("Missing Credential"))?,
+    credential: credential.ok_or_else(|| StorageError::access_denied("Missing Credential"))?,
     signed_headers: signed_headers
-      .ok_or_else(|| S3Error::access_denied("Missing SignedHeaders"))?,
-    signature: signature.ok_or_else(|| S3Error::access_denied("Missing Signature"))?,
+      .ok_or_else(|| StorageError::access_denied("Missing SignedHeaders"))?,
+    signature: signature.ok_or_else(|| StorageError::access_denied("Missing Signature"))?,
   })
 }
 
-fn parse_credential(cred: &str) -> Result<Credential, S3Error> {
+fn parse_credential(cred: &str) -> Result<Credential, StorageError> {
   // Format: ACCESS_KEY_ID/20130524/us-east-1/s3/aws4_request
   let parts: Vec<&str> = cred.split('/').collect();
   if parts.len() != 5 {
-    return Err(S3Error::access_denied("Invalid Credential format"));
+    return Err(StorageError::access_denied("Invalid Credential format"));
   }
 
   Ok(Credential {
@@ -136,7 +136,7 @@ fn parse_credential(cred: &str) -> Result<Credential, S3Error> {
   })
 }
 
-fn get_request_date(request: &Request) -> Result<DateTime<Utc>, S3Error> {
+fn get_request_date(request: &Request) -> Result<DateTime<Utc>, StorageError> {
   // Try x-amz-date first
   if let Some(date) = request.headers().get("x-amz-date") {
     if let Ok(date_str) = date.to_str() {
@@ -149,24 +149,24 @@ fn get_request_date(request: &Request) -> Result<DateTime<Utc>, S3Error> {
     if let Ok(date_str) = date.to_str() {
       return DateTime::parse_from_rfc2822(date_str)
         .map(|d| d.with_timezone(&Utc))
-        .map_err(|_| S3Error::access_denied("Invalid Date header"));
+        .map_err(|_| StorageError::access_denied("Invalid Date header"));
     }
   }
 
-  Err(S3Error::access_denied("Missing date header"))
+  Err(StorageError::access_denied("Missing date header"))
 }
 
-fn parse_amz_date(date: &str) -> Result<DateTime<Utc>, S3Error> {
+fn parse_amz_date(date: &str) -> Result<DateTime<Utc>, StorageError> {
   // Format: 20130524T000000Z
   DateTime::parse_from_str(date, "%Y%m%dT%H%M%SZ")
     .map(|d| d.with_timezone(&Utc))
-    .map_err(|_| S3Error::access_denied("Invalid x-amz-date format"))
+    .map_err(|_| StorageError::access_denied("Invalid x-amz-date format"))
 }
 
 fn build_canonical_request(
   request: &Request,
   signed_headers: &[String],
-) -> Result<String, S3Error> {
+) -> Result<String, StorageError> {
   let method = request.method().as_str();
   let uri = request.uri().path();
   let query = request.uri().query().unwrap_or("");

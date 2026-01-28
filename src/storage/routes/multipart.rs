@@ -7,29 +7,29 @@ use std::collections::HashMap;
 use std::sync::Arc;
 use uuid::Uuid;
 
-use crate::s3::error::S3Error;
-use crate::s3::server::S3State;
-use crate::s3::types::*;
-use crate::s3::xml;
+use crate::storage::error::StorageError;
+use crate::storage::server::StorageState;
+use crate::storage::types::*;
+use crate::storage::xml;
 
 /// POST /{bucket}/{key}?uploads - Initiate multipart upload
 pub async fn initiate_multipart_upload(
-  state: Arc<S3State>,
+  state: Arc<StorageState>,
   bucket: &str,
   key: &str,
-) -> Result<Response, S3Error> {
+) -> Result<Response, StorageError> {
   // Check bucket exists
   state
     .backend
-    .get_s3_bucket(bucket)
+    .get_storage_bucket(bucket)
     .await?
-    .ok_or_else(|| S3Error::no_such_bucket(bucket))?;
+    .ok_or_else(|| StorageError::no_such_bucket(bucket))?;
 
   // Create multipart upload record
   let upload_id = Uuid::new_v4();
   state
     .backend
-    .create_s3_multipart_upload(
+    .create_multipart_upload(
       upload_id,
       bucket,
       key,
@@ -50,25 +50,25 @@ pub async fn initiate_multipart_upload(
 
 /// PUT /{bucket}/{key}?partNumber=N&uploadId=X - Upload part
 pub async fn upload_part(
-  state: Arc<S3State>,
+  state: Arc<StorageState>,
   _bucket: &str,
   _key: &str,
   params: HashMap<String, String>,
   body: Bytes,
-) -> Result<Response, S3Error> {
+) -> Result<Response, StorageError> {
   let upload_id = params
     .get("uploadId")
     .and_then(|s| Uuid::parse_str(s).ok())
-    .ok_or_else(|| S3Error::invalid_argument("Missing or invalid uploadId"))?;
+    .ok_or_else(|| StorageError::invalid_argument("Missing or invalid uploadId"))?;
 
   let part_number: i32 = params
     .get("partNumber")
     .and_then(|s| s.parse().ok())
-    .ok_or_else(|| S3Error::invalid_argument("Missing or invalid partNumber"))?;
+    .ok_or_else(|| StorageError::invalid_argument("Missing or invalid partNumber"))?;
 
   // Validate part number
   if !(1..=10000).contains(&part_number) {
-    return Err(S3Error::invalid_argument(
+    return Err(StorageError::invalid_argument(
       "Part number must be between 1 and 10000",
     ));
   }
@@ -76,14 +76,14 @@ pub async fn upload_part(
   // Check upload exists
   state
     .backend
-    .get_s3_multipart_upload(upload_id)
+    .get_multipart_upload(upload_id)
     .await?
-    .ok_or_else(|| S3Error::no_such_upload(upload_id.to_string()))?;
+    .ok_or_else(|| StorageError::no_such_upload(upload_id.to_string()))?;
 
   // Check part size
   if body.len() as u64 > state.config.max_part_size {
-    return Err(S3Error::new(
-      crate::s3::error::S3ErrorCode::EntityTooLarge,
+    return Err(StorageError::new(
+      crate::storage::error::StorageErrorCode::EntityTooLarge,
       "Part size exceeds maximum allowed size",
     ));
   }
@@ -97,7 +97,7 @@ pub async fn upload_part(
   // Create part record (replace if exists)
   state
     .backend
-    .upsert_s3_multipart_part(upload_id, part_number, &etag, size, &storage_path)
+    .upsert_multipart_part(upload_id, part_number, &etag, size, &storage_path)
     .await?;
 
   Ok((StatusCode::OK, [("ETag", format!("\"{}\"", etag))]).into_response())
@@ -105,23 +105,23 @@ pub async fn upload_part(
 
 /// POST /{bucket}/{key}?uploadId=X - Complete multipart upload
 pub async fn complete_multipart_upload(
-  state: Arc<S3State>,
+  state: Arc<StorageState>,
   bucket: &str,
   key: &str,
   params: HashMap<String, String>,
   body: Bytes,
-) -> Result<Response, S3Error> {
+) -> Result<Response, StorageError> {
   let upload_id = params
     .get("uploadId")
     .and_then(|s| Uuid::parse_str(s).ok())
-    .ok_or_else(|| S3Error::invalid_argument("Missing or invalid uploadId"))?;
+    .ok_or_else(|| StorageError::invalid_argument("Missing or invalid uploadId"))?;
 
   // Check upload exists
   let upload = state
     .backend
-    .get_s3_multipart_upload(upload_id)
+    .get_multipart_upload(upload_id)
     .await?
-    .ok_or_else(|| S3Error::no_such_upload(upload_id.to_string()))?;
+    .ok_or_else(|| StorageError::no_such_upload(upload_id.to_string()))?;
 
   // Parse request body for part list
   let body_str = String::from_utf8_lossy(&body);
@@ -132,11 +132,11 @@ pub async fn complete_multipart_upload(
   for cp in &completed_parts {
     let part = state
       .backend
-      .get_s3_multipart_part(upload_id, cp.part_number)
+      .get_multipart_part(upload_id, cp.part_number)
       .await?
       .ok_or_else(|| {
-        S3Error::new(
-          crate::s3::error::S3ErrorCode::InvalidPart,
+        StorageError::new(
+          crate::storage::error::StorageErrorCode::InvalidPart,
           format!("Part {} not found", cp.part_number),
         )
       })?;
@@ -144,8 +144,8 @@ pub async fn complete_multipart_upload(
     // Verify ETag matches
     let expected_etag = cp.etag.trim_matches('"');
     if part.etag != expected_etag {
-      return Err(S3Error::new(
-        crate::s3::error::S3ErrorCode::InvalidPart,
+      return Err(StorageError::new(
+        crate::storage::error::StorageErrorCode::InvalidPart,
         format!("Part {} ETag does not match", cp.part_number),
       ));
     }
@@ -157,8 +157,8 @@ pub async fn complete_multipart_upload(
   let mut prev_part_number = 0;
   for cp in &completed_parts {
     if cp.part_number <= prev_part_number {
-      return Err(S3Error::new(
-        crate::s3::error::S3ErrorCode::InvalidPartOrder,
+      return Err(StorageError::new(
+        crate::storage::error::StorageErrorCode::InvalidPartOrder,
         "Parts must be in ascending order",
       ));
     }
@@ -177,44 +177,52 @@ pub async fn complete_multipart_upload(
   // Check bucket for versioning
   let bucket_info = state
     .backend
-    .get_s3_bucket(bucket)
+    .get_storage_bucket(bucket)
     .await?
-    .ok_or_else(|| S3Error::no_such_bucket(bucket))?;
+    .ok_or_else(|| StorageError::no_such_bucket(bucket))?;
 
-  // If versioning is not enabled, delete previous version
-  if !bucket_info.versioning_enabled {
-    if let Some(existing) = state.backend.get_s3_object(bucket, key, None).await? {
-      let _ = state.storage.delete_object(&existing.storage_path).await;
-      state.backend.unset_s3_object_latest(bucket, key).await?;
-    }
-  }
-
-  // Create object record
+  // Create object record using atomic operations
   let content_type = upload
     .content_type
     .unwrap_or_else(|| "application/octet-stream".to_string());
-  state
-    .backend
-    .create_s3_object(
-      bucket,
-      key,
-      version_id,
-      &etag,
-      size,
-      &content_type,
-      &storage_path,
-      upload.metadata,
-    )
-    .await?;
 
-  // Update bucket stats
-  state
-    .backend
-    .update_s3_bucket_stats(bucket, size, 1)
-    .await?;
+  if bucket_info.versioning_enabled {
+    // Versioning: create with stats atomically (1 query instead of 2)
+    state
+      .backend
+      .create_storage_object_with_stats(
+        bucket,
+        key,
+        version_id,
+        &etag,
+        size,
+        &content_type,
+        &storage_path,
+        upload.metadata,
+      )
+      .await?;
+  } else {
+    // No versioning: replace atomically (1 query instead of 4)
+    if let Some(old_path) = state
+      .backend
+      .replace_storage_object(
+        bucket,
+        key,
+        version_id,
+        &etag,
+        size,
+        &content_type,
+        &storage_path,
+        upload.metadata,
+      )
+      .await?
+    {
+      let _ = state.storage.delete_object(&old_path).await;
+    }
+  }
 
   // Clean up multipart upload
-  state.backend.delete_s3_multipart_upload(upload_id).await?;
+  state.backend.delete_multipart_upload(upload_id).await?;
   state.storage.cleanup_multipart(upload_id).await?;
 
   let response = CompleteMultipartUploadResponse {
@@ -240,25 +248,25 @@ pub async fn complete_multipart_upload(
 
 /// DELETE /{bucket}/{key}?uploadId=X - Abort multipart upload
 pub async fn abort_multipart_upload(
-  state: Arc<S3State>,
+  state: Arc<StorageState>,
   _bucket: &str,
   _key: &str,
   params: HashMap<String, String>,
-) -> Result<Response, S3Error> {
+) -> Result<Response, StorageError> {
   let upload_id = params
     .get("uploadId")
     .and_then(|s| Uuid::parse_str(s).ok())
-    .ok_or_else(|| S3Error::invalid_argument("Missing or invalid uploadId"))?;
+    .ok_or_else(|| StorageError::invalid_argument("Missing or invalid uploadId"))?;
 
   // Check upload exists
   state
     .backend
-    .get_s3_multipart_upload(upload_id)
+    .get_multipart_upload(upload_id)
     .await?
-    .ok_or_else(|| S3Error::no_such_upload(upload_id.to_string()))?;
+    .ok_or_else(|| StorageError::no_such_upload(upload_id.to_string()))?;
 
   // Delete upload and parts from database
-  state.backend.delete_s3_multipart_upload(upload_id).await?;
+  state.backend.delete_multipart_upload(upload_id).await?;
 
   // Clean up storage
   state.storage.cleanup_multipart(upload_id).await?;
@@ -268,15 +276,15 @@ pub async fn abort_multipart_upload(
 
 /// GET /{bucket}/{key}?uploadId=X - List parts
 pub async fn list_parts(
-  state: Arc<S3State>,
+  state: Arc<StorageState>,
   bucket: &str,
   key: &str,
   params: HashMap<String, String>,
-) -> Result<Response, S3Error> {
+) -> Result<Response, StorageError> {
   let upload_id = params
     .get("uploadId")
     .and_then(|s| Uuid::parse_str(s).ok())
-    .ok_or_else(|| S3Error::invalid_argument("Missing or invalid uploadId"))?;
+    .ok_or_else(|| StorageError::invalid_argument("Missing or invalid uploadId"))?;
 
   let max_parts: i32 = params
     .get("max-parts")
@@ -286,14 +294,14 @@ pub async fn list_parts(
   // Check upload exists
   state
     .backend
-    .get_s3_multipart_upload(upload_id)
+    .get_multipart_upload(upload_id)
     .await?
-    .ok_or_else(|| S3Error::no_such_upload(upload_id.to_string()))?;
+    .ok_or_else(|| StorageError::no_such_upload(upload_id.to_string()))?;
 
   // Get parts
   let (parts, is_truncated) = state
     .backend
-    .list_s3_multipart_parts(upload_id, max_parts)
+    .list_multipart_parts(upload_id, max_parts)
     .await?;
 
   let body = xml::list_parts_xml(
@@ -308,19 +316,19 @@ pub async fn list_parts(
 }
 
 /// Parse CompleteMultipartUpload XML request
-fn parse_complete_multipart_request(xml: &str) -> Result<Vec<CompletedPart>, S3Error> {
+fn parse_complete_multipart_request(xml: &str) -> Result<Vec<CompletedPart>, StorageError> {
   // Simple XML parsing (production should use a proper XML parser)
   let mut parts = Vec::new();
 
   // Find all <Part>...</Part> blocks
   let part_regex =
     regex::Regex::new(r"<Part>.*?<PartNumber>(\d+)</PartNumber>.*?<ETag>([^<]+)</ETag>.*?</Part>")
-      .map_err(|_| S3Error::internal_error("Regex error"))?;
+      .map_err(|_| StorageError::internal_error("Regex error"))?;
 
   for cap in part_regex.captures_iter(xml) {
     let part_number: i32 = cap[1].parse().map_err(|_| {
-      S3Error::new(
-        crate::s3::error::S3ErrorCode::MalformedXML,
+      StorageError::new(
+        crate::storage::error::StorageErrorCode::MalformedXML,
         "Invalid part number",
       )
     })?;
@@ -330,8 +338,8 @@ fn parse_complete_multipart_request(xml: &str) -> Result<Vec<CompletedPart>, S3E
   }
 
   if parts.is_empty() {
-    return Err(S3Error::new(
-      crate::s3::error::S3ErrorCode::MalformedXML,
+    return Err(StorageError::new(
+      crate::storage::error::StorageErrorCode::MalformedXML,
       "No parts specified in request",
     ));
   }

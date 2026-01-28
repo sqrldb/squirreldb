@@ -4,9 +4,9 @@ use tokio::sync::broadcast;
 use tokio_postgres::NoTls;
 use uuid::Uuid;
 
-use super::backend::{ApiTokenInfo, DatabaseBackend, S3AccessKeyInfo, SqlDialect};
+use super::backend::{ApiTokenInfo, DatabaseBackend, StorageAccessKeyInfo, SqlDialect};
 use super::sanitize::{validate_collection_name, validate_identifier, validate_limit};
-use crate::s3::{ObjectAcl, S3Bucket, S3MultipartUpload, S3Object, S3Part};
+use crate::storage::{ObjectAcl, StorageBucket, MultipartUpload, StorageObject, MultipartPart};
 use crate::types::{Change, ChangeOperation, Document, OrderBySpec, OrderDirection};
 
 /// Pipe trait for method chaining
@@ -337,7 +337,7 @@ CREATE TABLE IF NOT EXISTS api_tokens (
 CREATE INDEX IF NOT EXISTS idx_api_tokens_hash ON api_tokens(token_hash);
 
 -- S3 Buckets
-CREATE TABLE IF NOT EXISTS s3_buckets (
+CREATE TABLE IF NOT EXISTS storage_buckets (
     name VARCHAR(63) PRIMARY KEY,
     owner_id UUID,
     versioning_enabled BOOLEAN DEFAULT FALSE,
@@ -350,7 +350,7 @@ CREATE TABLE IF NOT EXISTS s3_buckets (
 );
 
 -- S3 Objects
-CREATE TABLE IF NOT EXISTS s3_objects (
+CREATE TABLE IF NOT EXISTS storage_objects (
     bucket VARCHAR(63) NOT NULL,
     key TEXT NOT NULL,
     version_id UUID DEFAULT uuid(),
@@ -364,23 +364,23 @@ CREATE TABLE IF NOT EXISTS s3_objects (
     is_delete_marker BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     PRIMARY KEY (bucket, key, version_id),
-    FOREIGN KEY (bucket) REFERENCES s3_buckets(name) ON DELETE CASCADE
+    FOREIGN KEY (bucket) REFERENCES storage_buckets(name) ON DELETE CASCADE
 );
-CREATE INDEX IF NOT EXISTS idx_s3_objects_bucket_key ON s3_objects(bucket, key);
-CREATE INDEX IF NOT EXISTS idx_s3_objects_latest ON s3_objects(bucket, key) WHERE is_latest = TRUE;
+CREATE INDEX IF NOT EXISTS idx_storage_objects_bucket_key ON storage_objects(bucket, key);
+CREATE INDEX IF NOT EXISTS idx_storage_objects_latest ON storage_objects(bucket, key) WHERE is_latest = TRUE;
 
 -- Multipart Uploads
-CREATE TABLE IF NOT EXISTS s3_multipart_uploads (
+CREATE TABLE IF NOT EXISTS storage_multipart_uploads (
     upload_id UUID PRIMARY KEY DEFAULT uuid(),
     bucket VARCHAR(63) NOT NULL,
     key TEXT NOT NULL,
     content_type VARCHAR(255),
     metadata JSONB DEFAULT '{}',
     initiated_at TIMESTAMPTZ DEFAULT NOW(),
-    FOREIGN KEY (bucket) REFERENCES s3_buckets(name) ON DELETE CASCADE
+    FOREIGN KEY (bucket) REFERENCES storage_buckets(name) ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS s3_multipart_parts (
+CREATE TABLE IF NOT EXISTS storage_multipart_parts (
     upload_id UUID NOT NULL,
     part_number INTEGER NOT NULL,
     etag VARCHAR(32) NOT NULL,
@@ -388,11 +388,11 @@ CREATE TABLE IF NOT EXISTS s3_multipart_parts (
     storage_path TEXT NOT NULL,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     PRIMARY KEY (upload_id, part_number),
-    FOREIGN KEY (upload_id) REFERENCES s3_multipart_uploads(upload_id) ON DELETE CASCADE
+    FOREIGN KEY (upload_id) REFERENCES storage_multipart_uploads(upload_id) ON DELETE CASCADE
 );
 
 -- S3 Access Keys (for AWS Signature V4)
-CREATE TABLE IF NOT EXISTS s3_access_keys (
+CREATE TABLE IF NOT EXISTS storage_access_keys (
     access_key_id VARCHAR(20) PRIMARY KEY,
     secret_access_key VARCHAR(64) NOT NULL,
     owner_id UUID,
@@ -408,6 +408,200 @@ CREATE TABLE IF NOT EXISTS feature_settings (
     settings JSONB NOT NULL DEFAULT '{}',
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- =========================================================================
+-- S3 Atomic Operations (reduces round-trips for better performance)
+-- =========================================================================
+
+-- Atomic S3 object creation with bucket stats update (saves 1 round-trip per upload)
+CREATE OR REPLACE FUNCTION sqrl_create_storage_object_with_stats(
+    p_bucket VARCHAR(63),
+    p_key TEXT,
+    p_version_id UUID,
+    p_etag VARCHAR(32),
+    p_size BIGINT,
+    p_content_type VARCHAR(255),
+    p_storage_path TEXT,
+    p_metadata JSONB
+) RETURNS VOID AS $$
+BEGIN
+    INSERT INTO storage_objects (bucket, key, version_id, etag, size, content_type, storage_path, metadata)
+    VALUES (p_bucket, p_key, p_version_id, p_etag, p_size, p_content_type, p_storage_path, p_metadata);
+
+    UPDATE storage_buckets
+    SET current_size = current_size + p_size,
+        object_count = object_count + 1
+    WHERE name = p_bucket;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Atomic S3 object deletion that returns object info and updates stats (saves 2 round-trips per delete)
+-- Returns: storage_path, size (for file cleanup), or NULL if not found
+CREATE OR REPLACE FUNCTION sqrl_delete_storage_object_with_stats(
+    p_bucket VARCHAR(63),
+    p_key TEXT,
+    p_version_id UUID DEFAULT NULL
+) RETURNS TABLE(storage_path TEXT, size BIGINT) AS $$
+DECLARE
+    deleted_path TEXT;
+    deleted_size BIGINT;
+BEGIN
+    IF p_version_id IS NOT NULL THEN
+        -- Delete specific version
+        DELETE FROM storage_objects
+        WHERE bucket = p_bucket AND key = p_key AND version_id = p_version_id
+        RETURNING storage_objects.storage_path, storage_objects.size INTO deleted_path, deleted_size;
+    ELSE
+        -- Delete latest version (or all if not versioned)
+        DELETE FROM storage_objects
+        WHERE bucket = p_bucket AND key = p_key AND is_latest = TRUE
+        RETURNING storage_objects.storage_path, storage_objects.size INTO deleted_path, deleted_size;
+    END IF;
+
+    IF deleted_path IS NOT NULL THEN
+        UPDATE storage_buckets
+        SET current_size = current_size - deleted_size,
+            object_count = object_count - 1
+        WHERE name = p_bucket;
+
+        RETURN QUERY SELECT deleted_path, deleted_size;
+    END IF;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Atomic delete marker creation (combines unset_latest + insert in one operation)
+CREATE OR REPLACE FUNCTION sqrl_create_storage_delete_marker(
+    p_bucket VARCHAR(63),
+    p_key TEXT,
+    p_version_id UUID
+) RETURNS VOID AS $$
+BEGIN
+    -- Unset latest on existing versions and create delete marker in one transaction
+    UPDATE storage_objects SET is_latest = FALSE WHERE bucket = p_bucket AND key = p_key;
+
+    INSERT INTO storage_objects (bucket, key, version_id, etag, size, is_delete_marker, is_latest)
+    VALUES (p_bucket, p_key, p_version_id, '', 0, TRUE, TRUE);
+END;
+$$ LANGUAGE plpgsql;
+
+-- Combined S3 objects and prefixes listing (saves 1 round-trip per list operation)
+-- Returns objects and uses a lateral join to compute prefixes in the same query
+CREATE OR REPLACE FUNCTION sqrl_list_storage_objects_with_prefixes(
+    p_bucket VARCHAR(63),
+    p_prefix TEXT DEFAULT NULL,
+    p_delimiter TEXT DEFAULT NULL,
+    p_max_keys INTEGER DEFAULT 1000,
+    p_continuation_token TEXT DEFAULT NULL
+) RETURNS TABLE(
+    obj_key TEXT,
+    obj_version_id UUID,
+    obj_etag VARCHAR(32),
+    obj_size BIGINT,
+    obj_content_type VARCHAR(255),
+    obj_storage_path TEXT,
+    obj_metadata JSONB,
+    obj_acl JSONB,
+    obj_created_at TIMESTAMPTZ,
+    is_prefix BOOLEAN
+) AS $$
+DECLARE
+    prefix_pattern TEXT;
+    prefix_len INTEGER;
+BEGIN
+    prefix_pattern := COALESCE(p_prefix, '') || '%';
+    prefix_len := LENGTH(COALESCE(p_prefix, ''));
+
+    -- Return objects (is_prefix = FALSE)
+    RETURN QUERY
+    SELECT
+        o.key,
+        o.version_id,
+        o.etag,
+        o.size,
+        o.content_type,
+        o.storage_path,
+        o.metadata,
+        o.acl,
+        o.created_at,
+        FALSE AS is_prefix
+    FROM storage_objects o
+    WHERE o.bucket = p_bucket
+      AND o.key LIKE prefix_pattern
+      AND o.key > COALESCE(p_continuation_token, '')
+      AND o.is_latest = TRUE
+      AND o.is_delete_marker = FALSE
+      AND (p_delimiter IS NULL OR POSITION(p_delimiter IN SUBSTRING(o.key FROM prefix_len + 1)) = 0)
+    ORDER BY o.key
+    LIMIT p_max_keys;
+
+    -- Return common prefixes if delimiter is specified (is_prefix = TRUE)
+    IF p_delimiter IS NOT NULL THEN
+        RETURN QUERY
+        SELECT DISTINCT
+            SUBSTRING(o.key FROM 1 FOR prefix_len + POSITION(p_delimiter IN SUBSTRING(o.key FROM prefix_len + 1))) AS prefix_key,
+            NULL::UUID,
+            NULL::VARCHAR(32),
+            NULL::BIGINT,
+            NULL::VARCHAR(255),
+            NULL::TEXT,
+            NULL::JSONB,
+            NULL::JSONB,
+            NULL::TIMESTAMPTZ,
+            TRUE AS is_prefix
+        FROM storage_objects o
+        WHERE o.bucket = p_bucket
+          AND o.key LIKE prefix_pattern
+          AND o.is_latest = TRUE
+          AND POSITION(p_delimiter IN SUBSTRING(o.key FROM prefix_len + 1)) > 0
+        ORDER BY prefix_key;
+    END IF;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Atomic S3 object replacement for non-versioned buckets (combines get old + unset latest + create new + stats)
+CREATE OR REPLACE FUNCTION sqrl_replace_storage_object(
+    p_bucket VARCHAR(63),
+    p_key TEXT,
+    p_version_id UUID,
+    p_etag VARCHAR(32),
+    p_size BIGINT,
+    p_content_type VARCHAR(255),
+    p_storage_path TEXT,
+    p_metadata JSONB
+) RETURNS TEXT AS $$
+DECLARE
+    old_path TEXT;
+    old_size BIGINT;
+BEGIN
+    -- Get old object info for file cleanup
+    SELECT storage_path, size INTO old_path, old_size
+    FROM storage_objects
+    WHERE bucket = p_bucket AND key = p_key AND is_latest = TRUE;
+
+    -- Unset latest on old version
+    UPDATE storage_objects SET is_latest = FALSE
+    WHERE bucket = p_bucket AND key = p_key;
+
+    -- Create new object
+    INSERT INTO storage_objects (bucket, key, version_id, etag, size, content_type, storage_path, metadata)
+    VALUES (p_bucket, p_key, p_version_id, p_etag, p_size, p_content_type, p_storage_path, p_metadata);
+
+    -- Update bucket stats (only size delta, count stays same for replacement)
+    IF old_size IS NOT NULL THEN
+        UPDATE storage_buckets
+        SET current_size = current_size - old_size + p_size
+        WHERE name = p_bucket;
+    ELSE
+        -- New object (not replacement)
+        UPDATE storage_buckets
+        SET current_size = current_size + p_size,
+            object_count = object_count + 1
+        WHERE name = p_bucket;
+    END IF;
+
+    RETURN old_path;  -- Return old path for file cleanup, NULL if new object
+END;
+$$ LANGUAGE plpgsql;
 "#;
 
 pub struct PostgresBackend {
@@ -912,7 +1106,7 @@ impl DatabaseBackend for PostgresBackend {
   // S3 Storage Methods
   // =========================================================================
 
-  async fn get_s3_access_key(
+  async fn get_storage_access_key(
     &self,
     access_key_id: &str,
   ) -> Result<Option<(String, Option<Uuid>)>, anyhow::Error> {
@@ -921,14 +1115,14 @@ impl DatabaseBackend for PostgresBackend {
       .get()
       .await?
       .query_opt(
-        "SELECT secret_access_key, owner_id FROM s3_access_keys WHERE access_key_id = $1",
+        "SELECT secret_access_key, owner_id FROM storage_access_keys WHERE access_key_id = $1",
         &[&access_key_id],
       )
       .await?;
     Ok(row.map(|r| (r.get(0), r.get(1))))
   }
 
-  async fn create_s3_access_key(
+  async fn create_storage_access_key(
     &self,
     access_key_id: &str,
     secret_key: &str,
@@ -940,40 +1134,40 @@ impl DatabaseBackend for PostgresBackend {
       .get()
       .await?
       .execute(
-        "INSERT INTO s3_access_keys (access_key_id, secret_access_key, owner_id, name) VALUES ($1, $2, $3, $4)",
+        "INSERT INTO storage_access_keys (access_key_id, secret_access_key, owner_id, name) VALUES ($1, $2, $3, $4)",
         &[&access_key_id, &secret_key, &owner_id, &name],
       )
       .await?;
     Ok(())
   }
 
-  async fn delete_s3_access_key(&self, access_key_id: &str) -> Result<bool, anyhow::Error> {
+  async fn delete_storage_access_key(&self, access_key_id: &str) -> Result<bool, anyhow::Error> {
     let result = self
       .pool
       .get()
       .await?
       .execute(
-        "DELETE FROM s3_access_keys WHERE access_key_id = $1",
+        "DELETE FROM storage_access_keys WHERE access_key_id = $1",
         &[&access_key_id],
       )
       .await?;
     Ok(result > 0)
   }
 
-  async fn list_s3_access_keys(&self) -> Result<Vec<S3AccessKeyInfo>, anyhow::Error> {
+  async fn list_storage_access_keys(&self) -> Result<Vec<StorageAccessKeyInfo>, anyhow::Error> {
     let rows = self
       .pool
       .get()
       .await?
       .query(
-        "SELECT access_key_id, owner_id, name, created_at FROM s3_access_keys ORDER BY created_at DESC",
+        "SELECT access_key_id, owner_id, name, created_at FROM storage_access_keys ORDER BY created_at DESC",
         &[],
       )
       .await?;
     Ok(
       rows
         .into_iter()
-        .map(|r| S3AccessKeyInfo {
+        .map(|r| StorageAccessKeyInfo {
           access_key_id: r.get(0),
           owner_id: r.get(1),
           name: r.get(2),
@@ -983,18 +1177,18 @@ impl DatabaseBackend for PostgresBackend {
     )
   }
 
-  async fn get_s3_bucket(&self, name: &str) -> Result<Option<S3Bucket>, anyhow::Error> {
+  async fn get_storage_bucket(&self, name: &str) -> Result<Option<StorageBucket>, anyhow::Error> {
     let row = self
       .pool
       .get()
       .await?
       .query_opt(
-        "SELECT name, owner_id, versioning_enabled, acl, lifecycle_rules, quota_bytes, current_size, object_count, created_at FROM s3_buckets WHERE name = $1",
+        "SELECT name, owner_id, versioning_enabled, acl, lifecycle_rules, quota_bytes, current_size, object_count, created_at FROM storage_buckets WHERE name = $1",
         &[&name],
       )
       .await?;
     Ok(row.map(|r| {
-      S3Bucket {
+      StorageBucket {
         name: r.get(0),
         owner_id: r.get(1),
         versioning_enabled: r.get(2),
@@ -1012,7 +1206,7 @@ impl DatabaseBackend for PostgresBackend {
     }))
   }
 
-  async fn create_s3_bucket(
+  async fn create_storage_bucket(
     &self,
     name: &str,
     owner_id: Option<Uuid>,
@@ -1022,37 +1216,37 @@ impl DatabaseBackend for PostgresBackend {
       .get()
       .await?
       .execute(
-        "INSERT INTO s3_buckets (name, owner_id) VALUES ($1, $2)",
+        "INSERT INTO storage_buckets (name, owner_id) VALUES ($1, $2)",
         &[&name, &owner_id],
       )
       .await?;
     Ok(())
   }
 
-  async fn delete_s3_bucket(&self, name: &str) -> Result<(), anyhow::Error> {
+  async fn delete_storage_bucket(&self, name: &str) -> Result<(), anyhow::Error> {
     self
       .pool
       .get()
       .await?
-      .execute("DELETE FROM s3_buckets WHERE name = $1", &[&name])
+      .execute("DELETE FROM storage_buckets WHERE name = $1", &[&name])
       .await?;
     Ok(())
   }
 
-  async fn list_s3_buckets(&self) -> Result<Vec<S3Bucket>, anyhow::Error> {
+  async fn list_storage_buckets(&self) -> Result<Vec<StorageBucket>, anyhow::Error> {
     let rows = self
       .pool
       .get()
       .await?
       .query(
-        "SELECT name, owner_id, versioning_enabled, acl, lifecycle_rules, quota_bytes, current_size, object_count, created_at FROM s3_buckets ORDER BY name",
+        "SELECT name, owner_id, versioning_enabled, acl, lifecycle_rules, quota_bytes, current_size, object_count, created_at FROM storage_buckets ORDER BY name",
         &[],
       )
       .await?;
     Ok(
       rows
         .into_iter()
-        .map(|r| S3Bucket {
+        .map(|r| StorageBucket {
           name: r.get(0),
           owner_id: r.get(1),
           versioning_enabled: r.get(2),
@@ -1071,7 +1265,7 @@ impl DatabaseBackend for PostgresBackend {
     )
   }
 
-  async fn update_s3_bucket_stats(
+  async fn update_storage_bucket_stats(
     &self,
     bucket: &str,
     size_delta: i64,
@@ -1082,26 +1276,26 @@ impl DatabaseBackend for PostgresBackend {
       .get()
       .await?
       .execute(
-        "UPDATE s3_buckets SET current_size = current_size + $2, object_count = object_count + $3 WHERE name = $1",
+        "UPDATE storage_buckets SET current_size = current_size + $2, object_count = object_count + $3 WHERE name = $1",
         &[&bucket, &size_delta, &count_delta],
       )
       .await?;
     Ok(())
   }
 
-  async fn get_s3_object(
+  async fn get_storage_object(
     &self,
     bucket: &str,
     key: &str,
     version_id: Option<Uuid>,
-  ) -> Result<Option<S3Object>, anyhow::Error> {
+  ) -> Result<Option<StorageObject>, anyhow::Error> {
     let row = if let Some(vid) = version_id {
       self
         .pool
         .get()
         .await?
         .query_opt(
-          "SELECT bucket, key, version_id, is_latest, etag, size, content_type, storage_path, metadata, acl, is_delete_marker, created_at FROM s3_objects WHERE bucket = $1 AND key = $2 AND version_id = $3",
+          "SELECT bucket, key, version_id, is_latest, etag, size, content_type, storage_path, metadata, acl, is_delete_marker, created_at FROM storage_objects WHERE bucket = $1 AND key = $2 AND version_id = $3",
           &[&bucket, &key, &vid],
         )
         .await?
@@ -1111,13 +1305,13 @@ impl DatabaseBackend for PostgresBackend {
         .get()
         .await?
         .query_opt(
-          "SELECT bucket, key, version_id, is_latest, etag, size, content_type, storage_path, metadata, acl, is_delete_marker, created_at FROM s3_objects WHERE bucket = $1 AND key = $2 AND is_latest = TRUE",
+          "SELECT bucket, key, version_id, is_latest, etag, size, content_type, storage_path, metadata, acl, is_delete_marker, created_at FROM storage_objects WHERE bucket = $1 AND key = $2 AND is_latest = TRUE",
           &[&bucket, &key],
         )
         .await?
     };
     Ok(row.map(|r| {
-      S3Object {
+      StorageObject {
         bucket: r.get(0),
         key: r.get(1),
         version_id: r.get(2),
@@ -1136,7 +1330,7 @@ impl DatabaseBackend for PostgresBackend {
     }))
   }
 
-  async fn create_s3_object(
+  async fn create_storage_object(
     &self,
     bucket: &str,
     key: &str,
@@ -1152,14 +1346,14 @@ impl DatabaseBackend for PostgresBackend {
       .get()
       .await?
       .execute(
-        "INSERT INTO s3_objects (bucket, key, version_id, etag, size, content_type, storage_path, metadata) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
+        "INSERT INTO storage_objects (bucket, key, version_id, etag, size, content_type, storage_path, metadata) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
         &[&bucket, &key, &version_id, &etag, &size, &content_type, &storage_path, &metadata],
       )
       .await?;
     Ok(())
   }
 
-  async fn delete_s3_object(
+  async fn delete_storage_object(
     &self,
     bucket: &str,
     key: &str,
@@ -1171,7 +1365,7 @@ impl DatabaseBackend for PostgresBackend {
         .get()
         .await?
         .execute(
-          "DELETE FROM s3_objects WHERE bucket = $1 AND key = $2 AND version_id = $3",
+          "DELETE FROM storage_objects WHERE bucket = $1 AND key = $2 AND version_id = $3",
           &[&bucket, &key, &vid],
         )
         .await?;
@@ -1181,7 +1375,7 @@ impl DatabaseBackend for PostgresBackend {
         .get()
         .await?
         .execute(
-          "DELETE FROM s3_objects WHERE bucket = $1 AND key = $2",
+          "DELETE FROM storage_objects WHERE bucket = $1 AND key = $2",
           &[&bucket, &key],
         )
         .await?;
@@ -1189,41 +1383,39 @@ impl DatabaseBackend for PostgresBackend {
     Ok(())
   }
 
-  async fn create_s3_delete_marker(
+  async fn create_storage_delete_marker(
     &self,
     bucket: &str,
     key: &str,
     version_id: Uuid,
   ) -> Result<(), anyhow::Error> {
-    // First unset latest on existing versions
-    self.unset_s3_object_latest(bucket, key).await?;
-    // Create delete marker
+    // Use atomic function that combines unset_latest + insert in one transaction
     self
       .pool
       .get()
       .await?
       .execute(
-        "INSERT INTO s3_objects (bucket, key, version_id, etag, size, is_delete_marker, is_latest) VALUES ($1, $2, $3, '', 0, TRUE, TRUE)",
+        "SELECT sqrl_create_storage_delete_marker($1, $2, $3)",
         &[&bucket, &key, &version_id],
       )
       .await?;
     Ok(())
   }
 
-  async fn unset_s3_object_latest(&self, bucket: &str, key: &str) -> Result<(), anyhow::Error> {
+  async fn unset_storage_object_latest(&self, bucket: &str, key: &str) -> Result<(), anyhow::Error> {
     self
       .pool
       .get()
       .await?
       .execute(
-        "UPDATE s3_objects SET is_latest = FALSE WHERE bucket = $1 AND key = $2",
+        "UPDATE storage_objects SET is_latest = FALSE WHERE bucket = $1 AND key = $2",
         &[&bucket, &key],
       )
       .await?;
     Ok(())
   }
 
-  async fn update_s3_object_acl(
+  async fn update_storage_object_acl(
     &self,
     bucket: &str,
     key: &str,
@@ -1235,21 +1427,21 @@ impl DatabaseBackend for PostgresBackend {
       .get()
       .await?
       .execute(
-        "UPDATE s3_objects SET acl = $3 WHERE bucket = $1 AND key = $2 AND is_latest = TRUE",
+        "UPDATE storage_objects SET acl = $3 WHERE bucket = $1 AND key = $2 AND is_latest = TRUE",
         &[&bucket, &key, &acl_json],
       )
       .await?;
     Ok(())
   }
 
-  async fn list_s3_objects(
+  async fn list_storage_objects(
     &self,
     bucket: &str,
     prefix: Option<&str>,
     _delimiter: Option<&str>,
     max_keys: i32,
     continuation_token: Option<&str>,
-  ) -> Result<(Vec<S3Object>, bool, Option<String>), anyhow::Error> {
+  ) -> Result<(Vec<StorageObject>, bool, Option<String>), anyhow::Error> {
     let prefix_pattern = prefix
       .map(|p| format!("{}%", p))
       .unwrap_or_else(|| "%".to_string());
@@ -1261,7 +1453,7 @@ impl DatabaseBackend for PostgresBackend {
       .await?
       .query(
         "SELECT bucket, key, version_id, is_latest, etag, size, content_type, storage_path, metadata, acl, is_delete_marker, created_at
-         FROM s3_objects
+         FROM storage_objects
          WHERE bucket = $1 AND key LIKE $2 AND key > $3 AND is_latest = TRUE AND is_delete_marker = FALSE
          ORDER BY key
          LIMIT $4",
@@ -1270,10 +1462,10 @@ impl DatabaseBackend for PostgresBackend {
       .await?;
 
     let is_truncated = rows.len() > max_keys as usize;
-    let objects: Vec<S3Object> = rows
+    let objects: Vec<StorageObject> = rows
       .into_iter()
       .take(max_keys as usize)
-      .map(|r| S3Object {
+      .map(|r| StorageObject {
         bucket: r.get(0),
         key: r.get(1),
         version_id: r.get(2),
@@ -1300,7 +1492,7 @@ impl DatabaseBackend for PostgresBackend {
     Ok((objects, is_truncated, next_token))
   }
 
-  async fn list_s3_common_prefixes(
+  async fn list_storage_common_prefixes(
     &self,
     bucket: &str,
     prefix: Option<&str>,
@@ -1320,7 +1512,7 @@ impl DatabaseBackend for PostgresBackend {
       .await?
       .query(
         "SELECT DISTINCT SUBSTRING(key FROM 1 FOR POSITION($2 IN SUBSTRING(key FROM $3)) + $3 - 1) as common_prefix
-         FROM s3_objects
+         FROM storage_objects
          WHERE bucket = $1 AND key LIKE $4 AND POSITION($2 IN SUBSTRING(key FROM $3)) > 0 AND is_latest = TRUE
          ORDER BY common_prefix",
         &[&bucket, &delim, &(prefix_len + 1), &format!("{}%", prefix_str)],
@@ -1330,12 +1522,12 @@ impl DatabaseBackend for PostgresBackend {
     Ok(rows.into_iter().map(|r| r.get(0)).collect())
   }
 
-  async fn list_s3_object_versions(
+  async fn list_storage_object_versions(
     &self,
     bucket: &str,
     prefix: Option<&str>,
     max_keys: i32,
-  ) -> Result<(Vec<S3Object>, bool, Option<String>), anyhow::Error> {
+  ) -> Result<(Vec<StorageObject>, bool, Option<String>), anyhow::Error> {
     let prefix_pattern = prefix
       .map(|p| format!("{}%", p))
       .unwrap_or_else(|| "%".to_string());
@@ -1346,7 +1538,7 @@ impl DatabaseBackend for PostgresBackend {
       .await?
       .query(
         "SELECT bucket, key, version_id, is_latest, etag, size, content_type, storage_path, metadata, acl, is_delete_marker, created_at
-         FROM s3_objects
+         FROM storage_objects
          WHERE bucket = $1 AND key LIKE $2
          ORDER BY key, created_at DESC
          LIMIT $3",
@@ -1355,10 +1547,10 @@ impl DatabaseBackend for PostgresBackend {
       .await?;
 
     let is_truncated = rows.len() > max_keys as usize;
-    let objects: Vec<S3Object> = rows
+    let objects: Vec<StorageObject> = rows
       .into_iter()
       .take(max_keys as usize)
-      .map(|r| S3Object {
+      .map(|r| StorageObject {
         bucket: r.get(0),
         key: r.get(1),
         version_id: r.get(2),
@@ -1379,20 +1571,20 @@ impl DatabaseBackend for PostgresBackend {
     Ok((objects, is_truncated, None))
   }
 
-  async fn get_s3_multipart_upload(
+  async fn get_multipart_upload(
     &self,
     upload_id: Uuid,
-  ) -> Result<Option<S3MultipartUpload>, anyhow::Error> {
+  ) -> Result<Option<MultipartUpload>, anyhow::Error> {
     let row = self
       .pool
       .get()
       .await?
       .query_opt(
-        "SELECT upload_id, bucket, key, content_type, metadata, initiated_at FROM s3_multipart_uploads WHERE upload_id = $1",
+        "SELECT upload_id, bucket, key, content_type, metadata, initiated_at FROM storage_multipart_uploads WHERE upload_id = $1",
         &[&upload_id],
       )
       .await?;
-    Ok(row.map(|r| S3MultipartUpload {
+    Ok(row.map(|r| MultipartUpload {
       upload_id: r.get(0),
       bucket: r.get(1),
       key: r.get(2),
@@ -1402,7 +1594,7 @@ impl DatabaseBackend for PostgresBackend {
     }))
   }
 
-  async fn create_s3_multipart_upload(
+  async fn create_multipart_upload(
     &self,
     upload_id: Uuid,
     bucket: &str,
@@ -1415,46 +1607,46 @@ impl DatabaseBackend for PostgresBackend {
       .get()
       .await?
       .execute(
-        "INSERT INTO s3_multipart_uploads (upload_id, bucket, key, content_type, metadata) VALUES ($1, $2, $3, $4, $5)",
+        "INSERT INTO storage_multipart_uploads (upload_id, bucket, key, content_type, metadata) VALUES ($1, $2, $3, $4, $5)",
         &[&upload_id, &bucket, &key, &content_type, &metadata],
       )
       .await?;
     Ok(())
   }
 
-  async fn delete_s3_multipart_upload(&self, upload_id: Uuid) -> Result<(), anyhow::Error> {
+  async fn delete_multipart_upload(&self, upload_id: Uuid) -> Result<(), anyhow::Error> {
     self
       .pool
       .get()
       .await?
       .execute(
-        "DELETE FROM s3_multipart_uploads WHERE upload_id = $1",
+        "DELETE FROM storage_multipart_uploads WHERE upload_id = $1",
         &[&upload_id],
       )
       .await?;
     Ok(())
   }
 
-  async fn list_s3_multipart_uploads(
+  async fn list_multipart_uploads(
     &self,
     bucket: &str,
     max_uploads: i32,
-  ) -> Result<(Vec<S3MultipartUpload>, bool), anyhow::Error> {
+  ) -> Result<(Vec<MultipartUpload>, bool), anyhow::Error> {
     let rows = self
       .pool
       .get()
       .await?
       .query(
-        "SELECT upload_id, bucket, key, content_type, metadata, initiated_at FROM s3_multipart_uploads WHERE bucket = $1 ORDER BY initiated_at LIMIT $2",
+        "SELECT upload_id, bucket, key, content_type, metadata, initiated_at FROM storage_multipart_uploads WHERE bucket = $1 ORDER BY initiated_at LIMIT $2",
         &[&bucket, &(max_uploads + 1)],
       )
       .await?;
 
     let is_truncated = rows.len() > max_uploads as usize;
-    let uploads: Vec<S3MultipartUpload> = rows
+    let uploads: Vec<MultipartUpload> = rows
       .into_iter()
       .take(max_uploads as usize)
-      .map(|r| S3MultipartUpload {
+      .map(|r| MultipartUpload {
         upload_id: r.get(0),
         bucket: r.get(1),
         key: r.get(2),
@@ -1467,21 +1659,21 @@ impl DatabaseBackend for PostgresBackend {
     Ok((uploads, is_truncated))
   }
 
-  async fn get_s3_multipart_part(
+  async fn get_multipart_part(
     &self,
     upload_id: Uuid,
     part_number: i32,
-  ) -> Result<Option<S3Part>, anyhow::Error> {
+  ) -> Result<Option<MultipartPart>, anyhow::Error> {
     let row = self
       .pool
       .get()
       .await?
       .query_opt(
-        "SELECT upload_id, part_number, etag, size, storage_path, created_at FROM s3_multipart_parts WHERE upload_id = $1 AND part_number = $2",
+        "SELECT upload_id, part_number, etag, size, storage_path, created_at FROM storage_multipart_parts WHERE upload_id = $1 AND part_number = $2",
         &[&upload_id, &part_number],
       )
       .await?;
-    Ok(row.map(|r| S3Part {
+    Ok(row.map(|r| MultipartPart {
       upload_id: r.get(0),
       part_number: r.get(1),
       etag: r.get(2),
@@ -1491,7 +1683,7 @@ impl DatabaseBackend for PostgresBackend {
     }))
   }
 
-  async fn upsert_s3_multipart_part(
+  async fn upsert_multipart_part(
     &self,
     upload_id: Uuid,
     part_number: i32,
@@ -1504,7 +1696,7 @@ impl DatabaseBackend for PostgresBackend {
       .get()
       .await?
       .execute(
-        "INSERT INTO s3_multipart_parts (upload_id, part_number, etag, size, storage_path)
+        "INSERT INTO storage_multipart_parts (upload_id, part_number, etag, size, storage_path)
          VALUES ($1, $2, $3, $4, $5)
          ON CONFLICT (upload_id, part_number) DO UPDATE SET etag = $3, size = $4, storage_path = $5",
         &[&upload_id, &part_number, &etag, &size, &storage_path],
@@ -1513,26 +1705,26 @@ impl DatabaseBackend for PostgresBackend {
     Ok(())
   }
 
-  async fn list_s3_multipart_parts(
+  async fn list_multipart_parts(
     &self,
     upload_id: Uuid,
     max_parts: i32,
-  ) -> Result<(Vec<S3Part>, bool), anyhow::Error> {
+  ) -> Result<(Vec<MultipartPart>, bool), anyhow::Error> {
     let rows = self
       .pool
       .get()
       .await?
       .query(
-        "SELECT upload_id, part_number, etag, size, storage_path, created_at FROM s3_multipart_parts WHERE upload_id = $1 ORDER BY part_number LIMIT $2",
+        "SELECT upload_id, part_number, etag, size, storage_path, created_at FROM storage_multipart_parts WHERE upload_id = $1 ORDER BY part_number LIMIT $2",
         &[&upload_id, &(max_parts + 1)],
       )
       .await?;
 
     let is_truncated = rows.len() > max_parts as usize;
-    let parts: Vec<S3Part> = rows
+    let parts: Vec<MultipartPart> = rows
       .into_iter()
       .take(max_parts as usize)
-      .map(|r| S3Part {
+      .map(|r| MultipartPart {
         upload_id: r.get(0),
         part_number: r.get(1),
         etag: r.get(2),
@@ -1584,6 +1776,152 @@ impl DatabaseBackend for PostgresBackend {
       )
       .await?;
     Ok(())
+  }
+
+  // =========================================================================
+  // S3 Atomic Operations (reduces round-trips)
+  // =========================================================================
+
+  async fn create_storage_object_with_stats(
+    &self,
+    bucket: &str,
+    key: &str,
+    version_id: Uuid,
+    etag: &str,
+    size: i64,
+    content_type: &str,
+    storage_path: &str,
+    metadata: serde_json::Value,
+  ) -> Result<(), anyhow::Error> {
+    self
+      .pool
+      .get()
+      .await?
+      .execute(
+        "SELECT sqrl_create_storage_object_with_stats($1, $2, $3, $4, $5, $6, $7, $8)",
+        &[
+          &bucket,
+          &key,
+          &version_id,
+          &etag,
+          &size,
+          &content_type,
+          &storage_path,
+          &metadata,
+        ],
+      )
+      .await?;
+    Ok(())
+  }
+
+  async fn delete_storage_object_with_stats(
+    &self,
+    bucket: &str,
+    key: &str,
+    version_id: Option<Uuid>,
+  ) -> Result<Option<(String, i64)>, anyhow::Error> {
+    let row = self
+      .pool
+      .get()
+      .await?
+      .query_opt(
+        "SELECT storage_path, size FROM sqrl_delete_storage_object_with_stats($1, $2, $3)",
+        &[&bucket, &key, &version_id],
+      )
+      .await?;
+    Ok(row.map(|r| (r.get(0), r.get(1))))
+  }
+
+  async fn replace_storage_object(
+    &self,
+    bucket: &str,
+    key: &str,
+    version_id: Uuid,
+    etag: &str,
+    size: i64,
+    content_type: &str,
+    storage_path: &str,
+    metadata: serde_json::Value,
+  ) -> Result<Option<String>, anyhow::Error> {
+    let row = self
+      .pool
+      .get()
+      .await?
+      .query_one(
+        "SELECT sqrl_replace_storage_object($1, $2, $3, $4, $5, $6, $7, $8)",
+        &[
+          &bucket,
+          &key,
+          &version_id,
+          &etag,
+          &size,
+          &content_type,
+          &storage_path,
+          &metadata,
+        ],
+      )
+      .await?;
+    Ok(row.get(0))
+  }
+
+  async fn list_storage_objects_with_prefixes(
+    &self,
+    bucket: &str,
+    prefix: Option<&str>,
+    delimiter: Option<&str>,
+    max_keys: i32,
+    continuation_token: Option<&str>,
+  ) -> Result<(Vec<StorageObject>, Vec<String>, bool, Option<String>), anyhow::Error> {
+    let rows = self
+      .pool
+      .get()
+      .await?
+      .query(
+        "SELECT obj_key, obj_version_id, obj_etag, obj_size, obj_content_type, obj_storage_path, obj_metadata, obj_acl, obj_created_at, is_prefix
+         FROM sqrl_list_storage_objects_with_prefixes($1, $2, $3, $4, $5)",
+        &[&bucket, &prefix, &delimiter, &(max_keys + 1), &continuation_token],
+      )
+      .await?;
+
+    let mut objects = Vec::new();
+    let mut prefixes = Vec::new();
+
+    for row in &rows {
+      let is_prefix: bool = row.get(9);
+      if is_prefix {
+        prefixes.push(row.get(0));
+      } else {
+        objects.push(StorageObject {
+          bucket: bucket.to_string(),
+          key: row.get(0),
+          version_id: row.get(1),
+          is_latest: true,
+          etag: row.get(2),
+          size: row.get(3),
+          content_type: row.get(4),
+          storage_path: row.get(5),
+          metadata: row.get(6),
+          acl: row
+            .get::<_, serde_json::Value>(7)
+            .pipe(|v| serde_json::from_value(v).unwrap_or_default()),
+          is_delete_marker: false,
+          created_at: row.get(8),
+        });
+      }
+    }
+
+    let is_truncated = objects.len() > max_keys as usize;
+    if is_truncated {
+      objects.truncate(max_keys as usize);
+    }
+
+    let next_token = if is_truncated {
+      objects.last().map(|o| o.key.clone())
+    } else {
+      None
+    };
+
+    Ok((objects, prefixes, is_truncated, next_token))
   }
 }
 

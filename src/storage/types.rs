@@ -2,9 +2,9 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-/// S3 bucket metadata
+/// Storage bucket metadata
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct S3Bucket {
+pub struct StorageBucket {
   pub name: String,
   pub owner_id: Option<Uuid>,
   pub versioning_enabled: bool,
@@ -16,9 +16,9 @@ pub struct S3Bucket {
   pub created_at: DateTime<Utc>,
 }
 
-/// S3 object metadata
+/// Storage object metadata
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct S3Object {
+pub struct StorageObject {
   pub bucket: String,
   pub key: String,
   pub version_id: Uuid,
@@ -33,9 +33,9 @@ pub struct S3Object {
   pub created_at: DateTime<Utc>,
 }
 
-/// S3 multipart upload session
+/// Multipart upload session
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct S3MultipartUpload {
+pub struct MultipartUpload {
   pub upload_id: Uuid,
   pub bucket: String,
   pub key: String,
@@ -44,9 +44,9 @@ pub struct S3MultipartUpload {
   pub initiated_at: DateTime<Utc>,
 }
 
-/// S3 multipart upload part
+/// Multipart upload part
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct S3Part {
+pub struct MultipartPart {
   pub upload_id: Uuid,
   pub part_number: i32,
   pub etag: String,
@@ -55,9 +55,9 @@ pub struct S3Part {
   pub created_at: DateTime<Utc>,
 }
 
-/// S3 access key for AWS Signature V4 authentication
+/// Storage access key for authentication
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct S3AccessKey {
+pub struct StorageAccessKey {
   pub access_key_id: String,
   pub secret_access_key_hash: String,
   pub owner_id: Option<Uuid>,

@@ -8,7 +8,7 @@ use crate::db::DatabaseBackend;
 use crate::features::{AppState, FeatureRegistry};
 use crate::mcp::McpServer;
 use crate::query::QueryEnginePool;
-use crate::s3::{S3Config, S3Feature};
+use crate::storage::{StorageConfig, StorageFeature};
 use crate::subscriptions::SubscriptionManager;
 
 pub struct Daemon {
@@ -44,8 +44,8 @@ impl Daemon {
     let feature_registry = Arc::new(FeatureRegistry::new());
 
     // Register S3 feature
-    let s3_config = S3Config::from(&config.s3);
-    let s3_feature = Arc::new(S3Feature::new(s3_config));
+    let s3_config = StorageConfig::from(&config.storage);
+    let s3_feature = Arc::new(StorageFeature::new(s3_config));
     feature_registry.register(s3_feature);
 
     Self {
@@ -146,19 +146,19 @@ impl Daemon {
     }
 
     // Start S3 feature if enabled
-    if self.config.features.s3 {
+    if self.config.features.storage {
       let app_state = Arc::new(AppState {
         backend: self.backend.clone(),
         engine_pool: self.engine_pool.clone(),
         config: self.config.clone(),
       });
-      let s3_addr = self.config.s3_address();
+      let s3_addr = self.config.storage_address();
       emit_log(
         "info",
         "squirreldb::s3",
         &format!("Starting S3 server on {}", s3_addr),
       );
-      if let Err(e) = self.feature_registry.start("s3", app_state).await {
+      if let Err(e) = self.feature_registry.start("storage", app_state).await {
         tracing::error!("Failed to start S3 feature: {}", e);
       } else {
         tracing::info!("SquirrelDB S3 on {}", s3_addr);

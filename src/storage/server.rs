@@ -6,28 +6,28 @@ use tokio::net::TcpListener;
 use tokio::sync::oneshot;
 use tower_http::cors::{Any, CorsLayer};
 
-use super::config::S3Config;
+use super::config::StorageConfig;
 use super::routes::build_router;
-use super::storage::LocalFileStorage;
+use super::filesystem::LocalFileStorage;
 use crate::db::DatabaseBackend;
 use crate::features::{AppState, Feature};
 
 /// S3 feature state shared across handlers
-pub struct S3State {
+pub struct StorageState {
   pub backend: Arc<dyn DatabaseBackend>,
   pub storage: LocalFileStorage,
-  pub config: S3Config,
+  pub config: StorageConfig,
 }
 
 /// S3-compatible storage feature
-pub struct S3Feature {
-  config: RwLock<S3Config>,
+pub struct StorageFeature {
+  config: RwLock<StorageConfig>,
   shutdown_tx: RwLock<Option<oneshot::Sender<()>>>,
   running: RwLock<bool>,
 }
 
-impl S3Feature {
-  pub fn new(config: S3Config) -> Self {
+impl StorageFeature {
+  pub fn new(config: StorageConfig) -> Self {
     Self {
       config: RwLock::new(config),
       shutdown_tx: RwLock::new(None),
@@ -36,7 +36,7 @@ impl S3Feature {
   }
 
   /// Update the feature's configuration (call before start/restart)
-  pub fn update_config(&self, config: S3Config) {
+  pub fn update_config(&self, config: StorageConfig) {
     tracing::info!(
       "S3 feature config updated: port={}, storage_path={}",
       config.port,
@@ -46,15 +46,15 @@ impl S3Feature {
   }
 
   /// Get the current configuration
-  pub fn get_config(&self) -> S3Config {
+  pub fn get_config(&self) -> StorageConfig {
     self.config.read().clone()
   }
 }
 
 #[async_trait]
-impl Feature for S3Feature {
+impl Feature for StorageFeature {
   fn name(&self) -> &str {
-    "s3"
+    "storage"
   }
 
   fn description(&self) -> &str {
@@ -67,14 +67,14 @@ impl Feature for S3Feature {
     }
 
     // Load config from database if available, otherwise use current config
-    let config = if let Ok(Some((_, settings))) = state.backend.get_feature_settings("s3").await {
+    let config = if let Ok(Some((_, settings))) = state.backend.get_feature_settings("storage").await {
       let port = settings.get("port").and_then(|v| v.as_u64()).unwrap_or(self.config.read().port as u64) as u16;
       let storage_path = settings.get("storage_path").and_then(|v| v.as_str()).map(String::from).unwrap_or_else(|| self.config.read().storage_path.clone());
       let region = settings.get("region").and_then(|v| v.as_str()).map(String::from).unwrap_or_else(|| self.config.read().region.clone());
       let max_object_size = settings.get("max_object_size").and_then(|v| v.as_u64()).unwrap_or(self.config.read().max_object_size);
       let max_part_size = settings.get("max_part_size").and_then(|v| v.as_u64()).unwrap_or(self.config.read().max_part_size);
       let min_part_size = settings.get("min_part_size").and_then(|v| v.as_u64()).unwrap_or(self.config.read().min_part_size);
-      S3Config {
+      StorageConfig {
         port,
         storage_path,
         region,
@@ -97,7 +97,7 @@ impl Feature for S3Feature {
       .map_err(|e| anyhow::anyhow!("Failed to initialize storage: {}", e))?;
 
     // Create S3 state
-    let s3_state = Arc::new(S3State {
+    let s3_state = Arc::new(StorageState {
       backend: state.backend.clone(),
       storage,
       config: config.clone(),

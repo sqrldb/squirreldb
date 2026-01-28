@@ -7,7 +7,7 @@ use crate::admin::apiclient;
 #[component]
 pub fn StorageSettings() -> impl IntoView {
   let state = use_context::<AppState>().expect("AppState not found");
-  let s3_settings = state.s3_settings;
+  let storage_settings = state.storage_settings;
 
   let (enabled, set_enabled) = create_signal(false);
   let (port, set_port) = create_signal(String::from("9000"));
@@ -18,9 +18,9 @@ pub fn StorageSettings() -> impl IntoView {
 
   // Sync with state on load
   create_effect(move |_| {
-    let settings = s3_settings.get();
+    let settings = storage_settings.get();
     set_enabled.set(settings.enabled);
-    state.s3_enabled.set(settings.enabled);
+    state.storage_enabled.set(settings.enabled);
     set_port.set(settings.port.to_string());
     set_storage_path.set(settings.storage_path.clone());
     set_region.set(settings.region.clone());
@@ -33,9 +33,9 @@ pub fn StorageSettings() -> impl IntoView {
     set_toggling.set(true);
     let state = state_toggle.clone();
     spawn_local(async move {
-      match apiclient::toggle_feature("s3", checked).await {
+      match apiclient::toggle_feature("storage", checked).await {
         Ok(_) => {
-          state.s3_enabled.set(checked);
+          state.storage_enabled.set(checked);
           state.show_toast(
             if checked { "Storage enabled" } else { "Storage disabled" },
             ToastLevel::Success,
@@ -60,10 +60,10 @@ pub fn StorageSettings() -> impl IntoView {
     let is_running = enabled.get();
 
     spawn_local(async move {
-      match apiclient::update_s3_settings(port_val, Some(path_val.clone()), Some(region_val.clone())).await {
+      match apiclient::update_storage_settings(port_val, Some(path_val.clone()), Some(region_val.clone())).await {
         Ok(_) => {
           // Update local state with new settings
-          state.s3_settings.update(|s| {
+          state.storage_settings.update(|s| {
             if let Some(p) = port_val {
               s.port = p;
             }

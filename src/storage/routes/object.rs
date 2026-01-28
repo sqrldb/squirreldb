@@ -8,19 +8,19 @@ use std::collections::HashMap;
 use std::sync::Arc;
 use uuid::Uuid;
 
-use crate::s3::error::S3Error;
-use crate::s3::server::S3State;
-use crate::s3::types::*;
-use crate::s3::xml;
+use crate::storage::error::StorageError;
+use crate::storage::server::StorageState;
+use crate::storage::types::*;
+use crate::storage::xml;
 
 /// PUT /{bucket}/{key} - Put object or special operation
 pub async fn put_object_or_operation(
-  State(state): State<Arc<S3State>>,
+  State(state): State<Arc<StorageState>>,
   Path((bucket, key)): Path<(String, String)>,
   Query(params): Query<HashMap<String, String>>,
   headers: HeaderMap,
   body: Bytes,
-) -> Result<Response, S3Error> {
+) -> Result<Response, StorageError> {
   // Check for special operations
   if params.contains_key("acl") {
     return put_object_acl(state, &bucket, &key, body).await;
@@ -44,23 +44,23 @@ pub async fn put_object_or_operation(
 
 /// PUT /{bucket}/{key} - Put object
 async fn put_object(
-  state: Arc<S3State>,
+  state: Arc<StorageState>,
   bucket: &str,
   key: &str,
   headers: HeaderMap,
   body: Bytes,
-) -> Result<Response, S3Error> {
+) -> Result<Response, StorageError> {
   // Check bucket exists
   let bucket_info = state
     .backend
-    .get_s3_bucket(bucket)
+    .get_storage_bucket(bucket)
     .await?
-    .ok_or_else(|| S3Error::no_such_bucket(bucket))?;
+    .ok_or_else(|| StorageError::no_such_bucket(bucket))?;
 
   // Check object size
   if body.len() as u64 > state.config.max_object_size {
-    return Err(S3Error::new(
-      crate::s3::error::S3ErrorCode::EntityTooLarge,
+    return Err(StorageError::new(
+      crate::storage::error::StorageErrorCode::EntityTooLarge,
       "Object size exceeds maximum allowed size",
     ));
   }
@@ -94,36 +94,43 @@ async fn put_object(
     .write_object(bucket, key, version_id, &body)
     .await?;
 
-  // If versioning is not enabled, delete the previous version
-  if !bucket_info.versioning_enabled {
-    if let Some(existing) = state.backend.get_s3_object(bucket, key, None).await? {
-      // Delete old storage file
-      let _ = state.storage.delete_object(&existing.storage_path).await;
-      // Mark as not latest
-      state.backend.unset_s3_object_latest(bucket, key).await?;
+  // Use atomic operations to reduce round-trips
+  if bucket_info.versioning_enabled {
+    // Versioning: just create new version with stats update (1 query instead of 2)
+    state
+      .backend
+      .create_storage_object_with_stats(
+        bucket,
+        key,
+        version_id,
+        &etag,
+        size,
+        &content_type,
+        &storage_path,
+        serde_json::Value::Object(metadata),
+      )
+      .await?;
+  } else {
+    // No versioning: replace object atomically (1 query instead of 4)
+    // Returns old storage path for file cleanup
+    if let Some(old_path) = state
+      .backend
+      .replace_storage_object(
+        bucket,
+        key,
+        version_id,
+        &etag,
+        size,
+        &content_type,
+        &storage_path,
+        serde_json::Value::Object(metadata),
+      )
+      .await?
+    {
+      // Delete old storage file (fire and forget)
+      let _ = state.storage.delete_object(&old_path).await;
     }
   }
-
-  // Create object record
-  state
-    .backend
-    .create_s3_object(
-      bucket,
-      key,
-      version_id,
-      &etag,
-      size,
-      &content_type,
-      &storage_path,
-      serde_json::Value::Object(metadata),
-    )
-    .await?;
-
-  // Update bucket stats
-  state
-    .backend
-    .update_s3_bucket_stats(bucket, size, 1)
-    .await?;
 
   Ok(
     (
@@ -139,14 +146,14 @@ async fn put_object(
 
 /// Copy object
 async fn copy_object(
-  state: Arc<S3State>,
+  state: Arc<StorageState>,
   dst_bucket: &str,
   dst_key: &str,
   copy_source: &str,
   _headers: &HeaderMap,
-) -> Result<Response, S3Error> {
+) -> Result<Response, StorageError> {
   let source = CopySource::parse(copy_source)
-    .ok_or_else(|| S3Error::invalid_argument("Invalid x-amz-copy-source"))?;
+    .ok_or_else(|| StorageError::invalid_argument("Invalid x-amz-copy-source"))?;
 
   // Get source object
   let src_version_id = source
@@ -155,16 +162,16 @@ async fn copy_object(
     .and_then(|v| Uuid::parse_str(v).ok());
   let src_object = state
     .backend
-    .get_s3_object(&source.bucket, &source.key, src_version_id)
+    .get_storage_object(&source.bucket, &source.key, src_version_id)
     .await?
-    .ok_or_else(|| S3Error::no_such_key(&source.key))?;
+    .ok_or_else(|| StorageError::no_such_key(&source.key))?;
 
   // Check destination bucket exists
   let dst_bucket_info = state
     .backend
-    .get_s3_bucket(dst_bucket)
+    .get_storage_bucket(dst_bucket)
     .await?
-    .ok_or_else(|| S3Error::no_such_bucket(dst_bucket))?;
+    .ok_or_else(|| StorageError::no_such_bucket(dst_bucket))?;
 
   // Generate new version ID
   let version_id = Uuid::new_v4();
@@ -175,41 +182,41 @@ async fn copy_object(
     .copy_object(&src_object.storage_path, dst_bucket, dst_key, version_id)
     .await?;
 
-  // If versioning is not enabled, delete the previous version
-  if !dst_bucket_info.versioning_enabled {
-    if let Some(existing) = state
+  // Use atomic operations to reduce round-trips
+  if dst_bucket_info.versioning_enabled {
+    // Versioning: just create new version with stats update (1 query instead of 2)
+    state
       .backend
-      .get_s3_object(dst_bucket, dst_key, None)
+      .create_storage_object_with_stats(
+        dst_bucket,
+        dst_key,
+        version_id,
+        &etag,
+        size,
+        &src_object.content_type,
+        &storage_path,
+        src_object.metadata.clone(),
+      )
+      .await?;
+  } else {
+    // No versioning: replace object atomically (1 query instead of 4)
+    if let Some(old_path) = state
+      .backend
+      .replace_storage_object(
+        dst_bucket,
+        dst_key,
+        version_id,
+        &etag,
+        size,
+        &src_object.content_type,
+        &storage_path,
+        src_object.metadata.clone(),
+      )
       .await?
     {
-      let _ = state.storage.delete_object(&existing.storage_path).await;
-      state
-        .backend
-        .unset_s3_object_latest(dst_bucket, dst_key)
-        .await?;
+      let _ = state.storage.delete_object(&old_path).await;
     }
   }
-
-  // Create object record
-  state
-    .backend
-    .create_s3_object(
-      dst_bucket,
-      dst_key,
-      version_id,
-      &etag,
-      size,
-      &src_object.content_type,
-      &storage_path,
-      src_object.metadata.clone(),
-    )
-    .await?;
-
-  // Update bucket stats
-  state
-    .backend
-    .update_s3_bucket_stats(dst_bucket, size, 1)
-    .await?;
 
   let body = xml::copy_object_result_xml(&etag, chrono::Utc::now());
   Ok(
@@ -227,34 +234,34 @@ async fn copy_object(
 
 /// PUT /{bucket}/{key}?acl
 async fn put_object_acl(
-  state: Arc<S3State>,
+  state: Arc<StorageState>,
   bucket: &str,
   key: &str,
   _body: Bytes,
-) -> Result<Response, S3Error> {
+) -> Result<Response, StorageError> {
   // Check object exists
   state
     .backend
-    .get_s3_object(bucket, key, None)
+    .get_storage_object(bucket, key, None)
     .await?
-    .ok_or_else(|| S3Error::no_such_key(key))?;
+    .ok_or_else(|| StorageError::no_such_key(key))?;
 
   // Parse ACL from body (simplified - just accept empty body for now)
   let acl = ObjectAcl::default();
 
   // Update object ACL
-  state.backend.update_s3_object_acl(bucket, key, acl).await?;
+  state.backend.update_storage_object_acl(bucket, key, acl).await?;
 
   Ok(StatusCode::OK.into_response())
 }
 
 /// GET /{bucket}/{key} - Get object or special operation
 pub async fn get_object_or_operation(
-  State(state): State<Arc<S3State>>,
+  State(state): State<Arc<StorageState>>,
   Path((bucket, key)): Path<(String, String)>,
   Query(params): Query<HashMap<String, String>>,
   headers: HeaderMap,
-) -> Result<Response, S3Error> {
+) -> Result<Response, StorageError> {
   // Check for special operations
   if params.contains_key("acl") {
     return get_object_acl(state, &bucket, &key).await;
@@ -269,18 +276,18 @@ pub async fn get_object_or_operation(
 
 /// GET /{bucket}/{key}
 async fn get_object(
-  state: Arc<S3State>,
+  state: Arc<StorageState>,
   bucket: &str,
   key: &str,
   params: HashMap<String, String>,
   headers: HeaderMap,
-) -> Result<Response, S3Error> {
+) -> Result<Response, StorageError> {
   // Check bucket exists
   state
     .backend
-    .get_s3_bucket(bucket)
+    .get_storage_bucket(bucket)
     .await?
-    .ok_or_else(|| S3Error::no_such_bucket(bucket))?;
+    .ok_or_else(|| StorageError::no_such_bucket(bucket))?;
 
   // Get version ID if specified
   let version_id = params
@@ -290,13 +297,13 @@ async fn get_object(
   // Get object metadata
   let object = state
     .backend
-    .get_s3_object(bucket, key, version_id)
+    .get_storage_object(bucket, key, version_id)
     .await?
-    .ok_or_else(|| S3Error::no_such_key(key))?;
+    .ok_or_else(|| StorageError::no_such_key(key))?;
 
   // Handle delete markers
   if object.is_delete_marker {
-    return Err(S3Error::no_such_key(key));
+    return Err(StorageError::no_such_key(key));
   }
 
   // Parse range header if present
@@ -343,12 +350,12 @@ async fn get_object(
 }
 
 /// GET /{bucket}/{key}?acl
-async fn get_object_acl(state: Arc<S3State>, bucket: &str, key: &str) -> Result<Response, S3Error> {
+async fn get_object_acl(state: Arc<StorageState>, bucket: &str, key: &str) -> Result<Response, StorageError> {
   let object = state
     .backend
-    .get_s3_object(bucket, key, None)
+    .get_storage_object(bucket, key, None)
     .await?
-    .ok_or_else(|| S3Error::no_such_key(key))?;
+    .ok_or_else(|| StorageError::no_such_key(key))?;
 
   let owner_id = "anonymous";
   let body = xml::acl_xml(owner_id, None, &object.acl.grants);
@@ -357,16 +364,16 @@ async fn get_object_acl(state: Arc<S3State>, bucket: &str, key: &str) -> Result<
 
 /// HEAD /{bucket}/{key}
 pub async fn head_object(
-  State(state): State<Arc<S3State>>,
+  State(state): State<Arc<StorageState>>,
   Path((bucket, key)): Path<(String, String)>,
   Query(params): Query<HashMap<String, String>>,
-) -> Result<Response, S3Error> {
+) -> Result<Response, StorageError> {
   // Check bucket exists
   state
     .backend
-    .get_s3_bucket(&bucket)
+    .get_storage_bucket(&bucket)
     .await?
-    .ok_or_else(|| S3Error::no_such_bucket(&bucket))?;
+    .ok_or_else(|| StorageError::no_such_bucket(&bucket))?;
 
   // Get version ID if specified
   let version_id = params
@@ -376,12 +383,12 @@ pub async fn head_object(
   // Get object metadata
   let object = state
     .backend
-    .get_s3_object(&bucket, &key, version_id)
+    .get_storage_object(&bucket, &key, version_id)
     .await?
-    .ok_or_else(|| S3Error::no_such_key(&key))?;
+    .ok_or_else(|| StorageError::no_such_key(&key))?;
 
   if object.is_delete_marker {
-    return Err(S3Error::no_such_key(&key));
+    return Err(StorageError::no_such_key(&key));
   }
 
   Ok(
@@ -400,10 +407,10 @@ pub async fn head_object(
 
 /// DELETE /{bucket}/{key}
 pub async fn delete_object_or_operation(
-  State(state): State<Arc<S3State>>,
+  State(state): State<Arc<StorageState>>,
   Path((bucket, key)): Path<(String, String)>,
   Query(params): Query<HashMap<String, String>>,
-) -> Result<Response, S3Error> {
+) -> Result<Response, StorageError> {
   // Check for multipart abort
   if params.contains_key("uploadId") {
     return super::abort_multipart_upload(state, &bucket, &key, params).await;
@@ -415,17 +422,17 @@ pub async fn delete_object_or_operation(
 
 /// DELETE /{bucket}/{key}
 async fn delete_object(
-  state: Arc<S3State>,
+  state: Arc<StorageState>,
   bucket: &str,
   key: &str,
   params: HashMap<String, String>,
-) -> Result<Response, S3Error> {
+) -> Result<Response, StorageError> {
   // Check bucket exists
   let bucket_info = state
     .backend
-    .get_s3_bucket(bucket)
+    .get_storage_bucket(bucket)
     .await?
-    .ok_or_else(|| S3Error::no_such_bucket(bucket))?;
+    .ok_or_else(|| StorageError::no_such_bucket(bucket))?;
 
   // Get version ID if specified
   let version_id = params
@@ -434,27 +441,21 @@ async fn delete_object(
 
   if bucket_info.versioning_enabled {
     if let Some(vid) = version_id {
-      // Delete specific version
-      if let Some(object) = state.backend.get_s3_object(bucket, key, Some(vid)).await? {
+      // Delete specific version - atomic operation (1 query instead of 3)
+      if let Some((storage_path, _size)) = state
+        .backend
+        .delete_storage_object_with_stats(bucket, key, Some(vid))
+        .await?
+      {
         // Delete storage file
-        state.storage.delete_object(&object.storage_path).await?;
-        // Delete from database
-        state
-          .backend
-          .delete_s3_object(bucket, key, Some(vid))
-          .await?;
-        // Update bucket stats
-        state
-          .backend
-          .update_s3_bucket_stats(bucket, -object.size, -1)
-          .await?;
+        state.storage.delete_object(&storage_path).await?;
       }
     } else {
-      // Create delete marker
+      // Create delete marker (atomic: unset latest + insert in 1 query)
       let marker_version_id = Uuid::new_v4();
       state
         .backend
-        .create_s3_delete_marker(bucket, key, marker_version_id)
+        .create_storage_delete_marker(bucket, key, marker_version_id)
         .await?;
       return Ok(
         (
@@ -468,14 +469,13 @@ async fn delete_object(
       );
     }
   } else {
-    // Without versioning, delete the object entirely
-    if let Some(object) = state.backend.get_s3_object(bucket, key, None).await? {
-      state.storage.delete_object(&object.storage_path).await?;
-      state.backend.delete_s3_object(bucket, key, None).await?;
-      state
-        .backend
-        .update_s3_bucket_stats(bucket, -object.size, -1)
-        .await?;
+    // Without versioning, delete atomically (1 query instead of 3)
+    if let Some((storage_path, _size)) = state
+      .backend
+      .delete_storage_object_with_stats(bucket, key, None)
+      .await?
+    {
+      state.storage.delete_object(&storage_path).await?;
     }
   }
 
@@ -484,11 +484,11 @@ async fn delete_object(
 
 /// POST /{bucket}/{key} - Post object operation
 pub async fn post_object_operation(
-  State(state): State<Arc<S3State>>,
+  State(state): State<Arc<StorageState>>,
   Path((bucket, key)): Path<(String, String)>,
   Query(params): Query<HashMap<String, String>>,
   body: Bytes,
-) -> Result<Response, S3Error> {
+) -> Result<Response, StorageError> {
   // Check for multipart operations
   if params.contains_key("uploads") {
     return super::initiate_multipart_upload(state, &bucket, &key).await;
@@ -497,8 +497,8 @@ pub async fn post_object_operation(
     return super::complete_multipart_upload(state, &bucket, &key, params, body).await;
   }
 
-  Err(S3Error::new(
-    crate::s3::error::S3ErrorCode::NotImplemented,
+  Err(StorageError::new(
+    crate::storage::error::StorageErrorCode::NotImplemented,
     "Operation not supported",
   ))
 }

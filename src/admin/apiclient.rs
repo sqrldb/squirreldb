@@ -120,12 +120,12 @@ pub async fn fetch_tables() -> Result<Vec<TableInfo>, String> {
 }
 
 #[cfg(feature = "csr")]
-pub async fn fetch_s3_settings() -> Result<S3Settings, String> {
+pub async fn fetch_storage_settings() -> Result<S3Settings, String> {
   fetch_with_auth("/api/s3/settings").await
 }
 
 #[cfg(feature = "csr")]
-pub async fn update_s3_settings(port: Option<u16>, storage_path: Option<String>, region: Option<String>) -> Result<serde_json::Value, String> {
+pub async fn update_storage_settings(port: Option<u16>, storage_path: Option<String>, region: Option<String>) -> Result<serde_json::Value, String> {
   #[derive(Serialize)]
   struct UpdateReq {
     #[serde(skip_serializing_if = "Option::is_none")]

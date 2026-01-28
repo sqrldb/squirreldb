@@ -13,7 +13,7 @@ pub mod mcp;
 #[cfg(feature = "server")]
 pub mod query;
 #[cfg(feature = "server")]
-pub mod s3;
+pub mod storage;
 #[cfg(feature = "server")]
 pub mod server;
 #[cfg(feature = "server")]

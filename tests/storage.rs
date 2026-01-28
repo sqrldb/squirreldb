@@ -1,19 +1,19 @@
 use chrono::Utc;
-use squirreldb::s3::config::S3Config;
-use squirreldb::s3::error::{S3Error, S3ErrorCode};
-use squirreldb::s3::types::*;
-use squirreldb::s3::xml;
+use squirreldb::storage::config::StorageConfig;
+use squirreldb::storage::error::{StorageError, StorageErrorCode};
+use squirreldb::storage::types::*;
+use squirreldb::storage::xml;
 use uuid::Uuid;
 
 // =============================================================================
-// S3 Config Tests
+// Storage Config Tests
 // =============================================================================
 
 #[test]
-fn test_s3_config_default() {
-  let config = S3Config::default();
+fn test_storage_config_default() {
+  let config = StorageConfig::default();
   assert_eq!(config.port, 9000);
-  assert_eq!(config.storage_path, "./data/s3");
+  assert_eq!(config.storage_path, "./data/storage");
   assert_eq!(config.max_object_size, 5 * 1024 * 1024 * 1024);
   assert_eq!(config.max_part_size, 5 * 1024 * 1024 * 1024);
   assert_eq!(config.min_part_size, 5 * 1024 * 1024);
@@ -21,7 +21,7 @@ fn test_s3_config_default() {
 }
 
 // =============================================================================
-// S3 Types Tests
+// Storage Types Tests
 // =============================================================================
 
 #[test]
@@ -101,83 +101,83 @@ fn test_permission_equality() {
 }
 
 // =============================================================================
-// S3 Error Tests
+// Storage Error Tests
 // =============================================================================
 
 #[test]
-fn test_s3_error_new() {
-  let error = S3Error::new(S3ErrorCode::NoSuchBucket, "Bucket not found");
-  assert_eq!(error.code, S3ErrorCode::NoSuchBucket);
+fn test_storage_error_new() {
+  let error = StorageError::new(StorageErrorCode::NoSuchBucket, "Bucket not found");
+  assert_eq!(error.code, StorageErrorCode::NoSuchBucket);
   assert_eq!(error.message, "Bucket not found");
   assert!(error.resource.is_none());
   assert!(error.request_id.is_none());
 }
 
 #[test]
-fn test_s3_error_with_resource() {
-  let error = S3Error::new(S3ErrorCode::NoSuchKey, "Key not found").with_resource("my-key");
+fn test_storage_error_with_resource() {
+  let error = StorageError::new(StorageErrorCode::NoSuchKey, "Key not found").with_resource("my-key");
   assert_eq!(error.resource, Some("my-key".to_string()));
 }
 
 #[test]
-fn test_s3_error_with_request_id() {
-  let error = S3Error::new(S3ErrorCode::InternalError, "Server error").with_request_id("req-123");
+fn test_storage_error_with_request_id() {
+  let error = StorageError::new(StorageErrorCode::InternalError, "Server error").with_request_id("req-123");
   assert_eq!(error.request_id, Some("req-123".to_string()));
 }
 
 #[test]
-fn test_s3_error_no_such_bucket() {
-  let error = S3Error::no_such_bucket("test-bucket");
-  assert_eq!(error.code, S3ErrorCode::NoSuchBucket);
+fn test_storage_error_no_such_bucket() {
+  let error = StorageError::no_such_bucket("test-bucket");
+  assert_eq!(error.code, StorageErrorCode::NoSuchBucket);
   assert!(error.message.contains("test-bucket"));
   assert_eq!(error.resource, Some("test-bucket".to_string()));
 }
 
 #[test]
-fn test_s3_error_no_such_key() {
-  let error = S3Error::no_such_key("my-file.txt");
-  assert_eq!(error.code, S3ErrorCode::NoSuchKey);
+fn test_storage_error_no_such_key() {
+  let error = StorageError::no_such_key("my-file.txt");
+  assert_eq!(error.code, StorageErrorCode::NoSuchKey);
   assert_eq!(error.resource, Some("my-file.txt".to_string()));
 }
 
 #[test]
-fn test_s3_error_bucket_already_exists() {
-  let error = S3Error::bucket_already_exists("existing-bucket");
-  assert_eq!(error.code, S3ErrorCode::BucketAlreadyExists);
+fn test_storage_error_bucket_already_exists() {
+  let error = StorageError::bucket_already_exists("existing-bucket");
+  assert_eq!(error.code, StorageErrorCode::BucketAlreadyExists);
   assert_eq!(error.resource, Some("existing-bucket".to_string()));
 }
 
 #[test]
-fn test_s3_error_bucket_not_empty() {
-  let error = S3Error::bucket_not_empty("my-bucket");
-  assert_eq!(error.code, S3ErrorCode::BucketNotEmpty);
+fn test_storage_error_bucket_not_empty() {
+  let error = StorageError::bucket_not_empty("my-bucket");
+  assert_eq!(error.code, StorageErrorCode::BucketNotEmpty);
   assert_eq!(error.resource, Some("my-bucket".to_string()));
 }
 
 #[test]
-fn test_s3_error_invalid_argument() {
-  let error = S3Error::invalid_argument("Invalid parameter");
-  assert_eq!(error.code, S3ErrorCode::InvalidArgument);
+fn test_storage_error_invalid_argument() {
+  let error = StorageError::invalid_argument("Invalid parameter");
+  assert_eq!(error.code, StorageErrorCode::InvalidArgument);
   assert_eq!(error.message, "Invalid parameter");
 }
 
 #[test]
-fn test_s3_error_invalid_bucket_name() {
-  let error = S3Error::invalid_bucket_name("INVALID_NAME");
-  assert_eq!(error.code, S3ErrorCode::InvalidBucketName);
+fn test_storage_error_invalid_bucket_name() {
+  let error = StorageError::invalid_bucket_name("INVALID_NAME");
+  assert_eq!(error.code, StorageErrorCode::InvalidBucketName);
   assert!(error.message.contains("INVALID_NAME"));
 }
 
 #[test]
-fn test_s3_error_no_such_upload() {
-  let error = S3Error::no_such_upload("upload-123");
-  assert_eq!(error.code, S3ErrorCode::NoSuchUpload);
+fn test_storage_error_no_such_upload() {
+  let error = StorageError::no_such_upload("upload-123");
+  assert_eq!(error.code, StorageErrorCode::NoSuchUpload);
   assert_eq!(error.resource, Some("upload-123".to_string()));
 }
 
 #[test]
-fn test_s3_error_to_xml() {
-  let error = S3Error::new(S3ErrorCode::NoSuchBucket, "The bucket does not exist")
+fn test_storage_error_to_xml() {
+  let error = StorageError::new(StorageErrorCode::NoSuchBucket, "The bucket does not exist")
     .with_resource("test-bucket")
     .with_request_id("req-abc123");
 
@@ -190,9 +190,9 @@ fn test_s3_error_to_xml() {
 }
 
 #[test]
-fn test_s3_error_xml_escaping() {
-  let error = S3Error::new(
-    S3ErrorCode::InvalidArgument,
+fn test_storage_error_xml_escaping() {
+  let error = StorageError::new(
+    StorageErrorCode::InvalidArgument,
     "Value contains <special> & \"chars\"",
   );
   let xml_output = error.to_xml();
@@ -202,50 +202,50 @@ fn test_s3_error_xml_escaping() {
 }
 
 #[test]
-fn test_s3_error_code_as_str() {
-  assert_eq!(S3ErrorCode::AccessDenied.as_str(), "AccessDenied");
-  assert_eq!(S3ErrorCode::NoSuchBucket.as_str(), "NoSuchBucket");
-  assert_eq!(S3ErrorCode::NoSuchKey.as_str(), "NoSuchKey");
-  assert_eq!(S3ErrorCode::InternalError.as_str(), "InternalError");
-  assert_eq!(S3ErrorCode::InvalidBucketName.as_str(), "InvalidBucketName");
+fn test_storage_error_code_as_str() {
+  assert_eq!(StorageErrorCode::AccessDenied.as_str(), "AccessDenied");
+  assert_eq!(StorageErrorCode::NoSuchBucket.as_str(), "NoSuchBucket");
+  assert_eq!(StorageErrorCode::NoSuchKey.as_str(), "NoSuchKey");
+  assert_eq!(StorageErrorCode::InternalError.as_str(), "InternalError");
+  assert_eq!(StorageErrorCode::InvalidBucketName.as_str(), "InvalidBucketName");
 }
 
 #[test]
-fn test_s3_error_code_http_status() {
+fn test_storage_error_code_http_status() {
   use axum::http::StatusCode;
   assert_eq!(
-    S3ErrorCode::AccessDenied.http_status(),
+    StorageErrorCode::AccessDenied.http_status(),
     StatusCode::FORBIDDEN
   );
   assert_eq!(
-    S3ErrorCode::NoSuchBucket.http_status(),
+    StorageErrorCode::NoSuchBucket.http_status(),
     StatusCode::NOT_FOUND
   );
-  assert_eq!(S3ErrorCode::NoSuchKey.http_status(), StatusCode::NOT_FOUND);
+  assert_eq!(StorageErrorCode::NoSuchKey.http_status(), StatusCode::NOT_FOUND);
   assert_eq!(
-    S3ErrorCode::InternalError.http_status(),
+    StorageErrorCode::InternalError.http_status(),
     StatusCode::INTERNAL_SERVER_ERROR
   );
   assert_eq!(
-    S3ErrorCode::BucketNotEmpty.http_status(),
+    StorageErrorCode::BucketNotEmpty.http_status(),
     StatusCode::CONFLICT
   );
   assert_eq!(
-    S3ErrorCode::EntityTooLarge.http_status(),
+    StorageErrorCode::EntityTooLarge.http_status(),
     StatusCode::BAD_REQUEST
   );
 }
 
 #[test]
-fn test_s3_error_display() {
-  let error = S3Error::new(S3ErrorCode::NoSuchBucket, "Bucket not found");
+fn test_storage_error_display() {
+  let error = StorageError::new(StorageErrorCode::NoSuchBucket, "Bucket not found");
   let display = format!("{}", error);
   assert!(display.contains("NoSuchBucket"));
   assert!(display.contains("Bucket not found"));
 }
 
 // =============================================================================
-// S3 XML Tests
+// Storage XML Tests
 // =============================================================================
 
 #[test]
@@ -361,7 +361,7 @@ fn test_complete_multipart_upload_xml() {
 #[test]
 fn test_list_parts_xml() {
   let parts = vec![
-    S3Part {
+    MultipartPart {
       upload_id: Uuid::new_v4(),
       part_number: 1,
       etag: "etag-part-1".to_string(),
@@ -369,7 +369,7 @@ fn test_list_parts_xml() {
       storage_path: "/tmp/part1".to_string(),
       created_at: Utc::now(),
     },
-    S3Part {
+    MultipartPart {
       upload_id: Uuid::new_v4(),
       part_number: 2,
       etag: "etag-part-2".to_string(),
@@ -399,7 +399,7 @@ fn test_list_parts_xml() {
 
 #[test]
 fn test_list_multipart_uploads_xml() {
-  let uploads = vec![S3MultipartUpload {
+  let uploads = vec![MultipartUpload {
     upload_id: Uuid::new_v4(),
     bucket: "my-bucket".to_string(),
     key: "file1.zip".to_string(),
@@ -520,8 +520,8 @@ fn test_xml_special_characters_escaping() {
 // =============================================================================
 
 #[test]
-fn test_s3_bucket_serialize() {
-  let bucket = S3Bucket {
+fn test_storage_bucket_serialize() {
+  let bucket = StorageBucket {
     name: "test-bucket".to_string(),
     owner_id: Some(Uuid::new_v4()),
     versioning_enabled: true,
@@ -541,8 +541,8 @@ fn test_s3_bucket_serialize() {
 }
 
 #[test]
-fn test_s3_object_serialize() {
-  let object = S3Object {
+fn test_storage_object_serialize() {
+  let object = StorageObject {
     bucket: "my-bucket".to_string(),
     key: "path/to/file.txt".to_string(),
     version_id: Uuid::new_v4(),

@@ -43,9 +43,9 @@ pub fn App() -> impl IntoView {
     let state = state_init.clone();
     spawn_local(async move {
       // Fetch S3 settings to determine if storage is enabled
-      if let Ok(settings) = apiclient::fetch_s3_settings().await {
-        state.s3_settings.set(settings.clone());
-        state.s3_enabled.set(settings.enabled);
+      if let Ok(settings) = apiclient::fetch_storage_settings().await {
+        state.storage_settings.set(settings.clone());
+        state.storage_enabled.set(settings.enabled);
       }
       // Fetch tables
       if let Ok(tables) = apiclient::fetch_tables().await {

@@ -1,11 +1,11 @@
 use sha2::{Digest, Sha256};
 
 use super::AuthContext;
-use crate::s3::error::S3Error;
-use crate::s3::server::S3State;
+use crate::storage::error::StorageError;
+use crate::storage::server::StorageState;
 
 /// Verify SquirrelDB token authentication
-pub async fn verify_token(state: &S3State, token: &str) -> Result<AuthContext, S3Error> {
+pub async fn verify_token(state: &StorageState, token: &str) -> Result<AuthContext, StorageError> {
   // Hash the token
   let token_hash = hash_token(token);
 
@@ -14,10 +14,10 @@ pub async fn verify_token(state: &S3State, token: &str) -> Result<AuthContext, S
     .backend
     .validate_token(&token_hash)
     .await
-    .map_err(|_| S3Error::access_denied("Token validation failed"))?;
+    .map_err(|_| StorageError::access_denied("Token validation failed"))?;
 
   if !valid {
-    return Err(S3Error::access_denied("Invalid token"));
+    return Err(StorageError::access_denied("Invalid token"));
   }
 
   Ok(AuthContext {

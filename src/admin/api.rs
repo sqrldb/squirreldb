@@ -18,7 +18,7 @@ use sha2::{Digest, Sha256};
 use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::{broadcast, mpsc, RwLock};
-use tower_http::cors::CorsLayer;
+use tower_http::cors::{Any, CorsLayer};
 use tower_http::services::{ServeDir, ServeFile};
 use uuid::Uuid;
 
@@ -168,12 +168,12 @@ impl AdminServer {
       // S3 management
       .route(
         "/api/s3/settings",
-        get(api_get_s3_settings).put(api_update_s3_settings),
+        get(api_get_storage_settings).put(api_update_storage_settings),
       )
-      .route("/api/s3/buckets", get(api_list_s3_buckets))
-      .route("/api/s3/buckets", post(api_create_s3_bucket))
-      .route("/api/s3/buckets/{name}", delete(api_delete_s3_bucket))
-      .route("/api/s3/buckets/{name}/stats", get(api_get_s3_bucket_stats))
+      .route("/api/s3/buckets", get(api_list_storage_buckets))
+      .route("/api/s3/buckets", post(api_create_storage_bucket))
+      .route("/api/s3/buckets/{name}", delete(api_delete_storage_bucket))
+      .route("/api/s3/buckets/{name}/stats", get(api_get_storage_bucket_stats))
       .route("/api/s3/keys", get(api_list_s3_keys))
       .route("/api/s3/keys", post(api_create_s3_key))
       .route("/api/s3/keys/{id}", delete(api_delete_s3_key))
@@ -211,13 +211,28 @@ impl AdminServer {
     // Log streaming WebSocket (admin only, protected by auth)
     app = app.route("/ws/logs", get(ws_logs_handler));
 
+    // Build CORS layer based on config
+    let cors = if self.config.server.cors_origins.is_empty()
+      || self.config.server.cors_origins.iter().any(|o| o == "*")
+    {
+      CorsLayer::permissive()
+    } else {
+      let origins: Vec<_> = self.config.server.cors_origins.iter()
+        .filter_map(|o| o.parse().ok())
+        .collect();
+      CorsLayer::new()
+        .allow_origin(origins)
+        .allow_methods(Any)
+        .allow_headers(Any)
+    };
+
     // Serve WASM bundle from target/admin, fallback to index.html for SPA routing
     let app = app
       .fallback_service(
         ServeDir::new("target/admin")
           .not_found_service(ServeFile::new("target/admin/index.html"))
       )
-      .layer(CorsLayer::permissive())
+      .layer(cors)
       .with_state(state);
 
     let listener = tokio::net::TcpListener::bind(addr).await?;
@@ -1045,23 +1060,23 @@ struct S3SettingsResponse {
   region: String,
 }
 
-async fn api_get_s3_settings(State(state): State<AppState>) -> Json<S3SettingsResponse> {
-  let s3_running = state.feature_registry.is_enabled("s3");
+async fn api_get_storage_settings(State(state): State<AppState>) -> Json<S3SettingsResponse> {
+  let s3_running = state.feature_registry.is_enabled("storage");
 
   // Try to load settings from database, fallback to config
   let (enabled, settings) = state
     .backend
-    .get_feature_settings("s3")
+    .get_feature_settings("storage")
     .await
     .ok()
     .flatten()
     .unwrap_or((s3_running, serde_json::json!({})));
 
-  let port = settings.get("port").and_then(|v| v.as_u64()).map(|v| v as u16).unwrap_or(state.config.s3.port);
-  let storage_path = settings.get("storage_path").and_then(|v| v.as_str()).map(String::from).unwrap_or_else(|| state.config.s3.storage_path.clone());
-  let max_object_size = settings.get("max_object_size").and_then(|v| v.as_u64()).unwrap_or(state.config.s3.max_object_size);
-  let max_part_size = settings.get("max_part_size").and_then(|v| v.as_u64()).unwrap_or(state.config.s3.max_part_size);
-  let region = settings.get("region").and_then(|v| v.as_str()).map(String::from).unwrap_or_else(|| state.config.s3.region.clone());
+  let port = settings.get("port").and_then(|v| v.as_u64()).map(|v| v as u16).unwrap_or(state.config.storage.port);
+  let storage_path = settings.get("storage_path").and_then(|v| v.as_str()).map(String::from).unwrap_or_else(|| state.config.storage.storage_path.clone());
+  let max_object_size = settings.get("max_object_size").and_then(|v| v.as_u64()).unwrap_or(state.config.storage.max_object_size);
+  let max_part_size = settings.get("max_part_size").and_then(|v| v.as_u64()).unwrap_or(state.config.storage.max_part_size);
+  let region = settings.get("region").and_then(|v| v.as_str()).map(String::from).unwrap_or_else(|| state.config.storage.region.clone());
 
   Json(S3SettingsResponse {
     enabled: enabled || s3_running,
@@ -1080,7 +1095,7 @@ struct UpdateS3SettingsRequest {
   region: Option<String>,
 }
 
-async fn api_update_s3_settings(
+async fn api_update_storage_settings(
   State(state): State<AppState>,
   Json(req): Json<UpdateS3SettingsRequest>,
 ) -> Result<Json<serde_json::Value>, AppError> {
@@ -1088,21 +1103,21 @@ async fn api_update_s3_settings(
   let mut settings = serde_json::Map::new();
 
   // Get current settings from config as defaults
-  let current_port = state.config.s3.port;
-  let current_storage = state.config.s3.storage_path.clone();
-  let current_region = state.config.s3.region.clone();
-  let current_max_object = state.config.s3.max_object_size;
-  let current_max_part = state.config.s3.max_part_size;
-  let current_min_part = state.config.s3.min_part_size;
+  let current_port = state.config.storage.port;
+  let current_storage = state.config.storage.storage_path.clone();
+  let current_region = state.config.storage.region.clone();
+  let current_max_object = state.config.storage.max_object_size;
+  let current_max_part = state.config.storage.max_part_size;
+  let current_min_part = state.config.storage.min_part_size;
 
   // Try to load existing settings from database
   let (existing_enabled, existing_settings) = state
     .backend
-    .get_feature_settings("s3")
+    .get_feature_settings("storage")
     .await
     .ok()
     .flatten()
-    .unwrap_or((state.feature_registry.is_enabled("s3"), serde_json::json!({})));
+    .unwrap_or((state.feature_registry.is_enabled("storage"), serde_json::json!({})));
 
   // Merge existing settings with updates
   let port = req.port.unwrap_or_else(|| {
@@ -1129,7 +1144,7 @@ async fn api_update_s3_settings(
   let settings_json = serde_json::Value::Object(settings.clone());
   state
     .backend
-    .update_feature_settings("s3", existing_enabled, settings_json)
+    .update_feature_settings("storage", existing_enabled, settings_json)
     .await
     .map_err(|e| AppError::Internal(e))?;
 
@@ -1143,7 +1158,7 @@ async fn api_update_s3_settings(
   );
 
   // If S3 is running, restart it with new settings
-  if state.feature_registry.is_enabled("s3") {
+  if state.feature_registry.is_enabled("storage") {
     let feature_state = Arc::new(crate::features::AppState {
       backend: state.backend.clone(),
       engine_pool: state.engine_pool.clone(),
@@ -1152,7 +1167,7 @@ async fn api_update_s3_settings(
 
     state
       .feature_registry
-      .restart("s3", feature_state)
+      .restart("storage", feature_state)
       .await
       .map_err(|e| AppError::Internal(e))?;
 
@@ -1170,12 +1185,12 @@ async fn api_update_s3_settings(
       "storage_path": storage_path,
       "region": region
     },
-    "restarted": state.feature_registry.is_enabled("s3")
+    "restarted": state.feature_registry.is_enabled("storage")
   })))
 }
 
 #[derive(Serialize)]
-struct S3BucketResponse {
+struct StorageBucketResponse {
   name: String,
   versioning_enabled: bool,
   object_count: i64,
@@ -1183,13 +1198,13 @@ struct S3BucketResponse {
   created_at: chrono::DateTime<chrono::Utc>,
 }
 
-async fn api_list_s3_buckets(
+async fn api_list_storage_buckets(
   State(state): State<AppState>,
-) -> Result<Json<Vec<S3BucketResponse>>, AppError> {
-  let buckets = state.backend.list_s3_buckets().await?;
-  let response: Vec<S3BucketResponse> = buckets
+) -> Result<Json<Vec<StorageBucketResponse>>, AppError> {
+  let buckets = state.backend.list_storage_buckets().await?;
+  let response: Vec<StorageBucketResponse> = buckets
     .into_iter()
-    .map(|b| S3BucketResponse {
+    .map(|b| StorageBucketResponse {
       name: b.name,
       versioning_enabled: b.versioning_enabled,
       object_count: b.object_count,
@@ -1201,13 +1216,13 @@ async fn api_list_s3_buckets(
 }
 
 #[derive(Deserialize)]
-struct CreateS3BucketRequest {
+struct CreateStorageBucketRequest {
   name: String,
 }
 
-async fn api_create_s3_bucket(
+async fn api_create_storage_bucket(
   State(state): State<AppState>,
-  Json(req): Json<CreateS3BucketRequest>,
+  Json(req): Json<CreateStorageBucketRequest>,
 ) -> Result<Json<serde_json::Value>, AppError> {
   if req.name.is_empty() {
     return Err(AppError::BadRequest("Bucket name is required".into()));
@@ -1228,7 +1243,7 @@ async fn api_create_s3_bucket(
     }
   }
 
-  state.backend.create_s3_bucket(&req.name, None).await?;
+  state.backend.create_storage_bucket(&req.name, None).await?;
 
   emit_log(
     "info",
@@ -1242,14 +1257,14 @@ async fn api_create_s3_bucket(
   })))
 }
 
-async fn api_delete_s3_bucket(
+async fn api_delete_storage_bucket(
   State(state): State<AppState>,
   Path(name): Path<String>,
 ) -> Result<Json<serde_json::Value>, AppError> {
   // Check if bucket exists and is empty
   let bucket = state
     .backend
-    .get_s3_bucket(&name)
+    .get_storage_bucket(&name)
     .await?
     .ok_or_else(|| AppError::NotFound)?;
 
@@ -1259,7 +1274,7 @@ async fn api_delete_s3_bucket(
     ));
   }
 
-  state.backend.delete_s3_bucket(&name).await?;
+  state.backend.delete_storage_bucket(&name).await?;
 
   emit_log(
     "info",
@@ -1274,24 +1289,24 @@ async fn api_delete_s3_bucket(
 }
 
 #[derive(Serialize)]
-struct S3BucketStatsResponse {
+struct StorageBucketStatsResponse {
   name: String,
   object_count: i64,
   total_size: i64,
   versioning_enabled: bool,
 }
 
-async fn api_get_s3_bucket_stats(
+async fn api_get_storage_bucket_stats(
   State(state): State<AppState>,
   Path(name): Path<String>,
-) -> Result<Json<S3BucketStatsResponse>, AppError> {
+) -> Result<Json<StorageBucketStatsResponse>, AppError> {
   let bucket = state
     .backend
-    .get_s3_bucket(&name)
+    .get_storage_bucket(&name)
     .await?
     .ok_or_else(|| AppError::NotFound)?;
 
-  Ok(Json(S3BucketStatsResponse {
+  Ok(Json(StorageBucketStatsResponse {
     name: bucket.name,
     object_count: bucket.object_count,
     total_size: bucket.current_size,
@@ -1300,7 +1315,7 @@ async fn api_get_s3_bucket_stats(
 }
 
 #[derive(Serialize)]
-struct S3AccessKeyResponse {
+struct StorageAccessKeyResponse {
   access_key_id: String,
   name: String,
   created_at: chrono::DateTime<chrono::Utc>,
@@ -1308,11 +1323,11 @@ struct S3AccessKeyResponse {
 
 async fn api_list_s3_keys(
   State(state): State<AppState>,
-) -> Result<Json<Vec<S3AccessKeyResponse>>, AppError> {
-  let keys = state.backend.list_s3_access_keys().await?;
-  let response: Vec<S3AccessKeyResponse> = keys
+) -> Result<Json<Vec<StorageAccessKeyResponse>>, AppError> {
+  let keys = state.backend.list_storage_access_keys().await?;
+  let response: Vec<StorageAccessKeyResponse> = keys
     .into_iter()
-    .map(|k| S3AccessKeyResponse {
+    .map(|k| StorageAccessKeyResponse {
       access_key_id: k.access_key_id,
       name: k.name,
       created_at: k.created_at,
@@ -1353,7 +1368,7 @@ async fn api_create_s3_key(
   // Store in database (no owner for admin-created keys)
   state
     .backend
-    .create_s3_access_key(&access_key_id, &secret_hash, None, &req.name)
+    .create_storage_access_key(&access_key_id, &secret_hash, None, &req.name)
     .await?;
 
   emit_log(
@@ -1374,7 +1389,7 @@ async fn api_delete_s3_key(
   State(state): State<AppState>,
   Path(id): Path<String>,
 ) -> Result<Json<serde_json::Value>, AppError> {
-  let deleted = state.backend.delete_s3_access_key(&id).await?;
+  let deleted = state.backend.delete_storage_access_key(&id).await?;
   if deleted {
     emit_log(
       "info",

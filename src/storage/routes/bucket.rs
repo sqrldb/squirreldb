@@ -6,14 +6,14 @@ use axum::{
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use crate::s3::error::S3Error;
-use crate::s3::server::S3State;
-use crate::s3::types::*;
-use crate::s3::xml;
+use crate::storage::error::StorageError;
+use crate::storage::server::StorageState;
+use crate::storage::types::*;
+use crate::storage::xml;
 
 /// GET / - List all buckets
-pub async fn list_buckets(State(state): State<Arc<S3State>>) -> Result<Response, S3Error> {
-  let buckets = state.backend.list_s3_buckets().await?;
+pub async fn list_buckets(State(state): State<Arc<StorageState>>) -> Result<Response, StorageError> {
+  let buckets = state.backend.list_storage_buckets().await?;
 
   let response = ListBucketsResponse {
     buckets: buckets
@@ -32,19 +32,19 @@ pub async fn list_buckets(State(state): State<Arc<S3State>>) -> Result<Response,
 
 /// PUT /{bucket} - Create bucket
 pub async fn create_bucket(
-  State(state): State<Arc<S3State>>,
+  State(state): State<Arc<StorageState>>,
   Path(bucket): Path<String>,
-) -> Result<Response, S3Error> {
+) -> Result<Response, StorageError> {
   // Validate bucket name
   validate_bucket_name(&bucket)?;
 
   // Check if bucket already exists
-  if state.backend.get_s3_bucket(&bucket).await?.is_some() {
-    return Err(S3Error::bucket_already_exists(&bucket));
+  if state.backend.get_storage_bucket(&bucket).await?.is_some() {
+    return Err(StorageError::bucket_already_exists(&bucket));
   }
 
   // Create bucket in database
-  state.backend.create_s3_bucket(&bucket, None).await?;
+  state.backend.create_storage_bucket(&bucket, None).await?;
 
   // Initialize storage directory
   state.storage.init_bucket(&bucket).await?;
@@ -54,23 +54,23 @@ pub async fn create_bucket(
 
 /// DELETE /{bucket} - Delete bucket
 pub async fn delete_bucket(
-  State(state): State<Arc<S3State>>,
+  State(state): State<Arc<StorageState>>,
   Path(bucket): Path<String>,
-) -> Result<Response, S3Error> {
+) -> Result<Response, StorageError> {
   // Check if bucket exists
   let b = state
     .backend
-    .get_s3_bucket(&bucket)
+    .get_storage_bucket(&bucket)
     .await?
-    .ok_or_else(|| S3Error::no_such_bucket(&bucket))?;
+    .ok_or_else(|| StorageError::no_such_bucket(&bucket))?;
 
   // Check if bucket is empty
   if b.object_count > 0 {
-    return Err(S3Error::bucket_not_empty(&bucket));
+    return Err(StorageError::bucket_not_empty(&bucket));
   }
 
   // Delete from database
-  state.backend.delete_s3_bucket(&bucket).await?;
+  state.backend.delete_storage_bucket(&bucket).await?;
 
   // Delete storage directory
   state.storage.delete_bucket(&bucket).await?;
@@ -80,15 +80,15 @@ pub async fn delete_bucket(
 
 /// HEAD /{bucket} - Check if bucket exists
 pub async fn head_bucket(
-  State(state): State<Arc<S3State>>,
+  State(state): State<Arc<StorageState>>,
   Path(bucket): Path<String>,
-) -> Result<Response, S3Error> {
+) -> Result<Response, StorageError> {
   // Check if bucket exists
   state
     .backend
-    .get_s3_bucket(&bucket)
+    .get_storage_bucket(&bucket)
     .await?
-    .ok_or_else(|| S3Error::no_such_bucket(&bucket))?;
+    .ok_or_else(|| StorageError::no_such_bucket(&bucket))?;
 
   Ok(
     (
@@ -101,10 +101,10 @@ pub async fn head_bucket(
 
 /// GET /{bucket} - List objects or bucket operation
 pub async fn list_objects_or_operation(
-  State(state): State<Arc<S3State>>,
+  State(state): State<Arc<StorageState>>,
   Path(bucket): Path<String>,
   Query(params): Query<HashMap<String, String>>,
-) -> Result<Response, S3Error> {
+) -> Result<Response, StorageError> {
   // Check for special operations
   if params.contains_key("versioning") {
     return get_bucket_versioning(state, &bucket).await;
@@ -128,16 +128,16 @@ pub async fn list_objects_or_operation(
 
 /// GET /{bucket}?list-type=2 - List objects V2
 async fn list_objects_v2(
-  state: Arc<S3State>,
+  state: Arc<StorageState>,
   bucket: &str,
   params: HashMap<String, String>,
-) -> Result<Response, S3Error> {
+) -> Result<Response, StorageError> {
   // Check bucket exists
   state
     .backend
-    .get_s3_bucket(bucket)
+    .get_storage_bucket(bucket)
     .await?
-    .ok_or_else(|| S3Error::no_such_bucket(bucket))?;
+    .ok_or_else(|| StorageError::no_such_bucket(bucket))?;
 
   let prefix = params.get("prefix").cloned();
   let delimiter = params.get("delimiter").cloned();
@@ -147,9 +147,10 @@ async fn list_objects_v2(
     .unwrap_or(1000);
   let continuation_token = params.get("continuation-token").cloned();
 
-  let (objects, is_truncated, next_token) = state
+  // Use combined query for objects and prefixes (1 query instead of 2)
+  let (objects, common_prefixes, is_truncated, next_token) = state
     .backend
-    .list_s3_objects(
+    .list_storage_objects_with_prefixes(
       bucket,
       prefix.as_deref(),
       delimiter.as_deref(),
@@ -157,16 +158,6 @@ async fn list_objects_v2(
       continuation_token.as_deref(),
     )
     .await?;
-
-  // Build common prefixes if delimiter is set
-  let common_prefixes = if delimiter.is_some() {
-    state
-      .backend
-      .list_s3_common_prefixes(bucket, prefix.as_deref(), delimiter.as_deref())
-      .await?
-  } else {
-    vec![]
-  };
 
   let response = ListObjectsResponse {
     name: bucket.to_string(),
@@ -200,24 +191,24 @@ async fn list_objects_v2(
 }
 
 /// GET /{bucket}?versioning
-async fn get_bucket_versioning(state: Arc<S3State>, bucket: &str) -> Result<Response, S3Error> {
+async fn get_bucket_versioning(state: Arc<StorageState>, bucket: &str) -> Result<Response, StorageError> {
   let b = state
     .backend
-    .get_s3_bucket(bucket)
+    .get_storage_bucket(bucket)
     .await?
-    .ok_or_else(|| S3Error::no_such_bucket(bucket))?;
+    .ok_or_else(|| StorageError::no_such_bucket(bucket))?;
 
   let body = xml::versioning_config_xml(b.versioning_enabled);
   Ok((StatusCode::OK, [("Content-Type", "application/xml")], body).into_response())
 }
 
 /// GET /{bucket}?acl
-async fn get_bucket_acl(state: Arc<S3State>, bucket: &str) -> Result<Response, S3Error> {
+async fn get_bucket_acl(state: Arc<StorageState>, bucket: &str) -> Result<Response, StorageError> {
   let b = state
     .backend
-    .get_s3_bucket(bucket)
+    .get_storage_bucket(bucket)
     .await?
-    .ok_or_else(|| S3Error::no_such_bucket(bucket))?;
+    .ok_or_else(|| StorageError::no_such_bucket(bucket))?;
 
   let owner_id = b
     .owner_id
@@ -228,16 +219,16 @@ async fn get_bucket_acl(state: Arc<S3State>, bucket: &str) -> Result<Response, S
 }
 
 /// GET /{bucket}?lifecycle
-async fn get_bucket_lifecycle(state: Arc<S3State>, bucket: &str) -> Result<Response, S3Error> {
+async fn get_bucket_lifecycle(state: Arc<StorageState>, bucket: &str) -> Result<Response, StorageError> {
   let b = state
     .backend
-    .get_s3_bucket(bucket)
+    .get_storage_bucket(bucket)
     .await?
-    .ok_or_else(|| S3Error::no_such_bucket(bucket))?;
+    .ok_or_else(|| StorageError::no_such_bucket(bucket))?;
 
   if b.lifecycle_rules.is_empty() {
-    return Err(S3Error::new(
-      crate::s3::error::S3ErrorCode::NoSuchLifecycleConfiguration,
+    return Err(StorageError::new(
+      crate::storage::error::StorageErrorCode::NoSuchLifecycleConfiguration,
       "The lifecycle configuration does not exist",
     ));
   }
@@ -248,16 +239,16 @@ async fn get_bucket_lifecycle(state: Arc<S3State>, bucket: &str) -> Result<Respo
 
 /// GET /{bucket}?uploads - List multipart uploads
 async fn list_multipart_uploads(
-  state: Arc<S3State>,
+  state: Arc<StorageState>,
   bucket: &str,
   params: HashMap<String, String>,
-) -> Result<Response, S3Error> {
+) -> Result<Response, StorageError> {
   // Check bucket exists
   state
     .backend
-    .get_s3_bucket(bucket)
+    .get_storage_bucket(bucket)
     .await?
-    .ok_or_else(|| S3Error::no_such_bucket(bucket))?;
+    .ok_or_else(|| StorageError::no_such_bucket(bucket))?;
 
   let max_uploads = params
     .get("max-uploads")
@@ -266,7 +257,7 @@ async fn list_multipart_uploads(
 
   let (uploads, is_truncated) = state
     .backend
-    .list_s3_multipart_uploads(bucket, max_uploads)
+    .list_multipart_uploads(bucket, max_uploads)
     .await?;
 
   let body = xml::list_multipart_uploads_xml(bucket, &uploads, max_uploads, is_truncated);
@@ -275,16 +266,16 @@ async fn list_multipart_uploads(
 
 /// GET /{bucket}?versions - List object versions
 async fn list_object_versions(
-  state: Arc<S3State>,
+  state: Arc<StorageState>,
   bucket: &str,
   params: HashMap<String, String>,
-) -> Result<Response, S3Error> {
+) -> Result<Response, StorageError> {
   // Check bucket exists
   state
     .backend
-    .get_s3_bucket(bucket)
+    .get_storage_bucket(bucket)
     .await?
-    .ok_or_else(|| S3Error::no_such_bucket(bucket))?;
+    .ok_or_else(|| StorageError::no_such_bucket(bucket))?;
 
   let prefix = params.get("prefix").cloned();
   let max_keys = params
@@ -294,7 +285,7 @@ async fn list_object_versions(
 
   let (objects, is_truncated, _next_token) = state
     .backend
-    .list_s3_object_versions(bucket, prefix.as_deref(), max_keys)
+    .list_storage_object_versions(bucket, prefix.as_deref(), max_keys)
     .await?;
 
   // Build XML response for versions (simplified)
@@ -327,33 +318,33 @@ async fn list_object_versions(
 }
 
 /// Validate S3 bucket name
-fn validate_bucket_name(name: &str) -> Result<(), S3Error> {
+fn validate_bucket_name(name: &str) -> Result<(), StorageError> {
   // Must be 3-63 characters
   if name.len() < 3 || name.len() > 63 {
-    return Err(S3Error::invalid_bucket_name(name));
+    return Err(StorageError::invalid_bucket_name(name));
   }
 
   // Must start with a letter or number
   let first = name.chars().next().unwrap();
   if !first.is_ascii_lowercase() && !first.is_ascii_digit() {
-    return Err(S3Error::invalid_bucket_name(name));
+    return Err(StorageError::invalid_bucket_name(name));
   }
 
   // Must contain only lowercase letters, numbers, hyphens
   for c in name.chars() {
     if !c.is_ascii_lowercase() && !c.is_ascii_digit() && c != '-' {
-      return Err(S3Error::invalid_bucket_name(name));
+      return Err(StorageError::invalid_bucket_name(name));
     }
   }
 
   // Must not end with a hyphen
   if name.ends_with('-') {
-    return Err(S3Error::invalid_bucket_name(name));
+    return Err(StorageError::invalid_bucket_name(name));
   }
 
   // Must not contain consecutive hyphens
   if name.contains("--") {
-    return Err(S3Error::invalid_bucket_name(name));
+    return Err(StorageError::invalid_bucket_name(name));
   }
 
   Ok(())

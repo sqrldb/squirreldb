@@ -13,8 +13,8 @@ use axum::{
 };
 use std::sync::Arc;
 
-use super::error::S3Error;
-use super::server::S3State;
+use super::error::StorageError;
+use super::server::StorageState;
 
 /// Authenticated user context
 #[derive(Debug, Clone, Default)]
@@ -27,7 +27,7 @@ pub struct AuthContext {
 /// S3 authentication middleware
 /// Supports both AWS Signature V4 and SquirrelDB tokens
 pub async fn s3_auth_middleware(
-  State(state): State<Arc<S3State>>,
+  State(state): State<Arc<StorageState>>,
   mut request: Request,
   next: Next,
 ) -> Response {
@@ -62,7 +62,7 @@ pub async fn s3_auth_middleware(
   }
 
   // 3. No authentication provided - return error
-  S3Error::access_denied("No valid authentication provided").into_response()
+  StorageError::access_denied("No valid authentication provided").into_response()
 }
 
 /// Extract SquirrelDB token from request

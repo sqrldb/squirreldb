@@ -4,8 +4,8 @@ use std::fmt;
 
 /// S3 API error
 #[derive(Debug, Clone)]
-pub struct S3Error {
-  pub code: S3ErrorCode,
+pub struct StorageError {
+  pub code: StorageErrorCode,
   pub message: String,
   pub resource: Option<String>,
   pub request_id: Option<String>,
@@ -13,7 +13,7 @@ pub struct S3Error {
 
 /// S3 error codes
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum S3ErrorCode {
+pub enum StorageErrorCode {
   AccessDenied,
   AccountProblem,
   AllAccessDisabled,
@@ -96,7 +96,7 @@ pub enum S3ErrorCode {
   UserKeyMustBeSpecified,
 }
 
-impl S3ErrorCode {
+impl StorageErrorCode {
   pub fn as_str(&self) -> &'static str {
     match self {
       Self::AccessDenied => "AccessDenied",
@@ -225,8 +225,8 @@ impl S3ErrorCode {
   }
 }
 
-impl S3Error {
-  pub fn new(code: S3ErrorCode, message: impl Into<String>) -> Self {
+impl StorageError {
+  pub fn new(code: StorageErrorCode, message: impl Into<String>) -> Self {
     Self {
       code,
       message: message.into(),
@@ -246,13 +246,13 @@ impl S3Error {
   }
 
   pub fn access_denied(message: impl Into<String>) -> Self {
-    Self::new(S3ErrorCode::AccessDenied, message)
+    Self::new(StorageErrorCode::AccessDenied, message)
   }
 
   pub fn no_such_bucket(bucket: impl Into<String>) -> Self {
     let bucket = bucket.into();
     Self::new(
-      S3ErrorCode::NoSuchBucket,
+      StorageErrorCode::NoSuchBucket,
       format!("The specified bucket does not exist: {}", bucket),
     )
     .with_resource(bucket)
@@ -260,13 +260,13 @@ impl S3Error {
 
   pub fn no_such_key(key: impl Into<String>) -> Self {
     let key = key.into();
-    Self::new(S3ErrorCode::NoSuchKey, "The specified key does not exist.").with_resource(key)
+    Self::new(StorageErrorCode::NoSuchKey, "The specified key does not exist.").with_resource(key)
   }
 
   pub fn bucket_already_exists(bucket: impl Into<String>) -> Self {
     let bucket = bucket.into();
     Self::new(
-      S3ErrorCode::BucketAlreadyExists,
+      StorageErrorCode::BucketAlreadyExists,
       "The requested bucket name is not available.",
     )
     .with_resource(bucket)
@@ -275,30 +275,30 @@ impl S3Error {
   pub fn bucket_not_empty(bucket: impl Into<String>) -> Self {
     let bucket = bucket.into();
     Self::new(
-      S3ErrorCode::BucketNotEmpty,
+      StorageErrorCode::BucketNotEmpty,
       "The bucket you tried to delete is not empty.",
     )
     .with_resource(bucket)
   }
 
   pub fn internal_error(message: impl Into<String>) -> Self {
-    Self::new(S3ErrorCode::InternalError, message)
+    Self::new(StorageErrorCode::InternalError, message)
   }
 
   pub fn invalid_argument(message: impl Into<String>) -> Self {
-    Self::new(S3ErrorCode::InvalidArgument, message)
+    Self::new(StorageErrorCode::InvalidArgument, message)
   }
 
   pub fn invalid_bucket_name(name: impl Into<String>) -> Self {
     Self::new(
-      S3ErrorCode::InvalidBucketName,
+      StorageErrorCode::InvalidBucketName,
       format!("The specified bucket is not valid: {}", name.into()),
     )
   }
 
   pub fn no_such_upload(upload_id: impl Into<String>) -> Self {
     Self::new(
-      S3ErrorCode::NoSuchUpload,
+      StorageErrorCode::NoSuchUpload,
       "The specified upload does not exist.",
     )
     .with_resource(upload_id)
@@ -329,7 +329,7 @@ impl S3Error {
   }
 }
 
-impl IntoResponse for S3Error {
+impl IntoResponse for StorageError {
   fn into_response(self) -> Response {
     let body = self.to_xml();
     let status = self.code.http_status();
@@ -337,25 +337,25 @@ impl IntoResponse for S3Error {
   }
 }
 
-impl From<anyhow::Error> for S3Error {
+impl From<anyhow::Error> for StorageError {
   fn from(e: anyhow::Error) -> Self {
-    S3Error::internal_error(e.to_string())
+    StorageError::internal_error(e.to_string())
   }
 }
 
-impl From<std::io::Error> for S3Error {
+impl From<std::io::Error> for StorageError {
   fn from(e: std::io::Error) -> Self {
-    S3Error::internal_error(e.to_string())
+    StorageError::internal_error(e.to_string())
   }
 }
 
-impl fmt::Display for S3Error {
+impl fmt::Display for StorageError {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
     write!(f, "{}: {}", self.code.as_str(), self.message)
   }
 }
 
-impl std::error::Error for S3Error {}
+impl std::error::Error for StorageError {}
 
 fn escape_xml(s: &str) -> String {
   s.replace('&', "&amp;")

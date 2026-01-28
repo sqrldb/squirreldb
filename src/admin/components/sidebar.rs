@@ -9,7 +9,7 @@ pub fn Sidebar() -> impl IntoView {
   let state = use_context::<AppState>().expect("AppState not found");
   let current_page = state.current_page;
   let theme = state.theme;
-  let s3_enabled = state.s3_enabled;
+  let storage_enabled = state.storage_enabled;
 
   // Apply theme on change
   create_effect(move |_| {
@@ -63,7 +63,7 @@ pub fn Sidebar() -> impl IntoView {
         <ul class="nav-links">
           <li><NavItem page=Page::Dashboard label="Dashboard" icon="layout-dashboard" current_page=current_page/></li>
           <li><NavItem page=Page::Tables label="Tables" icon="table" current_page=current_page/></li>
-          <Show when=move || s3_enabled.get()>
+          <Show when=move || storage_enabled.get()>
             <li><NavItem page=Page::Buckets label="Buckets" icon="bucket" current_page=current_page/></li>
           </Show>
           <li><NavItem page=Page::Explorer label="Explorer" icon="search" current_page=current_page/></li>
