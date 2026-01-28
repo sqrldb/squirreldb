@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 use std::path::Path;
 
 /// Expand environment variables in a string.
@@ -69,6 +70,88 @@ pub struct ServerConfig {
   pub auth: AuthSection,
   #[serde(default)]
   pub limits: LimitsSection,
+  #[serde(default)]
+  pub features: FeaturesSection,
+  #[serde(default)]
+  pub s3: S3Section,
+}
+
+/// Feature toggle configuration
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct FeaturesSection {
+  /// Enable S3-compatible storage
+  #[serde(default)]
+  pub s3: bool,
+}
+
+/// S3-compatible storage configuration
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct S3Section {
+  /// Port for S3 HTTP server
+  #[serde(default = "default_s3_port")]
+  pub port: u16,
+
+  /// Storage path for objects
+  #[serde(default = "default_s3_storage_path")]
+  pub storage_path: String,
+
+  /// Maximum object size in bytes (default 5GB)
+  #[serde(default = "default_s3_max_object_size")]
+  pub max_object_size: u64,
+
+  /// Maximum part size for multipart uploads (default 5GB)
+  #[serde(default = "default_s3_max_part_size")]
+  pub max_part_size: u64,
+
+  /// Minimum part size for multipart uploads (default 5MB)
+  #[serde(default = "default_s3_min_part_size")]
+  pub min_part_size: u64,
+
+  /// Default region for S3 operations
+  #[serde(default = "default_s3_region")]
+  pub region: String,
+
+  /// Feature-specific configuration overrides
+  #[serde(default)]
+  pub config: HashMap<String, serde_json::Value>,
+}
+
+fn default_s3_port() -> u16 {
+  9000
+}
+
+fn default_s3_storage_path() -> String {
+  "./data/s3".into()
+}
+
+fn default_s3_max_object_size() -> u64 {
+  5 * 1024 * 1024 * 1024 // 5GB
+}
+
+fn default_s3_max_part_size() -> u64 {
+  5 * 1024 * 1024 * 1024 // 5GB
+}
+
+fn default_s3_min_part_size() -> u64 {
+  5 * 1024 * 1024 // 5MB
+}
+
+fn default_s3_region() -> String {
+  "us-east-1".into()
+}
+
+impl Default for S3Section {
+  fn default() -> Self {
+    Self {
+      port: default_s3_port(),
+      storage_path: default_s3_storage_path(),
+      max_object_size: default_s3_max_object_size(),
+      max_part_size: default_s3_max_part_size(),
+      min_part_size: default_s3_min_part_size(),
+      region: default_s3_region(),
+      config: HashMap::new(),
+    }
+  }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -314,5 +397,9 @@ impl ServerConfig {
 
   pub fn mcp_address(&self) -> String {
     format!("{}:{}", self.server.host, self.server.ports.mcp)
+  }
+
+  pub fn s3_address(&self) -> String {
+    format!("{}:{}", self.server.host, self.s3.port)
   }
 }

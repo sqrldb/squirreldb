@@ -6,7 +6,7 @@
 #   url: ${DATABASE_URL}
 
 # Backend: postgres or sqlite
-backend: sqlite
+backend: postgres
 
 server:
   host: "0.0.0.0"
@@ -15,10 +15,10 @@ server:
     admin: 8081
     tcp: 8082
   protocols:
-    rest: true       # Enable REST API endpoints
-    websocket: true  # Enable WebSocket connections
-    sse: false       # Enable Server-Sent Events (coming soon)
-    tcp: true        # Enable native TCP wire protocol
+    rest: true # Enable REST API endpoints
+    websocket: true # Enable WebSocket connections
+    sse: false # Enable Server-Sent Events (coming soon)
+    tcp: true # Enable native TCP wire protocol
 
 # PostgreSQL settings (when backend: postgres)
 postgres:
@@ -34,5 +34,5 @@ logging:
 
 # Authentication settings
 auth:
-  enabled: false     # Master switch for API token authentication
-  admin_token: ""    # Optional: separate token for admin UI (if set, admin UI requires this token)
+  enabled: false # Master switch for API token authentication
+  admin_token: "" # Optional: separate token for admin UI (if set, admin UI requires this token)

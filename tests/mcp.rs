@@ -386,7 +386,7 @@ mod integration {
     assert_eq!(doc.data["name"], "Alice");
 
     // Query should find it
-    let docs = backend.list("users", None, None, None).await.unwrap();
+    let docs = backend.list("users", None, None, None, None).await.unwrap();
     assert_eq!(docs.len(), 1);
     assert_eq!(docs[0].data["name"], "Alice");
   }
@@ -511,7 +511,7 @@ mod integration {
     let (_server, backend) = create_test_server().await;
 
     let docs = backend
-      .list("empty_collection", None, None, None)
+      .list("empty_collection", None, None, None, None)
       .await
       .unwrap();
     assert!(docs.is_empty());
@@ -537,11 +537,11 @@ mod integration {
 
     // Verify isolation
     let a_docs = backend
-      .list("collection_a", None, None, None)
+      .list("collection_a", None, None, None, None)
       .await
       .unwrap();
     let b_docs = backend
-      .list("collection_b", None, None, None)
+      .list("collection_b", None, None, None, None)
       .await
       .unwrap();
 

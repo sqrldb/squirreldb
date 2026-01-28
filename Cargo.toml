@@ -6,10 +6,17 @@ edition = "2021"
 [[bin]]
 name = "sqrld"
 path = "src/bin/sqrld.rs"
+required-features = ["server"]
 
 [[bin]]
 name = "sqrl"
 path = "src/bin/sqrl.rs"
+required-features = ["server"]
+
+[[bin]]
+name = "sqrl-admin"
+path = "src/admin/main.rs"
+required-features = ["csr"]
 
 [lib]
 name = "squirreldb"
@@ -17,75 +24,100 @@ path = "src/lib.rs"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-# Async runtime
-tokio = { version = "1", features = ["full"] }
-
-# PostgreSQL
-tokio-postgres = { version = "0.7", features = ["with-uuid-1", "with-serde_json-1", "with-chrono-0_4"] }
-deadpool-postgres = "0.14"
-postgres-types = { version = "0.2", features = ["derive"] }
-
-# SQLite
-rusqlite = { version = "0.32", features = ["bundled"] }
-tokio-rusqlite = "0.6"
-
-# Async traits
-async-trait = "0.1"
-
-# WebSocket
-tokio-tungstenite = "0.26"
-futures-util = "0.3"
-
-# HTTP server / Admin UI
-axum = { version = "0.8", features = ["ws"] }
-tower-http = { version = "0.6", features = ["cors", "fs"] }
-tower = "0.5"
-http = "1"
-
-# Leptos - Full-stack Rust UI
-leptos = { version = "0.6", features = ["ssr"] }
-leptos_axum = "0.6"
-leptos_router = { version = "0.6", features = ["ssr"] }
-leptos_meta = { version = "0.6", features = ["ssr"] }
-
-# JavaScript engine
-rquickjs = { version = "0.9", features = ["full-async", "parallel"] }
-
-# Serialization
+# Serialization (shared)
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-rmp-serde = "1.1"
 
-# Utilities
-uuid = { version = "1", features = ["v4", "serde", "fast-rng"] }
-sha2 = "0.10"
-rand = "0.8"
-chrono = { version = "0.4", features = ["serde"] }
-thiserror = "2"
-anyhow = "1"
-tracing = "0.1"
-tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+# === Server-side dependencies (optional) ===
+
+# Async runtime
+tokio = { version = "1", features = ["full"], optional = true }
+
+# PostgreSQL
+tokio-postgres = { version = "0.7", features = ["with-uuid-1", "with-serde_json-1", "with-chrono-0_4"], optional = true }
+deadpool-postgres = { version = "0.14", optional = true }
+postgres-types = { version = "0.2", features = ["derive"], optional = true }
+
+# SQLite
+rusqlite = { version = "0.32", features = ["bundled"], optional = true }
+tokio-rusqlite = { version = "0.6", optional = true }
+
+# Async traits
+async-trait = { version = "0.1", optional = true }
+
+# WebSocket
+tokio-tungstenite = { version = "0.26", optional = true }
+futures-util = { version = "0.3", optional = true }
+
+# HTTP server / Admin UI
+axum = { version = "0.8", features = ["ws"], optional = true }
+tower-http = { version = "0.6", features = ["cors", "fs"], optional = true }
+tower = { version = "0.5", optional = true }
+http = { version = "1", optional = true }
+
+# JavaScript engine
+rquickjs = { version = "0.9", features = ["full-async", "parallel"], optional = true }
+
+# Serialization (server)
+rmp-serde = { version = "1.1", optional = true }
+
+# Utilities (server)
+uuid = { version = "1", features = ["v4", "serde", "fast-rng"], optional = true }
+sha2 = { version = "0.10", optional = true }
+rand = { version = "0.8", optional = true }
+chrono = { version = "0.4", features = ["serde"], optional = true }
+thiserror = { version = "2", optional = true }
+anyhow = { version = "1", optional = true }
+tracing = { version = "0.1", optional = true }
+tracing-subscriber = { version = "0.3", features = ["env-filter"], optional = true }
 
 # Config
-clap = { version = "4", features = ["derive", "env"] }
-serde_yaml = "0.9"
+clap = { version = "4", features = ["derive", "env"], optional = true }
+serde_yaml = { version = "0.9", optional = true }
 
 # CLI / REPL
-rustyline = "15"
-colored = "3"
-comfy-table = "7"
+rustyline = { version = "15", optional = true }
+colored = { version = "3", optional = true }
+comfy-table = { version = "7", optional = true }
 
 # MCP (Model Context Protocol)
-rmcp = { version = "0.13", features = ["server", "transport-io", "transport-streamable-http-server"] }
+rmcp = { version = "0.13", features = ["server", "transport-io", "transport-streamable-http-server"], optional = true }
 
 # Performance
-parking_lot = "0.12"
-mimalloc = { version = "0.1", default-features = false }
-lru = "0.12"
+parking_lot = { version = "0.12", optional = true }
+mimalloc = { version = "0.1", default-features = false, optional = true }
+lru = { version = "0.12", optional = true }
+
+# S3 compatibility
+md5 = { version = "0.7", optional = true }
+hex = { version = "0.4", optional = true }
+hmac = { version = "0.12", optional = true }
+urlencoding = { version = "2", optional = true }
+regex = { version = "1", optional = true }
+
+# === CSR/WASM dependencies (optional) ===
+
+# Leptos - CSR UI (for WASM admin panel)
+leptos = { version = "0.6", optional = true }
+leptos_router = { version = "0.6", optional = true }
+leptos_meta = { version = "0.6", optional = true }
+
+# WASM support for CSR
+wasm-bindgen = { version = "0.2", optional = true }
+wasm-bindgen-futures = { version = "0.4", optional = true }
+web-sys = { version = "0.3", optional = true, features = [
+  "Window", "Document", "Location", "Storage",
+  "Request", "Response", "Headers", "RequestInit",
+  "console"
+] }
+gloo-net = { version = "0.6", optional = true }
+gloo-storage = { version = "0.3", optional = true }
+gloo-timers = { version = "0.3", optional = true }
+console_error_panic_hook = { version = "0.1", optional = true }
 
 # Unix terminal control (for password prompts)
 [target.'cfg(unix)'.dependencies]
-libc = "0.2"
+libc = { version = "0.2", optional = true }
 
 [dev-dependencies]
 tokio-test = "0.4"
@@ -109,3 +141,61 @@ strip = true
 [profile.release-fast]
 inherits = "release"
 lto = "fat"
+
+[features]
+default = ["server"]
+server = [
+  "tokio",
+  "tokio-postgres",
+  "deadpool-postgres",
+  "postgres-types",
+  "rusqlite",
+  "tokio-rusqlite",
+  "async-trait",
+  "tokio-tungstenite",
+  "futures-util",
+  "axum",
+  "tower-http",
+  "tower",
+  "http",
+  "rquickjs",
+  "rmp-serde",
+  "uuid",
+  "sha2",
+  "rand",
+  "chrono",
+  "thiserror",
+  "anyhow",
+  "tracing",
+  "tracing-subscriber",
+  "clap",
+  "serde_yaml",
+  "rustyline",
+  "colored",
+  "comfy-table",
+  "rmcp",
+  "parking_lot",
+  "mimalloc",
+  "lru",
+  "md5",
+  "hex",
+  "hmac",
+  "urlencoding",
+  "regex",
+  "libc"
+]
+csr = [
+  "leptos",
+  "leptos/csr",
+  "leptos_router",
+  "leptos_router/csr",
+  "leptos_meta",
+  "leptos_meta/csr",
+  "wasm-bindgen",
+  "wasm-bindgen-futures",
+  "web-sys",
+  "gloo-net",
+  "gloo-storage",
+  "gloo-timers",
+  "console_error_panic_hook"
+]

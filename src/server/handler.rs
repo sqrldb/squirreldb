@@ -56,10 +56,14 @@ impl MessageHandler {
         collection,
         data,
       } => match self.backend.insert(&collection, data).await {
-        Ok(doc) => match serde_json::to_value(doc) {
-          Ok(v) => ServerMessage::result(id, v),
-          Err(e) => ServerMessage::error(id, format!("Serialization error: {}", e)),
-        },
+        Ok(doc) => {
+          // Invalidate cache for this table after write
+          self.engine_pool.invalidate_table(&collection);
+          match serde_json::to_value(doc) {
+            Ok(v) => ServerMessage::result(id, v),
+            Err(e) => ServerMessage::error(id, format!("Serialization error: {}", e)),
+          }
+        }
         Err(e) => ServerMessage::error(id, e.to_string()),
       },
       ClientMessage::Update {
@@ -68,10 +72,14 @@ impl MessageHandler {
         document_id,
         data,
       } => match self.backend.update(&collection, document_id, data).await {
-        Ok(Some(doc)) => match serde_json::to_value(doc) {
-          Ok(v) => ServerMessage::result(id, v),
-          Err(e) => ServerMessage::error(id, format!("Serialization error: {}", e)),
-        },
+        Ok(Some(doc)) => {
+          // Invalidate cache for this table after write
+          self.engine_pool.invalidate_table(&collection);
+          match serde_json::to_value(doc) {
+            Ok(v) => ServerMessage::result(id, v),
+            Err(e) => ServerMessage::error(id, format!("Serialization error: {}", e)),
+          }
+        }
         Ok(None) => ServerMessage::error(
           id,
           format!(
@@ -86,10 +94,14 @@ impl MessageHandler {
         collection,
         document_id,
       } => match self.backend.delete(&collection, document_id).await {
-        Ok(Some(doc)) => match serde_json::to_value(doc) {
-          Ok(v) => ServerMessage::result(id, v),
-          Err(e) => ServerMessage::error(id, format!("Serialization error: {}", e)),
-        },
+        Ok(Some(doc)) => {
+          // Invalidate cache for this table after write
+          self.engine_pool.invalidate_table(&collection);
+          match serde_json::to_value(doc) {
+            Ok(v) => ServerMessage::result(id, v),
+            Err(e) => ServerMessage::error(id, format!("Serialization error: {}", e)),
+          }
+        }
         Ok(None) => ServerMessage::error(
           id,
           format!(

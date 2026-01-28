@@ -82,10 +82,10 @@ async fn test_sqlite_backend_list() {
     .await
     .unwrap();
 
-  let users = backend.list("users", None, None, None).await.unwrap();
+  let users = backend.list("users", None, None, None, None).await.unwrap();
   assert_eq!(users.len(), 2);
 
-  let posts = backend.list("posts", None, None, None).await.unwrap();
+  let posts = backend.list("posts", None, None, None, None).await.unwrap();
   assert_eq!(posts.len(), 1);
 }
 
@@ -98,7 +98,7 @@ async fn test_sqlite_backend_list_with_limit() {
     backend.insert("items", json!({"index": i})).await.unwrap();
   }
 
-  let items = backend.list("items", None, None, Some(5)).await.unwrap();
+  let items = backend.list("items", None, None, Some(5), None).await.unwrap();
   assert_eq!(items.len(), 5);
 }
 
@@ -148,7 +148,7 @@ async fn test_sqlite_backend_filter() {
   // Filter by age > 28 using SQLite JSON syntax
   let filter = "CAST(json_extract(data, '$.age') AS REAL) > 28";
   let users = backend
-    .list("users", Some(filter), None, None)
+    .list("users", Some(filter), None, None, None)
     .await
     .unwrap();
   assert_eq!(users.len(), 2);

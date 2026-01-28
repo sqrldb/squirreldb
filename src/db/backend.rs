@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 use tokio::sync::broadcast;
 use uuid::Uuid;
 
+use crate::s3::{ObjectAcl, S3Bucket, S3MultipartUpload, S3Object, S3Part};
 use crate::types::{Change, Document, OrderBySpec};
 
 /// API token metadata (without the actual secret)
@@ -82,6 +83,7 @@ impl SqlDialect {
 }
 
 /// Abstract database backend
+#[allow(clippy::too_many_arguments)]
 #[async_trait]
 pub trait DatabaseBackend: Send + Sync {
   fn dialect(&self) -> SqlDialect;
@@ -108,6 +110,7 @@ pub trait DatabaseBackend: Send + Sync {
     filter: Option<&str>,
     order: Option<&OrderBySpec>,
     limit: Option<usize>,
+    offset: Option<usize>,
   ) -> Result<Vec<Document>, anyhow::Error>;
   async fn list_collections(&self) -> Result<Vec<String>, anyhow::Error>;
 
@@ -159,4 +162,205 @@ pub trait DatabaseBackend: Send + Sync {
 
   /// Release a connection slot for an IP address
   async fn connection_release(&self, ip: std::net::IpAddr) -> Result<(), anyhow::Error>;
+
+  // =========================================================================
+  // S3 Storage Methods
+  // =========================================================================
+
+  // S3 Access Key methods
+  /// Get S3 access key and owner ID for authentication
+  async fn get_s3_access_key(
+    &self,
+    access_key_id: &str,
+  ) -> Result<Option<(String, Option<Uuid>)>, anyhow::Error>;
+
+  /// Create a new S3 access key
+  async fn create_s3_access_key(
+    &self,
+    access_key_id: &str,
+    secret_key: &str,
+    owner_id: Option<Uuid>,
+    name: &str,
+  ) -> Result<(), anyhow::Error>;
+
+  /// Delete an S3 access key
+  async fn delete_s3_access_key(&self, access_key_id: &str) -> Result<bool, anyhow::Error>;
+
+  /// List all S3 access keys
+  async fn list_s3_access_keys(&self) -> Result<Vec<S3AccessKeyInfo>, anyhow::Error>;
+
+  // S3 Bucket methods
+  /// Get a bucket by name
+  async fn get_s3_bucket(&self, name: &str) -> Result<Option<S3Bucket>, anyhow::Error>;
+
+  /// Create a new bucket
+  async fn create_s3_bucket(&self, name: &str, owner_id: Option<Uuid>)
+    -> Result<(), anyhow::Error>;
+
+  /// Delete a bucket
+  async fn delete_s3_bucket(&self, name: &str) -> Result<(), anyhow::Error>;
+
+  /// List all buckets
+  async fn list_s3_buckets(&self) -> Result<Vec<S3Bucket>, anyhow::Error>;
+
+  /// Update bucket stats (size and object count)
+  async fn update_s3_bucket_stats(
+    &self,
+    bucket: &str,
+    size_delta: i64,
+    count_delta: i64,
+  ) -> Result<(), anyhow::Error>;
+
+  // S3 Object methods
+  /// Get an object by bucket, key, and optional version
+  async fn get_s3_object(
+    &self,
+    bucket: &str,
+    key: &str,
+    version_id: Option<Uuid>,
+  ) -> Result<Option<S3Object>, anyhow::Error>;
+
+  /// Create a new object
+  async fn create_s3_object(
+    &self,
+    bucket: &str,
+    key: &str,
+    version_id: Uuid,
+    etag: &str,
+    size: i64,
+    content_type: &str,
+    storage_path: &str,
+    metadata: serde_json::Value,
+  ) -> Result<(), anyhow::Error>;
+
+  /// Delete an object (specific version or all if version_id is None)
+  async fn delete_s3_object(
+    &self,
+    bucket: &str,
+    key: &str,
+    version_id: Option<Uuid>,
+  ) -> Result<(), anyhow::Error>;
+
+  /// Create a delete marker (for versioned buckets)
+  async fn create_s3_delete_marker(
+    &self,
+    bucket: &str,
+    key: &str,
+    version_id: Uuid,
+  ) -> Result<(), anyhow::Error>;
+
+  /// Mark all versions of an object as not latest
+  async fn unset_s3_object_latest(&self, bucket: &str, key: &str) -> Result<(), anyhow::Error>;
+
+  /// Update object ACL
+  async fn update_s3_object_acl(
+    &self,
+    bucket: &str,
+    key: &str,
+    acl: ObjectAcl,
+  ) -> Result<(), anyhow::Error>;
+
+  /// List objects in a bucket
+  async fn list_s3_objects(
+    &self,
+    bucket: &str,
+    prefix: Option<&str>,
+    delimiter: Option<&str>,
+    max_keys: i32,
+    continuation_token: Option<&str>,
+  ) -> Result<(Vec<S3Object>, bool, Option<String>), anyhow::Error>;
+
+  /// List common prefixes (for delimiter-based listing)
+  async fn list_s3_common_prefixes(
+    &self,
+    bucket: &str,
+    prefix: Option<&str>,
+    delimiter: Option<&str>,
+  ) -> Result<Vec<String>, anyhow::Error>;
+
+  /// List object versions
+  async fn list_s3_object_versions(
+    &self,
+    bucket: &str,
+    prefix: Option<&str>,
+    max_keys: i32,
+  ) -> Result<(Vec<S3Object>, bool, Option<String>), anyhow::Error>;
+
+  // S3 Multipart Upload methods
+  /// Get a multipart upload by ID
+  async fn get_s3_multipart_upload(
+    &self,
+    upload_id: Uuid,
+  ) -> Result<Option<S3MultipartUpload>, anyhow::Error>;
+
+  /// Create a new multipart upload
+  async fn create_s3_multipart_upload(
+    &self,
+    upload_id: Uuid,
+    bucket: &str,
+    key: &str,
+    content_type: Option<&str>,
+    metadata: serde_json::Value,
+  ) -> Result<(), anyhow::Error>;
+
+  /// Delete a multipart upload and its parts
+  async fn delete_s3_multipart_upload(&self, upload_id: Uuid) -> Result<(), anyhow::Error>;
+
+  /// List multipart uploads for a bucket
+  async fn list_s3_multipart_uploads(
+    &self,
+    bucket: &str,
+    max_uploads: i32,
+  ) -> Result<(Vec<S3MultipartUpload>, bool), anyhow::Error>;
+
+  /// Get a multipart part
+  async fn get_s3_multipart_part(
+    &self,
+    upload_id: Uuid,
+    part_number: i32,
+  ) -> Result<Option<S3Part>, anyhow::Error>;
+
+  /// Create or update a multipart part
+  async fn upsert_s3_multipart_part(
+    &self,
+    upload_id: Uuid,
+    part_number: i32,
+    etag: &str,
+    size: i64,
+    storage_path: &str,
+  ) -> Result<(), anyhow::Error>;
+
+  /// List parts for a multipart upload
+  async fn list_s3_multipart_parts(
+    &self,
+    upload_id: Uuid,
+    max_parts: i32,
+  ) -> Result<(Vec<S3Part>, bool), anyhow::Error>;
+
+  // =========================================================================
+  // Feature Settings Methods
+  // =========================================================================
+
+  /// Get feature settings from database
+  async fn get_feature_settings(
+    &self,
+    name: &str,
+  ) -> Result<Option<(bool, serde_json::Value)>, anyhow::Error>;
+
+  /// Update feature settings in database
+  async fn update_feature_settings(
+    &self,
+    name: &str,
+    enabled: bool,
+    settings: serde_json::Value,
+  ) -> Result<(), anyhow::Error>;
+}
+
+/// S3 access key metadata (without the actual secret)
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct S3AccessKeyInfo {
+  pub access_key_id: String,
+  pub owner_id: Option<Uuid>,
+  pub name: String,
+  pub created_at: DateTime<Utc>,
 }

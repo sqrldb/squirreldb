@@ -252,14 +252,18 @@ body {
   color: var(--accent);
 }
 
-.nav-icon {
-  width: 16px;
-  height: 16px;
-  opacity: 0.7;
+/* Icon base styles */
+.icon {
   flex-shrink: 0;
+  vertical-align: middle;
 }
 
-.nav-link.active .nav-icon {
+.nav-link .icon {
+  opacity: 0.7;
+}
+
+.nav-link.active .icon,
+.nav-link:hover .icon {
   opacity: 1;
 }
 
@@ -331,6 +335,79 @@ body {
   background: var(--bg-tertiary);
   padding: 2px 6px;
   border-radius: 10px;
+}
+
+/* Bucket Quick List in Sidebar */
+.bucket-quick-list {
+  padding: 0 12px;
+  margin-top: 8px;
+  border-top: 1px solid var(--border-light);
+  padding-top: 12px;
+}
+
+.bucket-quick-list h4 {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 0 8px;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.bucket-quick-list h4 button {
+  background: none;
+  border: none;
+  color: var(--accent);
+  cursor: pointer;
+  padding: 2px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bucket-quick-list h4 button:hover {
+  background: var(--accent-light);
+}
+
+.bucket-quick-list ul {
+  list-style: none;
+}
+
+.bucket-quick-list li a {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  text-decoration: none;
+  border-radius: var(--radius-sm);
+  transition: all 0.15s ease;
+}
+
+.bucket-quick-list li a:hover {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+.bucket-quick-list li a svg {
+  opacity: 0.6;
+}
+
+.bucket-quick-list li a:hover svg {
+  opacity: 1;
+}
+
+.bucket-quick-list .empty-item {
+  padding: 6px 12px;
+  font-size: 12px;
+  color: var(--text-muted);
+  font-style: italic;
 }
 
 /* Sidebar Footer */
@@ -439,6 +516,12 @@ h3 {
   margin-top: 4px;
   text-transform: uppercase;
   letter-spacing: 0.3px;
+}
+
+.stat-icon {
+  color: var(--accent);
+  margin-bottom: 12px;
+  opacity: 0.8;
 }
 
 /* =============================================================================
@@ -843,6 +926,190 @@ h3 {
   word-break: break-word;
   color: var(--text-primary);
   transition: background 0.2s ease;
+}
+
+/* Explorer Layout with Sidebar */
+.explorer-layout {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 16px;
+  height: calc(100vh - 140px);
+}
+
+.explorer-sidebar {
+  background: var(--bg-primary);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border-light);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.explorer-sidebar-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-light);
+  font-weight: 500;
+  font-size: 13px;
+}
+
+.explorer-table-list {
+  list-style: none;
+  padding: 8px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.explorer-table-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 12px;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  color: var(--text-primary);
+  cursor: pointer;
+  text-align: left;
+}
+
+.explorer-table-item:hover {
+  background: var(--bg-tertiary);
+}
+
+.explorer-table-item .badge {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.explorer-empty {
+  padding: 24px;
+  text-align: center;
+}
+
+.explorer-main {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-height: 0;
+}
+
+.results-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.results-count {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.results-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  color: var(--text-muted);
+  gap: 12px;
+}
+
+.results-json {
+  margin: 0;
+  font-family: 'SF Mono', Monaco, Menlo, monospace;
+  font-size: 12px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+/* Table name cell with icon */
+.table-name-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Live changes feed */
+.change-entry {
+  background: var(--bg-secondary);
+  border-radius: var(--radius);
+  margin-bottom: 8px;
+  overflow: hidden;
+}
+
+.change-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border-light);
+  font-size: 12px;
+}
+
+.change-timestamp {
+  color: var(--text-muted);
+  font-family: 'SF Mono', Monaco, Menlo, monospace;
+}
+
+.change-op {
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.change-op.insert {
+  background: var(--success-light);
+  color: var(--success);
+}
+
+.change-op.update {
+  background: var(--warning-light);
+  color: var(--warning);
+}
+
+.change-op.delete {
+  background: var(--danger-light);
+  color: var(--danger);
+}
+
+.change-table {
+  color: var(--accent);
+  font-weight: 500;
+}
+
+.change-document {
+  margin: 0;
+  padding: 12px;
+  font-family: 'SF Mono', Monaco, Menlo, monospace;
+  font-size: 11px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+/* Console examples */
+.console-examples {
+  margin-top: 16px;
+}
+
+.console-examples code {
+  display: block;
+  margin: 4px 0;
+  padding: 6px 10px;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-sm);
+  font-size: 12px;
 }
 
 /* =============================================================================
@@ -1496,6 +1763,61 @@ code {
    Settings Page
    ============================================================================= */
 
+/* Settings Tabs */
+.settings-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 20px;
+  padding: 4px;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-light);
+}
+
+.settings-tab {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.settings-tab:hover {
+  color: var(--text-primary);
+  background: var(--bg-tertiary);
+}
+
+.settings-tab.active {
+  color: var(--text-primary);
+  background: var(--bg-primary);
+  box-shadow: var(--shadow-sm);
+}
+
+.settings-tab svg {
+  width: 16px;
+  height: 16px;
+  opacity: 0.7;
+}
+
+.settings-tab.active svg {
+  opacity: 1;
+}
+
+.settings-tab-content {
+  display: none;
+}
+
+.settings-tab-content.active {
+  display: block;
+}
+
 .settings-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
@@ -1513,6 +1835,10 @@ code {
 }
 
 .settings-card-wide {
+  grid-column: 1 / -1;
+}
+
+.settings-card-full {
   grid-column: 1 / -1;
 }
 
@@ -1866,6 +2192,10 @@ code {
     display: none;
   }
 
+  .bucket-quick-list {
+    display: none;
+  }
+
   .sidebar-footer {
     display: none;
   }
@@ -2201,4 +2531,384 @@ code {
   .log-target {
     display: none;
   }
+}
+
+/* =============================================================================
+   Features & S3 Management
+   ============================================================================= */
+
+/* Features List */
+.features-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.feature-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  background: var(--bg-primary);
+  border-radius: var(--radius);
+  border: 1px solid var(--border-light);
+}
+
+.feature-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.feature-name {
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.feature-desc {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.feature-status {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.status-badge {
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.status-badge.running {
+  background: var(--success-light);
+  color: var(--success);
+}
+
+.status-badge.stopped {
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+}
+
+/* S3 Settings Grid */
+.settings-grid-info {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 16px;
+}
+
+.setting-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.setting-item:last-child {
+  border-bottom: none;
+}
+
+.setting-label {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.setting-value {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+}
+
+/* S3 Buckets List */
+.buckets-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.bucket-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  background: var(--bg-primary);
+  border-radius: var(--radius);
+  border: 1px solid var(--border-light);
+}
+
+.bucket-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.bucket-name {
+  font-weight: 500;
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+}
+
+.bucket-stats {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.bucket-actions {
+  display: flex;
+  gap: 8px;
+}
+
+/* S3 Access Keys List */
+.keys-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.key-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  background: var(--bg-primary);
+  border-radius: var(--radius);
+  border: 1px solid var(--border-light);
+}
+
+.key-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.key-name {
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.key-id {
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+}
+
+.key-created {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.key-actions {
+  display: flex;
+  gap: 8px;
+}
+
+/* S3 Credential Display Modal */
+.credential-item {
+  margin-bottom: 16px;
+}
+
+.credential-item label {
+  display: block;
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+}
+
+.credential-value {
+  display: block;
+  padding: 10px;
+  background: var(--bg-tertiary);
+  border-radius: var(--radius);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  word-break: break-all;
+  color: var(--text-primary);
+}
+
+/* Stats Grid for S3 Bucket Modal */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.stat-item {
+  text-align: center;
+  padding: 16px;
+  background: var(--bg-tertiary);
+  border-radius: var(--radius);
+}
+
+.stat-item .stat-label {
+  display: block;
+  font-size: 11px;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.stat-item .stat-value {
+  display: block;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* Toggle Switch */
+.toggle {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+}
+
+.toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--bg-tertiary);
+  transition: 0.2s;
+  border-radius: 24px;
+}
+
+.toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 20px;
+  width: 20px;
+  left: 2px;
+  bottom: 2px;
+  background-color: white;
+  transition: 0.2s;
+  border-radius: 50%;
+  box-shadow: var(--shadow-sm);
+}
+
+.toggle input:checked + .toggle-slider {
+  background-color: var(--accent);
+}
+
+.toggle input:checked + .toggle-slider:before {
+  transform: translateX(20px);
+}
+
+.toggle input:disabled + .toggle-slider {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+/* Action buttons in cards */
+.bucket-actions,
+.key-actions {
+  margin-bottom: 16px;
+}
+
+/* Settings Form */
+.settings-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.settings-form .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.settings-form .form-group label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.settings-form .form-group .input {
+  padding: 10px 12px;
+  font-size: 14px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text-primary);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.settings-form .form-group .input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-light);
+}
+
+.settings-form .form-hint {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.settings-form .form-hint.text-warning {
+  color: var(--warning);
+  margin-top: 8px;
+}
+
+.settings-form .form-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.storage-disabled-notice {
+  padding: 16px 0;
+}
+
+.storage-disabled-notice p {
+  margin: 0;
+}
+
+.config-preview {
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  margin: 12px 0;
+  font-family: 'SF Mono', Monaco, Menlo, monospace;
+  font-size: 12px;
+  line-height: 1.5;
+  white-space: pre;
+  overflow-x: auto;
+}
+
+.s3-settings-display {
+  display: flex;
+  flex-direction: column;
+}
+
+.s3-settings-display .setting-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.s3-settings-display .setting-row:last-child {
+  border-bottom: none;
+}
+
+.s3-settings-display .setting-value {
+  font-size: 14px;
+  color: var(--text-primary);
+  font-family: 'SF Mono', Monaco, Menlo, monospace;
 }

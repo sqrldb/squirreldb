@@ -504,6 +504,7 @@ fn test_query_spec_defaults() {
     map: None,
     order_by: None,
     limit: None,
+    offset: None,
     changes: None,
   };
 
@@ -512,6 +513,7 @@ fn test_query_spec_defaults() {
   assert!(spec.map.is_none());
   assert!(spec.order_by.is_none());
   assert!(spec.limit.is_none());
+  assert!(spec.offset.is_none());
   assert!(spec.changes.is_none());
 }
 
@@ -529,6 +531,7 @@ fn test_query_spec_with_all_fields() {
       direction: OrderDirection::Asc,
     }),
     limit: Some(10),
+    offset: Some(5),
     changes: Some(ChangesOptions {
       include_initial: true,
     }),

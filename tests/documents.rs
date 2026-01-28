@@ -454,7 +454,7 @@ async fn test_list_all_documents() {
       .unwrap();
   }
 
-  let docs = backend.list("users", None, None, None).await.unwrap();
+  let docs = backend.list("users", None, None, None, None).await.unwrap();
   assert_eq!(docs.len(), 5);
 }
 
@@ -463,7 +463,7 @@ async fn test_list_empty_collection() {
   let backend = SqliteBackend::in_memory().await.unwrap();
   backend.init_schema().await.unwrap();
 
-  let docs = backend.list("empty", None, None, None).await.unwrap();
+  let docs = backend.list("empty", None, None, None, None).await.unwrap();
   assert!(docs.is_empty());
 }
 
@@ -476,7 +476,7 @@ async fn test_list_with_limit() {
     backend.insert("items", json!({"index": i})).await.unwrap();
   }
 
-  let docs = backend.list("items", None, None, Some(5)).await.unwrap();
+  let docs = backend.list("items", None, None, Some(5), None).await.unwrap();
   assert_eq!(docs.len(), 5);
 }
 
@@ -489,7 +489,7 @@ async fn test_list_limit_larger_than_count() {
     backend.insert("items", json!({"index": i})).await.unwrap();
   }
 
-  let docs = backend.list("items", None, None, Some(100)).await.unwrap();
+  let docs = backend.list("items", None, None, Some(100), None).await.unwrap();
   assert_eq!(docs.len(), 3);
 }
 
@@ -514,7 +514,7 @@ async fn test_list_with_filter() {
   // Filter for age > 28 using SQLite syntax
   let filter = "CAST(json_extract(data, '$.age') AS REAL) > 28";
   let docs = backend
-    .list("users", Some(filter), None, None)
+    .list("users", Some(filter), None, None, None)
     .await
     .unwrap();
 
@@ -539,10 +539,10 @@ async fn test_list_only_from_specified_collection() {
     .await
     .unwrap();
 
-  let users = backend.list("users", None, None, None).await.unwrap();
+  let users = backend.list("users", None, None, None, None).await.unwrap();
   assert_eq!(users.len(), 2);
 
-  let posts = backend.list("posts", None, None, None).await.unwrap();
+  let posts = backend.list("posts", None, None, None, None).await.unwrap();
   assert_eq!(posts.len(), 1);
 }
 
@@ -698,7 +698,7 @@ async fn test_concurrent_inserts() {
     handle.await.unwrap();
   }
 
-  let docs = backend.list("users", None, None, None).await.unwrap();
+  let docs = backend.list("users", None, None, None, None).await.unwrap();
   assert_eq!(docs.len(), 20);
 }
 

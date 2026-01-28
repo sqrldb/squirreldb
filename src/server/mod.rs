@@ -6,7 +6,8 @@ mod tcp;
 mod websocket;
 
 pub use config::{
-  AuthSection, BackendType, LimitsSection, PortsSection, ProtocolsSection, ServerConfig,
+  AuthSection, BackendType, FeaturesSection, LimitsSection, PortsSection, ProtocolsSection,
+  S3Section, ServerConfig,
 };
 pub use daemon::Daemon;
 pub use handler::MessageHandler;

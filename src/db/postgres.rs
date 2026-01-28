@@ -4,9 +4,19 @@ use tokio::sync::broadcast;
 use tokio_postgres::NoTls;
 use uuid::Uuid;
 
-use super::backend::{ApiTokenInfo, DatabaseBackend, SqlDialect};
+use super::backend::{ApiTokenInfo, DatabaseBackend, S3AccessKeyInfo, SqlDialect};
 use super::sanitize::{validate_collection_name, validate_identifier, validate_limit};
+use crate::s3::{ObjectAcl, S3Bucket, S3MultipartUpload, S3Object, S3Part};
 use crate::types::{Change, ChangeOperation, Document, OrderBySpec, OrderDirection};
+
+/// Pipe trait for method chaining
+trait Pipe: Sized {
+  fn pipe<R>(self, f: impl FnOnce(Self) -> R) -> R {
+    f(self)
+  }
+}
+
+impl<T> Pipe for T {}
 
 const SCHEMA: &str = r#"
 -- JavaScript-friendly UUID alias
@@ -325,6 +335,79 @@ CREATE TABLE IF NOT EXISTS api_tokens (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 CREATE INDEX IF NOT EXISTS idx_api_tokens_hash ON api_tokens(token_hash);
+
+-- S3 Buckets
+CREATE TABLE IF NOT EXISTS s3_buckets (
+    name VARCHAR(63) PRIMARY KEY,
+    owner_id UUID,
+    versioning_enabled BOOLEAN DEFAULT FALSE,
+    acl JSONB DEFAULT '{"grants": []}',
+    lifecycle_rules JSONB DEFAULT '[]',
+    quota_bytes BIGINT,
+    current_size BIGINT DEFAULT 0,
+    object_count BIGINT DEFAULT 0,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- S3 Objects
+CREATE TABLE IF NOT EXISTS s3_objects (
+    bucket VARCHAR(63) NOT NULL,
+    key TEXT NOT NULL,
+    version_id UUID DEFAULT uuid(),
+    is_latest BOOLEAN DEFAULT TRUE,
+    etag VARCHAR(32) NOT NULL,
+    size BIGINT NOT NULL,
+    content_type VARCHAR(255) DEFAULT 'application/octet-stream',
+    storage_path TEXT NOT NULL,
+    metadata JSONB DEFAULT '{}',
+    acl JSONB DEFAULT '{"grants": []}',
+    is_delete_marker BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    PRIMARY KEY (bucket, key, version_id),
+    FOREIGN KEY (bucket) REFERENCES s3_buckets(name) ON DELETE CASCADE
+);
+CREATE INDEX IF NOT EXISTS idx_s3_objects_bucket_key ON s3_objects(bucket, key);
+CREATE INDEX IF NOT EXISTS idx_s3_objects_latest ON s3_objects(bucket, key) WHERE is_latest = TRUE;
+
+-- Multipart Uploads
+CREATE TABLE IF NOT EXISTS s3_multipart_uploads (
+    upload_id UUID PRIMARY KEY DEFAULT uuid(),
+    bucket VARCHAR(63) NOT NULL,
+    key TEXT NOT NULL,
+    content_type VARCHAR(255),
+    metadata JSONB DEFAULT '{}',
+    initiated_at TIMESTAMPTZ DEFAULT NOW(),
+    FOREIGN KEY (bucket) REFERENCES s3_buckets(name) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS s3_multipart_parts (
+    upload_id UUID NOT NULL,
+    part_number INTEGER NOT NULL,
+    etag VARCHAR(32) NOT NULL,
+    size BIGINT NOT NULL,
+    storage_path TEXT NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    PRIMARY KEY (upload_id, part_number),
+    FOREIGN KEY (upload_id) REFERENCES s3_multipart_uploads(upload_id) ON DELETE CASCADE
+);
+
+-- S3 Access Keys (for AWS Signature V4)
+CREATE TABLE IF NOT EXISTS s3_access_keys (
+    access_key_id VARCHAR(20) PRIMARY KEY,
+    secret_access_key VARCHAR(64) NOT NULL,
+    owner_id UUID,
+    name VARCHAR(255) NOT NULL,
+    permissions JSONB DEFAULT '{"buckets": "*", "actions": "*"}',
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Feature settings for runtime configuration
+CREATE TABLE IF NOT EXISTS feature_settings (
+    feature_name VARCHAR(255) PRIMARY KEY,
+    enabled BOOLEAN DEFAULT FALSE,
+    settings JSONB NOT NULL DEFAULT '{}',
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
 "#;
 
 pub struct PostgresBackend {
@@ -462,6 +545,7 @@ impl DatabaseBackend for PostgresBackend {
     filter: Option<&str>,
     order: Option<&OrderBySpec>,
     limit: Option<usize>,
+    offset: Option<usize>,
   ) -> Result<Vec<Document>, anyhow::Error> {
     // Validate collection name to prevent injection
     validate_collection_name(collection)?;
@@ -492,6 +576,14 @@ impl DatabaseBackend for PostgresBackend {
       // Validate limit is within bounds
       validate_limit(l)?;
       sql.push_str(&format!(" LIMIT {}", l));
+    }
+
+    if let Some(o) = offset {
+      // Validate offset is within bounds
+      if o > 1_000_000 {
+        anyhow::bail!("Offset too large (max 1000000)");
+      }
+      sql.push_str(&format!(" OFFSET {}", o));
     }
 
     let rows = self.pool.get().await?.query(&sql, &[&collection]).await?;
@@ -812,6 +904,684 @@ impl DatabaseBackend for PostgresBackend {
       .get()
       .await?
       .execute("SELECT sqrl_connection_release($1::inet)", &[&ip_str])
+      .await?;
+    Ok(())
+  }
+
+  // =========================================================================
+  // S3 Storage Methods
+  // =========================================================================
+
+  async fn get_s3_access_key(
+    &self,
+    access_key_id: &str,
+  ) -> Result<Option<(String, Option<Uuid>)>, anyhow::Error> {
+    let row = self
+      .pool
+      .get()
+      .await?
+      .query_opt(
+        "SELECT secret_access_key, owner_id FROM s3_access_keys WHERE access_key_id = $1",
+        &[&access_key_id],
+      )
+      .await?;
+    Ok(row.map(|r| (r.get(0), r.get(1))))
+  }
+
+  async fn create_s3_access_key(
+    &self,
+    access_key_id: &str,
+    secret_key: &str,
+    owner_id: Option<Uuid>,
+    name: &str,
+  ) -> Result<(), anyhow::Error> {
+    self
+      .pool
+      .get()
+      .await?
+      .execute(
+        "INSERT INTO s3_access_keys (access_key_id, secret_access_key, owner_id, name) VALUES ($1, $2, $3, $4)",
+        &[&access_key_id, &secret_key, &owner_id, &name],
+      )
+      .await?;
+    Ok(())
+  }
+
+  async fn delete_s3_access_key(&self, access_key_id: &str) -> Result<bool, anyhow::Error> {
+    let result = self
+      .pool
+      .get()
+      .await?
+      .execute(
+        "DELETE FROM s3_access_keys WHERE access_key_id = $1",
+        &[&access_key_id],
+      )
+      .await?;
+    Ok(result > 0)
+  }
+
+  async fn list_s3_access_keys(&self) -> Result<Vec<S3AccessKeyInfo>, anyhow::Error> {
+    let rows = self
+      .pool
+      .get()
+      .await?
+      .query(
+        "SELECT access_key_id, owner_id, name, created_at FROM s3_access_keys ORDER BY created_at DESC",
+        &[],
+      )
+      .await?;
+    Ok(
+      rows
+        .into_iter()
+        .map(|r| S3AccessKeyInfo {
+          access_key_id: r.get(0),
+          owner_id: r.get(1),
+          name: r.get(2),
+          created_at: r.get(3),
+        })
+        .collect(),
+    )
+  }
+
+  async fn get_s3_bucket(&self, name: &str) -> Result<Option<S3Bucket>, anyhow::Error> {
+    let row = self
+      .pool
+      .get()
+      .await?
+      .query_opt(
+        "SELECT name, owner_id, versioning_enabled, acl, lifecycle_rules, quota_bytes, current_size, object_count, created_at FROM s3_buckets WHERE name = $1",
+        &[&name],
+      )
+      .await?;
+    Ok(row.map(|r| {
+      S3Bucket {
+        name: r.get(0),
+        owner_id: r.get(1),
+        versioning_enabled: r.get(2),
+        acl: r
+          .get::<_, serde_json::Value>(3)
+          .pipe(|v| serde_json::from_value(v).unwrap_or_default()),
+        lifecycle_rules: r
+          .get::<_, serde_json::Value>(4)
+          .pipe(|v| serde_json::from_value(v).unwrap_or_default()),
+        quota_bytes: r.get(5),
+        current_size: r.get(6),
+        object_count: r.get(7),
+        created_at: r.get(8),
+      }
+    }))
+  }
+
+  async fn create_s3_bucket(
+    &self,
+    name: &str,
+    owner_id: Option<Uuid>,
+  ) -> Result<(), anyhow::Error> {
+    self
+      .pool
+      .get()
+      .await?
+      .execute(
+        "INSERT INTO s3_buckets (name, owner_id) VALUES ($1, $2)",
+        &[&name, &owner_id],
+      )
+      .await?;
+    Ok(())
+  }
+
+  async fn delete_s3_bucket(&self, name: &str) -> Result<(), anyhow::Error> {
+    self
+      .pool
+      .get()
+      .await?
+      .execute("DELETE FROM s3_buckets WHERE name = $1", &[&name])
+      .await?;
+    Ok(())
+  }
+
+  async fn list_s3_buckets(&self) -> Result<Vec<S3Bucket>, anyhow::Error> {
+    let rows = self
+      .pool
+      .get()
+      .await?
+      .query(
+        "SELECT name, owner_id, versioning_enabled, acl, lifecycle_rules, quota_bytes, current_size, object_count, created_at FROM s3_buckets ORDER BY name",
+        &[],
+      )
+      .await?;
+    Ok(
+      rows
+        .into_iter()
+        .map(|r| S3Bucket {
+          name: r.get(0),
+          owner_id: r.get(1),
+          versioning_enabled: r.get(2),
+          acl: r
+            .get::<_, serde_json::Value>(3)
+            .pipe(|v| serde_json::from_value(v).unwrap_or_default()),
+          lifecycle_rules: r
+            .get::<_, serde_json::Value>(4)
+            .pipe(|v| serde_json::from_value(v).unwrap_or_default()),
+          quota_bytes: r.get(5),
+          current_size: r.get(6),
+          object_count: r.get(7),
+          created_at: r.get(8),
+        })
+        .collect(),
+    )
+  }
+
+  async fn update_s3_bucket_stats(
+    &self,
+    bucket: &str,
+    size_delta: i64,
+    count_delta: i64,
+  ) -> Result<(), anyhow::Error> {
+    self
+      .pool
+      .get()
+      .await?
+      .execute(
+        "UPDATE s3_buckets SET current_size = current_size + $2, object_count = object_count + $3 WHERE name = $1",
+        &[&bucket, &size_delta, &count_delta],
+      )
+      .await?;
+    Ok(())
+  }
+
+  async fn get_s3_object(
+    &self,
+    bucket: &str,
+    key: &str,
+    version_id: Option<Uuid>,
+  ) -> Result<Option<S3Object>, anyhow::Error> {
+    let row = if let Some(vid) = version_id {
+      self
+        .pool
+        .get()
+        .await?
+        .query_opt(
+          "SELECT bucket, key, version_id, is_latest, etag, size, content_type, storage_path, metadata, acl, is_delete_marker, created_at FROM s3_objects WHERE bucket = $1 AND key = $2 AND version_id = $3",
+          &[&bucket, &key, &vid],
+        )
+        .await?
+    } else {
+      self
+        .pool
+        .get()
+        .await?
+        .query_opt(
+          "SELECT bucket, key, version_id, is_latest, etag, size, content_type, storage_path, metadata, acl, is_delete_marker, created_at FROM s3_objects WHERE bucket = $1 AND key = $2 AND is_latest = TRUE",
+          &[&bucket, &key],
+        )
+        .await?
+    };
+    Ok(row.map(|r| {
+      S3Object {
+        bucket: r.get(0),
+        key: r.get(1),
+        version_id: r.get(2),
+        is_latest: r.get(3),
+        etag: r.get(4),
+        size: r.get(5),
+        content_type: r.get(6),
+        storage_path: r.get(7),
+        metadata: r.get(8),
+        acl: r
+          .get::<_, serde_json::Value>(9)
+          .pipe(|v| serde_json::from_value(v).unwrap_or_default()),
+        is_delete_marker: r.get(10),
+        created_at: r.get(11),
+      }
+    }))
+  }
+
+  async fn create_s3_object(
+    &self,
+    bucket: &str,
+    key: &str,
+    version_id: Uuid,
+    etag: &str,
+    size: i64,
+    content_type: &str,
+    storage_path: &str,
+    metadata: serde_json::Value,
+  ) -> Result<(), anyhow::Error> {
+    self
+      .pool
+      .get()
+      .await?
+      .execute(
+        "INSERT INTO s3_objects (bucket, key, version_id, etag, size, content_type, storage_path, metadata) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
+        &[&bucket, &key, &version_id, &etag, &size, &content_type, &storage_path, &metadata],
+      )
+      .await?;
+    Ok(())
+  }
+
+  async fn delete_s3_object(
+    &self,
+    bucket: &str,
+    key: &str,
+    version_id: Option<Uuid>,
+  ) -> Result<(), anyhow::Error> {
+    if let Some(vid) = version_id {
+      self
+        .pool
+        .get()
+        .await?
+        .execute(
+          "DELETE FROM s3_objects WHERE bucket = $1 AND key = $2 AND version_id = $3",
+          &[&bucket, &key, &vid],
+        )
+        .await?;
+    } else {
+      self
+        .pool
+        .get()
+        .await?
+        .execute(
+          "DELETE FROM s3_objects WHERE bucket = $1 AND key = $2",
+          &[&bucket, &key],
+        )
+        .await?;
+    }
+    Ok(())
+  }
+
+  async fn create_s3_delete_marker(
+    &self,
+    bucket: &str,
+    key: &str,
+    version_id: Uuid,
+  ) -> Result<(), anyhow::Error> {
+    // First unset latest on existing versions
+    self.unset_s3_object_latest(bucket, key).await?;
+    // Create delete marker
+    self
+      .pool
+      .get()
+      .await?
+      .execute(
+        "INSERT INTO s3_objects (bucket, key, version_id, etag, size, is_delete_marker, is_latest) VALUES ($1, $2, $3, '', 0, TRUE, TRUE)",
+        &[&bucket, &key, &version_id],
+      )
+      .await?;
+    Ok(())
+  }
+
+  async fn unset_s3_object_latest(&self, bucket: &str, key: &str) -> Result<(), anyhow::Error> {
+    self
+      .pool
+      .get()
+      .await?
+      .execute(
+        "UPDATE s3_objects SET is_latest = FALSE WHERE bucket = $1 AND key = $2",
+        &[&bucket, &key],
+      )
+      .await?;
+    Ok(())
+  }
+
+  async fn update_s3_object_acl(
+    &self,
+    bucket: &str,
+    key: &str,
+    acl: ObjectAcl,
+  ) -> Result<(), anyhow::Error> {
+    let acl_json = serde_json::to_value(acl)?;
+    self
+      .pool
+      .get()
+      .await?
+      .execute(
+        "UPDATE s3_objects SET acl = $3 WHERE bucket = $1 AND key = $2 AND is_latest = TRUE",
+        &[&bucket, &key, &acl_json],
+      )
+      .await?;
+    Ok(())
+  }
+
+  async fn list_s3_objects(
+    &self,
+    bucket: &str,
+    prefix: Option<&str>,
+    _delimiter: Option<&str>,
+    max_keys: i32,
+    continuation_token: Option<&str>,
+  ) -> Result<(Vec<S3Object>, bool, Option<String>), anyhow::Error> {
+    let prefix_pattern = prefix
+      .map(|p| format!("{}%", p))
+      .unwrap_or_else(|| "%".to_string());
+    let start_key = continuation_token.unwrap_or("");
+
+    let rows = self
+      .pool
+      .get()
+      .await?
+      .query(
+        "SELECT bucket, key, version_id, is_latest, etag, size, content_type, storage_path, metadata, acl, is_delete_marker, created_at
+         FROM s3_objects
+         WHERE bucket = $1 AND key LIKE $2 AND key > $3 AND is_latest = TRUE AND is_delete_marker = FALSE
+         ORDER BY key
+         LIMIT $4",
+        &[&bucket, &prefix_pattern, &start_key, &(max_keys + 1)],
+      )
+      .await?;
+
+    let is_truncated = rows.len() > max_keys as usize;
+    let objects: Vec<S3Object> = rows
+      .into_iter()
+      .take(max_keys as usize)
+      .map(|r| S3Object {
+        bucket: r.get(0),
+        key: r.get(1),
+        version_id: r.get(2),
+        is_latest: r.get(3),
+        etag: r.get(4),
+        size: r.get(5),
+        content_type: r.get(6),
+        storage_path: r.get(7),
+        metadata: r.get(8),
+        acl: r
+          .get::<_, serde_json::Value>(9)
+          .pipe(|v| serde_json::from_value(v).unwrap_or_default()),
+        is_delete_marker: r.get(10),
+        created_at: r.get(11),
+      })
+      .collect();
+
+    let next_token = if is_truncated {
+      objects.last().map(|o| o.key.clone())
+    } else {
+      None
+    };
+
+    Ok((objects, is_truncated, next_token))
+  }
+
+  async fn list_s3_common_prefixes(
+    &self,
+    bucket: &str,
+    prefix: Option<&str>,
+    delimiter: Option<&str>,
+  ) -> Result<Vec<String>, anyhow::Error> {
+    let Some(delim) = delimiter else {
+      return Ok(vec![]);
+    };
+
+    let prefix_str = prefix.unwrap_or("");
+    let prefix_len = prefix_str.len() as i32;
+
+    // Find distinct prefixes up to the next delimiter
+    let rows = self
+      .pool
+      .get()
+      .await?
+      .query(
+        "SELECT DISTINCT SUBSTRING(key FROM 1 FOR POSITION($2 IN SUBSTRING(key FROM $3)) + $3 - 1) as common_prefix
+         FROM s3_objects
+         WHERE bucket = $1 AND key LIKE $4 AND POSITION($2 IN SUBSTRING(key FROM $3)) > 0 AND is_latest = TRUE
+         ORDER BY common_prefix",
+        &[&bucket, &delim, &(prefix_len + 1), &format!("{}%", prefix_str)],
+      )
+      .await?;
+
+    Ok(rows.into_iter().map(|r| r.get(0)).collect())
+  }
+
+  async fn list_s3_object_versions(
+    &self,
+    bucket: &str,
+    prefix: Option<&str>,
+    max_keys: i32,
+  ) -> Result<(Vec<S3Object>, bool, Option<String>), anyhow::Error> {
+    let prefix_pattern = prefix
+      .map(|p| format!("{}%", p))
+      .unwrap_or_else(|| "%".to_string());
+
+    let rows = self
+      .pool
+      .get()
+      .await?
+      .query(
+        "SELECT bucket, key, version_id, is_latest, etag, size, content_type, storage_path, metadata, acl, is_delete_marker, created_at
+         FROM s3_objects
+         WHERE bucket = $1 AND key LIKE $2
+         ORDER BY key, created_at DESC
+         LIMIT $3",
+        &[&bucket, &prefix_pattern, &(max_keys + 1)],
+      )
+      .await?;
+
+    let is_truncated = rows.len() > max_keys as usize;
+    let objects: Vec<S3Object> = rows
+      .into_iter()
+      .take(max_keys as usize)
+      .map(|r| S3Object {
+        bucket: r.get(0),
+        key: r.get(1),
+        version_id: r.get(2),
+        is_latest: r.get(3),
+        etag: r.get(4),
+        size: r.get(5),
+        content_type: r.get(6),
+        storage_path: r.get(7),
+        metadata: r.get(8),
+        acl: r
+          .get::<_, serde_json::Value>(9)
+          .pipe(|v| serde_json::from_value(v).unwrap_or_default()),
+        is_delete_marker: r.get(10),
+        created_at: r.get(11),
+      })
+      .collect();
+
+    Ok((objects, is_truncated, None))
+  }
+
+  async fn get_s3_multipart_upload(
+    &self,
+    upload_id: Uuid,
+  ) -> Result<Option<S3MultipartUpload>, anyhow::Error> {
+    let row = self
+      .pool
+      .get()
+      .await?
+      .query_opt(
+        "SELECT upload_id, bucket, key, content_type, metadata, initiated_at FROM s3_multipart_uploads WHERE upload_id = $1",
+        &[&upload_id],
+      )
+      .await?;
+    Ok(row.map(|r| S3MultipartUpload {
+      upload_id: r.get(0),
+      bucket: r.get(1),
+      key: r.get(2),
+      content_type: r.get(3),
+      metadata: r.get(4),
+      initiated_at: r.get(5),
+    }))
+  }
+
+  async fn create_s3_multipart_upload(
+    &self,
+    upload_id: Uuid,
+    bucket: &str,
+    key: &str,
+    content_type: Option<&str>,
+    metadata: serde_json::Value,
+  ) -> Result<(), anyhow::Error> {
+    self
+      .pool
+      .get()
+      .await?
+      .execute(
+        "INSERT INTO s3_multipart_uploads (upload_id, bucket, key, content_type, metadata) VALUES ($1, $2, $3, $4, $5)",
+        &[&upload_id, &bucket, &key, &content_type, &metadata],
+      )
+      .await?;
+    Ok(())
+  }
+
+  async fn delete_s3_multipart_upload(&self, upload_id: Uuid) -> Result<(), anyhow::Error> {
+    self
+      .pool
+      .get()
+      .await?
+      .execute(
+        "DELETE FROM s3_multipart_uploads WHERE upload_id = $1",
+        &[&upload_id],
+      )
+      .await?;
+    Ok(())
+  }
+
+  async fn list_s3_multipart_uploads(
+    &self,
+    bucket: &str,
+    max_uploads: i32,
+  ) -> Result<(Vec<S3MultipartUpload>, bool), anyhow::Error> {
+    let rows = self
+      .pool
+      .get()
+      .await?
+      .query(
+        "SELECT upload_id, bucket, key, content_type, metadata, initiated_at FROM s3_multipart_uploads WHERE bucket = $1 ORDER BY initiated_at LIMIT $2",
+        &[&bucket, &(max_uploads + 1)],
+      )
+      .await?;
+
+    let is_truncated = rows.len() > max_uploads as usize;
+    let uploads: Vec<S3MultipartUpload> = rows
+      .into_iter()
+      .take(max_uploads as usize)
+      .map(|r| S3MultipartUpload {
+        upload_id: r.get(0),
+        bucket: r.get(1),
+        key: r.get(2),
+        content_type: r.get(3),
+        metadata: r.get(4),
+        initiated_at: r.get(5),
+      })
+      .collect();
+
+    Ok((uploads, is_truncated))
+  }
+
+  async fn get_s3_multipart_part(
+    &self,
+    upload_id: Uuid,
+    part_number: i32,
+  ) -> Result<Option<S3Part>, anyhow::Error> {
+    let row = self
+      .pool
+      .get()
+      .await?
+      .query_opt(
+        "SELECT upload_id, part_number, etag, size, storage_path, created_at FROM s3_multipart_parts WHERE upload_id = $1 AND part_number = $2",
+        &[&upload_id, &part_number],
+      )
+      .await?;
+    Ok(row.map(|r| S3Part {
+      upload_id: r.get(0),
+      part_number: r.get(1),
+      etag: r.get(2),
+      size: r.get(3),
+      storage_path: r.get(4),
+      created_at: r.get(5),
+    }))
+  }
+
+  async fn upsert_s3_multipart_part(
+    &self,
+    upload_id: Uuid,
+    part_number: i32,
+    etag: &str,
+    size: i64,
+    storage_path: &str,
+  ) -> Result<(), anyhow::Error> {
+    self
+      .pool
+      .get()
+      .await?
+      .execute(
+        "INSERT INTO s3_multipart_parts (upload_id, part_number, etag, size, storage_path)
+         VALUES ($1, $2, $3, $4, $5)
+         ON CONFLICT (upload_id, part_number) DO UPDATE SET etag = $3, size = $4, storage_path = $5",
+        &[&upload_id, &part_number, &etag, &size, &storage_path],
+      )
+      .await?;
+    Ok(())
+  }
+
+  async fn list_s3_multipart_parts(
+    &self,
+    upload_id: Uuid,
+    max_parts: i32,
+  ) -> Result<(Vec<S3Part>, bool), anyhow::Error> {
+    let rows = self
+      .pool
+      .get()
+      .await?
+      .query(
+        "SELECT upload_id, part_number, etag, size, storage_path, created_at FROM s3_multipart_parts WHERE upload_id = $1 ORDER BY part_number LIMIT $2",
+        &[&upload_id, &(max_parts + 1)],
+      )
+      .await?;
+
+    let is_truncated = rows.len() > max_parts as usize;
+    let parts: Vec<S3Part> = rows
+      .into_iter()
+      .take(max_parts as usize)
+      .map(|r| S3Part {
+        upload_id: r.get(0),
+        part_number: r.get(1),
+        etag: r.get(2),
+        size: r.get(3),
+        storage_path: r.get(4),
+        created_at: r.get(5),
+      })
+      .collect();
+
+    Ok((parts, is_truncated))
+  }
+
+  // =========================================================================
+  // Feature Settings Methods
+  // =========================================================================
+
+  async fn get_feature_settings(
+    &self,
+    name: &str,
+  ) -> Result<Option<(bool, serde_json::Value)>, anyhow::Error> {
+    let row = self
+      .pool
+      .get()
+      .await?
+      .query_opt(
+        "SELECT enabled, settings FROM feature_settings WHERE feature_name = $1",
+        &[&name],
+      )
+      .await?;
+    Ok(row.map(|r| (r.get(0), r.get(1))))
+  }
+
+  async fn update_feature_settings(
+    &self,
+    name: &str,
+    enabled: bool,
+    settings: serde_json::Value,
+  ) -> Result<(), anyhow::Error> {
+    self
+      .pool
+      .get()
+      .await?
+      .execute(
+        "INSERT INTO feature_settings (feature_name, enabled, settings, updated_at)
+         VALUES ($1, $2, $3, NOW())
+         ON CONFLICT (feature_name) DO UPDATE
+         SET enabled = $2, settings = $3, updated_at = NOW()",
+        &[&name, &enabled, &settings],
+      )
       .await?;
     Ok(())
   }

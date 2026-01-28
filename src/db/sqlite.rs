@@ -5,8 +5,9 @@ use tokio::sync::broadcast;
 use tokio_rusqlite::Connection;
 use uuid::Uuid;
 
-use super::backend::{ApiTokenInfo, DatabaseBackend, SqlDialect};
+use super::backend::{ApiTokenInfo, DatabaseBackend, S3AccessKeyInfo, SqlDialect};
 use super::sanitize::{validate_collection_name, validate_identifier, validate_limit};
+use crate::s3::{ObjectAcl, S3Bucket, S3MultipartUpload, S3Object, S3Part};
 use crate::types::{Change, ChangeOperation, Document, OrderBySpec, OrderDirection};
 
 const PRAGMAS: &str = r#"
@@ -237,6 +238,7 @@ impl DatabaseBackend for SqliteBackend {
     filter: Option<&str>,
     order: Option<&OrderBySpec>,
     limit: Option<usize>,
+    offset: Option<usize>,
   ) -> Result<Vec<Document>, anyhow::Error> {
     // Validate collection name
     validate_collection_name(collection)?;
@@ -249,6 +251,13 @@ impl DatabaseBackend for SqliteBackend {
     // Validate limit if present
     if let Some(l) = limit {
       validate_limit(l)?;
+    }
+
+    // Validate offset if present
+    if let Some(o) = offset {
+      if o > 1_000_000 {
+        anyhow::bail!("Offset too large (max 1000000)");
+      }
     }
 
     let col = collection.to_string();
@@ -277,6 +286,10 @@ impl DatabaseBackend for SqliteBackend {
 
     if let Some(l) = limit {
       sql.push_str(&format!(" LIMIT {}", l));
+    }
+
+    if let Some(o) = offset {
+      sql.push_str(&format!(" OFFSET {}", o));
     }
 
     self
@@ -513,6 +526,226 @@ impl DatabaseBackend for SqliteBackend {
 
   async fn connection_release(&self, _ip: std::net::IpAddr) -> Result<(), anyhow::Error> {
     Ok(())
+  }
+
+  // =========================================================================
+  // S3 Storage Methods - SQLite stubs (not implemented)
+  // =========================================================================
+
+  async fn get_s3_access_key(
+    &self,
+    _access_key_id: &str,
+  ) -> Result<Option<(String, Option<Uuid>)>, anyhow::Error> {
+    anyhow::bail!("S3 storage is not supported with SQLite backend")
+  }
+
+  async fn create_s3_access_key(
+    &self,
+    _access_key_id: &str,
+    _secret_key: &str,
+    _owner_id: Option<Uuid>,
+    _name: &str,
+  ) -> Result<(), anyhow::Error> {
+    anyhow::bail!("S3 storage is not supported with SQLite backend")
+  }
+
+  async fn delete_s3_access_key(&self, _access_key_id: &str) -> Result<bool, anyhow::Error> {
+    anyhow::bail!("S3 storage is not supported with SQLite backend")
+  }
+
+  async fn list_s3_access_keys(&self) -> Result<Vec<S3AccessKeyInfo>, anyhow::Error> {
+    anyhow::bail!("S3 storage is not supported with SQLite backend")
+  }
+
+  async fn get_s3_bucket(&self, _name: &str) -> Result<Option<S3Bucket>, anyhow::Error> {
+    anyhow::bail!("S3 storage is not supported with SQLite backend")
+  }
+
+  async fn create_s3_bucket(
+    &self,
+    _name: &str,
+    _owner_id: Option<Uuid>,
+  ) -> Result<(), anyhow::Error> {
+    anyhow::bail!("S3 storage is not supported with SQLite backend")
+  }
+
+  async fn delete_s3_bucket(&self, _name: &str) -> Result<(), anyhow::Error> {
+    anyhow::bail!("S3 storage is not supported with SQLite backend")
+  }
+
+  async fn list_s3_buckets(&self) -> Result<Vec<S3Bucket>, anyhow::Error> {
+    anyhow::bail!("S3 storage is not supported with SQLite backend")
+  }
+
+  async fn update_s3_bucket_stats(
+    &self,
+    _bucket: &str,
+    _size_delta: i64,
+    _count_delta: i64,
+  ) -> Result<(), anyhow::Error> {
+    anyhow::bail!("S3 storage is not supported with SQLite backend")
+  }
+
+  async fn get_s3_object(
+    &self,
+    _bucket: &str,
+    _key: &str,
+    _version_id: Option<Uuid>,
+  ) -> Result<Option<S3Object>, anyhow::Error> {
+    anyhow::bail!("S3 storage is not supported with SQLite backend")
+  }
+
+  async fn create_s3_object(
+    &self,
+    _bucket: &str,
+    _key: &str,
+    _version_id: Uuid,
+    _etag: &str,
+    _size: i64,
+    _content_type: &str,
+    _storage_path: &str,
+    _metadata: serde_json::Value,
+  ) -> Result<(), anyhow::Error> {
+    anyhow::bail!("S3 storage is not supported with SQLite backend")
+  }
+
+  async fn delete_s3_object(
+    &self,
+    _bucket: &str,
+    _key: &str,
+    _version_id: Option<Uuid>,
+  ) -> Result<(), anyhow::Error> {
+    anyhow::bail!("S3 storage is not supported with SQLite backend")
+  }
+
+  async fn create_s3_delete_marker(
+    &self,
+    _bucket: &str,
+    _key: &str,
+    _version_id: Uuid,
+  ) -> Result<(), anyhow::Error> {
+    anyhow::bail!("S3 storage is not supported with SQLite backend")
+  }
+
+  async fn unset_s3_object_latest(&self, _bucket: &str, _key: &str) -> Result<(), anyhow::Error> {
+    anyhow::bail!("S3 storage is not supported with SQLite backend")
+  }
+
+  async fn update_s3_object_acl(
+    &self,
+    _bucket: &str,
+    _key: &str,
+    _acl: ObjectAcl,
+  ) -> Result<(), anyhow::Error> {
+    anyhow::bail!("S3 storage is not supported with SQLite backend")
+  }
+
+  async fn list_s3_objects(
+    &self,
+    _bucket: &str,
+    _prefix: Option<&str>,
+    _delimiter: Option<&str>,
+    _max_keys: i32,
+    _continuation_token: Option<&str>,
+  ) -> Result<(Vec<S3Object>, bool, Option<String>), anyhow::Error> {
+    anyhow::bail!("S3 storage is not supported with SQLite backend")
+  }
+
+  async fn list_s3_common_prefixes(
+    &self,
+    _bucket: &str,
+    _prefix: Option<&str>,
+    _delimiter: Option<&str>,
+  ) -> Result<Vec<String>, anyhow::Error> {
+    anyhow::bail!("S3 storage is not supported with SQLite backend")
+  }
+
+  async fn list_s3_object_versions(
+    &self,
+    _bucket: &str,
+    _prefix: Option<&str>,
+    _max_keys: i32,
+  ) -> Result<(Vec<S3Object>, bool, Option<String>), anyhow::Error> {
+    anyhow::bail!("S3 storage is not supported with SQLite backend")
+  }
+
+  async fn get_s3_multipart_upload(
+    &self,
+    _upload_id: Uuid,
+  ) -> Result<Option<S3MultipartUpload>, anyhow::Error> {
+    anyhow::bail!("S3 storage is not supported with SQLite backend")
+  }
+
+  async fn create_s3_multipart_upload(
+    &self,
+    _upload_id: Uuid,
+    _bucket: &str,
+    _key: &str,
+    _content_type: Option<&str>,
+    _metadata: serde_json::Value,
+  ) -> Result<(), anyhow::Error> {
+    anyhow::bail!("S3 storage is not supported with SQLite backend")
+  }
+
+  async fn delete_s3_multipart_upload(&self, _upload_id: Uuid) -> Result<(), anyhow::Error> {
+    anyhow::bail!("S3 storage is not supported with SQLite backend")
+  }
+
+  async fn list_s3_multipart_uploads(
+    &self,
+    _bucket: &str,
+    _max_uploads: i32,
+  ) -> Result<(Vec<S3MultipartUpload>, bool), anyhow::Error> {
+    anyhow::bail!("S3 storage is not supported with SQLite backend")
+  }
+
+  async fn get_s3_multipart_part(
+    &self,
+    _upload_id: Uuid,
+    _part_number: i32,
+  ) -> Result<Option<S3Part>, anyhow::Error> {
+    anyhow::bail!("S3 storage is not supported with SQLite backend")
+  }
+
+  async fn upsert_s3_multipart_part(
+    &self,
+    _upload_id: Uuid,
+    _part_number: i32,
+    _etag: &str,
+    _size: i64,
+    _storage_path: &str,
+  ) -> Result<(), anyhow::Error> {
+    anyhow::bail!("S3 storage is not supported with SQLite backend")
+  }
+
+  async fn list_s3_multipart_parts(
+    &self,
+    _upload_id: Uuid,
+    _max_parts: i32,
+  ) -> Result<(Vec<S3Part>, bool), anyhow::Error> {
+    anyhow::bail!("S3 storage is not supported with SQLite backend")
+  }
+
+  // =========================================================================
+  // Feature Settings Methods
+  // =========================================================================
+
+  async fn get_feature_settings(
+    &self,
+    _name: &str,
+  ) -> Result<Option<(bool, serde_json::Value)>, anyhow::Error> {
+    // SQLite doesn't support feature settings storage (features not available)
+    Ok(None)
+  }
+
+  async fn update_feature_settings(
+    &self,
+    _name: &str,
+    _enabled: bool,
+    _settings: serde_json::Value,
+  ) -> Result<(), anyhow::Error> {
+    // SQLite doesn't support feature settings storage
+    anyhow::bail!("Feature settings are not supported with SQLite backend")
   }
 }
 

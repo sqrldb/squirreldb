@@ -5,8 +5,10 @@ use tokio::sync::broadcast;
 use super::{RateLimiter, ServerConfig, TcpServer, WebSocketServer};
 use crate::admin::{emit_log, AdminServer};
 use crate::db::DatabaseBackend;
+use crate::features::{AppState, FeatureRegistry};
 use crate::mcp::McpServer;
 use crate::query::QueryEnginePool;
+use crate::s3::{S3Config, S3Feature};
 use crate::subscriptions::SubscriptionManager;
 
 pub struct Daemon {
@@ -16,6 +18,7 @@ pub struct Daemon {
   engine_pool: Arc<QueryEnginePool>,
   rate_limiter: Arc<RateLimiter>,
   shutdown_tx: broadcast::Sender<()>,
+  feature_registry: Arc<FeatureRegistry>,
 }
 
 impl Daemon {
@@ -37,6 +40,14 @@ impl Daemon {
       config.limits.query_timeout_ms
     );
 
+    // Create feature registry
+    let feature_registry = Arc::new(FeatureRegistry::new());
+
+    // Register S3 feature
+    let s3_config = S3Config::from(&config.s3);
+    let s3_feature = Arc::new(S3Feature::new(s3_config));
+    feature_registry.register(s3_feature);
+
     Self {
       config,
       backend: backend.clone(),
@@ -44,6 +55,7 @@ impl Daemon {
       engine_pool,
       rate_limiter,
       shutdown_tx,
+      feature_registry,
     }
   }
 
@@ -88,6 +100,7 @@ impl Daemon {
       self.engine_pool.clone(),
       self.shutdown_tx.subscribe(),
       self.config.clone(),
+      self.feature_registry.clone(),
     );
     let admin_addr = self.config.admin_address();
     emit_log(
@@ -130,6 +143,29 @@ impl Daemon {
         "TCP wire protocol server disabled",
       );
       tracing::info!("TCP wire protocol server disabled");
+    }
+
+    // Start S3 feature if enabled
+    if self.config.features.s3 {
+      let app_state = Arc::new(AppState {
+        backend: self.backend.clone(),
+        engine_pool: self.engine_pool.clone(),
+        config: self.config.clone(),
+      });
+      let s3_addr = self.config.s3_address();
+      emit_log(
+        "info",
+        "squirreldb::s3",
+        &format!("Starting S3 server on {}", s3_addr),
+      );
+      if let Err(e) = self.feature_registry.start("s3", app_state).await {
+        tracing::error!("Failed to start S3 feature: {}", e);
+      } else {
+        tracing::info!("SquirrelDB S3 on {}", s3_addr);
+      }
+    } else {
+      emit_log("warn", "squirreldb::s3", "S3 feature disabled");
+      tracing::info!("S3 feature disabled");
     }
 
     // Start MCP SSE server if enabled

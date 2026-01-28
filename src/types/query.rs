@@ -7,6 +7,7 @@ pub struct QuerySpec {
   pub map: Option<String>,
   pub order_by: Option<OrderBySpec>,
   pub limit: Option<usize>,
+  pub offset: Option<usize>,
   pub changes: Option<ChangesOptions>,
 }
 

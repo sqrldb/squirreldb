@@ -1,7 +1,7 @@
 use axum::{
   extract::{
     ws::{Message, WebSocket, WebSocketUpgrade},
-    Path, Query, Request, State,
+    Path, Query, State,
   },
   http::{header, StatusCode},
   middleware::Next,
@@ -9,8 +9,8 @@ use axum::{
   routing::{delete, get, post, put},
   Json, Router,
 };
+use axum::extract::Request;
 use futures_util::{SinkExt, StreamExt};
-use leptos::ssr::render_to_string;
 use parking_lot::Mutex;
 use rand::Rng;
 use serde::{Deserialize, Serialize};
@@ -19,10 +19,11 @@ use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::{broadcast, mpsc, RwLock};
 use tower_http::cors::CorsLayer;
+use tower_http::services::{ServeDir, ServeFile};
 use uuid::Uuid;
 
-use super::app::App;
 use crate::db::{ApiTokenInfo, DatabaseBackend, SqlDialect};
+use crate::features::{FeatureInfo, FeatureRegistry};
 use crate::query::{QueryEngine, QueryEnginePool};
 use crate::server::{MessageHandler, ServerConfig};
 use crate::subscriptions::SubscriptionManager;
@@ -52,6 +53,7 @@ pub struct AppState {
   pub ws_clients: WsClients,
   pub config: ServerConfig,
   pub log_tx: broadcast::Sender<LogEntry>,
+  pub feature_registry: Arc<FeatureRegistry>,
 }
 
 /// Global log broadcaster - initialized once and used throughout the app
@@ -88,6 +90,7 @@ pub struct AdminServer {
   engine_pool: Arc<QueryEnginePool>,
   shutdown_rx: broadcast::Receiver<()>,
   config: ServerConfig,
+  feature_registry: Arc<FeatureRegistry>,
 }
 
 impl AdminServer {
@@ -97,6 +100,7 @@ impl AdminServer {
     engine_pool: Arc<QueryEnginePool>,
     shutdown_rx: broadcast::Receiver<()>,
     config: ServerConfig,
+    feature_registry: Arc<FeatureRegistry>,
   ) -> Self {
     Self {
       backend,
@@ -104,6 +108,7 @@ impl AdminServer {
       engine_pool,
       shutdown_rx,
       config,
+      feature_registry,
     }
   }
 
@@ -122,6 +127,7 @@ impl AdminServer {
       ws_clients: ws_clients.clone(),
       config: self.config.clone(),
       log_tx,
+      feature_registry: self.feature_registry.clone(),
     };
 
     // Spawn task to forward subscription changes to WebSocket clients
@@ -143,7 +149,6 @@ impl AdminServer {
             .route("/ready", get(readiness_check))
             // Static assets - always public
             .route("/style.css", get(serve_css))
-            .route("/client.js", get(serve_js))
             // Auth pages - always public
             .route("/setup", get(serve_setup_page))
             .route("/login", get(serve_login_page))
@@ -157,6 +162,21 @@ impl AdminServer {
       .route("/api/tokens", get(api_list_tokens))
       .route("/api/tokens", post(api_create_token))
       .route("/api/tokens/{id}", delete(api_delete_token))
+      // Feature management
+      .route("/api/features", get(api_list_features))
+      .route("/api/features/{name}", put(api_toggle_feature))
+      // S3 management
+      .route(
+        "/api/s3/settings",
+        get(api_get_s3_settings).put(api_update_s3_settings),
+      )
+      .route("/api/s3/buckets", get(api_list_s3_buckets))
+      .route("/api/s3/buckets", post(api_create_s3_bucket))
+      .route("/api/s3/buckets/{name}", delete(api_delete_s3_bucket))
+      .route("/api/s3/buckets/{name}/stats", get(api_get_s3_bucket_stats))
+      .route("/api/s3/keys", get(api_list_s3_keys))
+      .route("/api/s3/keys", post(api_create_s3_key))
+      .route("/api/s3/keys/{id}", delete(api_delete_s3_key))
       .layer(axum::middleware::from_fn_with_state(
         state.clone(),
         admin_auth_middleware,
@@ -191,9 +211,12 @@ impl AdminServer {
     // Log streaming WebSocket (admin only, protected by auth)
     app = app.route("/ws/logs", get(ws_logs_handler));
 
-    // Leptos SSR for admin UI (protected by admin auth when enabled)
+    // Serve WASM bundle from target/admin, fallback to index.html for SPA routing
     let app = app
-      .fallback(get(serve_leptos_app_with_auth))
+      .fallback_service(
+        ServeDir::new("target/admin")
+          .not_found_service(ServeFile::new("target/admin/index.html"))
+      )
       .layer(CorsLayer::permissive())
       .with_state(state);
 
@@ -215,14 +238,6 @@ async fn serve_css() -> impl IntoResponse {
   (
     [(header::CONTENT_TYPE, "text/css")],
     include_str!("styles.css"),
-  )
-}
-
-/// Serve JavaScript
-async fn serve_js() -> impl IntoResponse {
-  (
-    [(header::CONTENT_TYPE, "application/javascript")],
-    include_str!("client.js"),
   )
 }
 
@@ -536,41 +551,6 @@ async fn serve_login_page(State(state): State<AppState>) -> Response {
 </html>"#).into_response()
 }
 
-/// Serve Leptos app
-/// The HTML page itself doesn't require auth - auth is handled client-side
-/// and enforced on all API endpoints. This avoids the chicken-and-egg problem
-/// of needing a token to load the page that will store the token.
-async fn serve_leptos_app_with_auth(State(state): State<AppState>, _req: Request) -> Response {
-  let auth_enabled = state.config.auth.enabled;
-
-  // If setup is needed, redirect to setup page
-  let setup_needed = needs_setup(&state).await;
-
-  let html = render_to_string(App);
-  Html(format!(
-    r#"<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SquirrelDB Admin</title>
-    <link rel="stylesheet" href="/style.css">
-</head>
-<body>
-    {}
-    <script>
-        // Auth configuration from server
-        window.SQRL_AUTH_ENABLED = {};
-        window.SQRL_SETUP_NEEDED = {};
-    </script>
-    <script src="/client.js"></script>
-</body>
-</html>"#,
-    html, auth_enabled, setup_needed
-  ))
-  .into_response()
-}
-
 #[derive(Serialize)]
 struct StatusResponse {
   name: &'static str,
@@ -607,7 +587,7 @@ async fn api_collections(
   let names = state.backend.list_collections().await?;
   let mut collections = Vec::with_capacity(names.len());
   for name in names {
-    let docs = state.backend.list(&name, None, None, None).await?;
+    let docs = state.backend.list(&name, None, None, None, None).await?;
     collections.push(CollectionInfo {
       name,
       count: docs.len(),
@@ -633,9 +613,8 @@ async fn api_collection_docs(
   Path(name): Path<String>,
   Query(q): Query<ListQuery>,
 ) -> Result<Json<serde_json::Value>, AppError> {
-  let docs = state.backend.list(&name, None, None, q.limit).await?;
-  let offset = q.offset.unwrap_or(0);
-  let docs: Vec<_> = docs.into_iter().skip(offset).collect();
+  // Use database-level pagination for better performance
+  let docs = state.backend.list(&name, None, None, q.limit, q.offset).await?;
   Ok(Json(serde_json::to_value(docs)?))
 }
 
@@ -643,7 +622,7 @@ async fn api_drop_collection(
   State(state): State<AppState>,
   Path(name): Path<String>,
 ) -> Result<Json<serde_json::Value>, AppError> {
-  let docs = state.backend.list(&name, None, None, None).await?;
+  let docs = state.backend.list(&name, None, None, None, None).await?;
   let mut deleted = 0;
   for doc in docs {
     state.backend.delete(&name, doc.id).await?;
@@ -740,7 +719,7 @@ async fn api_query(
   let sql_filter = spec.filter.as_ref().and_then(|f| f.compiled_sql.as_deref());
   let docs = state
     .backend
-    .list(&spec.table, sql_filter, spec.order_by.as_ref(), spec.limit)
+    .list(&spec.table, sql_filter, spec.order_by.as_ref(), spec.limit, spec.offset)
     .await?;
 
   emit_log(
@@ -979,6 +958,452 @@ async fn api_delete_token(
   } else {
     Err(AppError::NotFound)
   }
+}
+
+// =============================================================================
+// Feature Management API
+// =============================================================================
+
+async fn api_list_features(State(state): State<AppState>) -> Json<Vec<FeatureInfo>> {
+  Json(state.feature_registry.list())
+}
+
+#[derive(Deserialize)]
+struct ToggleFeatureRequest {
+  enabled: bool,
+}
+
+async fn api_toggle_feature(
+  State(state): State<AppState>,
+  Path(name): Path<String>,
+  Json(req): Json<ToggleFeatureRequest>,
+) -> Result<Json<serde_json::Value>, AppError> {
+  let feature_state = Arc::new(crate::features::AppState {
+    backend: state.backend.clone(),
+    engine_pool: state.engine_pool.clone(),
+    config: state.config.clone(),
+  });
+
+  // Get existing settings from database (or empty)
+  let existing_settings = state
+    .backend
+    .get_feature_settings(&name)
+    .await
+    .ok()
+    .flatten()
+    .map(|(_, s)| s)
+    .unwrap_or(serde_json::json!({}));
+
+  // Update enabled state in database
+  state
+    .backend
+    .update_feature_settings(&name, req.enabled, existing_settings)
+    .await
+    .map_err(|e| AppError::Internal(e))?;
+
+  if req.enabled {
+    state
+      .feature_registry
+      .start(&name, feature_state)
+      .await
+      .map_err(|e| AppError::BadRequest(e.to_string()))?;
+    emit_log(
+      "info",
+      "squirreldb::admin",
+      &format!("Feature '{}' enabled", name),
+    );
+  } else {
+    state
+      .feature_registry
+      .stop(&name)
+      .await
+      .map_err(|e| AppError::BadRequest(e.to_string()))?;
+    emit_log(
+      "info",
+      "squirreldb::admin",
+      &format!("Feature '{}' disabled", name),
+    );
+  }
+
+  Ok(Json(serde_json::json!({
+    "name": name,
+    "enabled": req.enabled
+  })))
+}
+
+// =============================================================================
+// S3 Management API
+// =============================================================================
+
+#[derive(Serialize)]
+struct S3SettingsResponse {
+  enabled: bool,
+  port: u16,
+  storage_path: String,
+  max_object_size: u64,
+  max_part_size: u64,
+  region: String,
+}
+
+async fn api_get_s3_settings(State(state): State<AppState>) -> Json<S3SettingsResponse> {
+  let s3_running = state.feature_registry.is_enabled("s3");
+
+  // Try to load settings from database, fallback to config
+  let (enabled, settings) = state
+    .backend
+    .get_feature_settings("s3")
+    .await
+    .ok()
+    .flatten()
+    .unwrap_or((s3_running, serde_json::json!({})));
+
+  let port = settings.get("port").and_then(|v| v.as_u64()).map(|v| v as u16).unwrap_or(state.config.s3.port);
+  let storage_path = settings.get("storage_path").and_then(|v| v.as_str()).map(String::from).unwrap_or_else(|| state.config.s3.storage_path.clone());
+  let max_object_size = settings.get("max_object_size").and_then(|v| v.as_u64()).unwrap_or(state.config.s3.max_object_size);
+  let max_part_size = settings.get("max_part_size").and_then(|v| v.as_u64()).unwrap_or(state.config.s3.max_part_size);
+  let region = settings.get("region").and_then(|v| v.as_str()).map(String::from).unwrap_or_else(|| state.config.s3.region.clone());
+
+  Json(S3SettingsResponse {
+    enabled: enabled || s3_running,
+    port,
+    storage_path,
+    max_object_size,
+    max_part_size,
+    region,
+  })
+}
+
+#[derive(Deserialize)]
+struct UpdateS3SettingsRequest {
+  port: Option<u16>,
+  storage_path: Option<String>,
+  region: Option<String>,
+}
+
+async fn api_update_s3_settings(
+  State(state): State<AppState>,
+  Json(req): Json<UpdateS3SettingsRequest>,
+) -> Result<Json<serde_json::Value>, AppError> {
+  // Build the settings JSON
+  let mut settings = serde_json::Map::new();
+
+  // Get current settings from config as defaults
+  let current_port = state.config.s3.port;
+  let current_storage = state.config.s3.storage_path.clone();
+  let current_region = state.config.s3.region.clone();
+  let current_max_object = state.config.s3.max_object_size;
+  let current_max_part = state.config.s3.max_part_size;
+  let current_min_part = state.config.s3.min_part_size;
+
+  // Try to load existing settings from database
+  let (existing_enabled, existing_settings) = state
+    .backend
+    .get_feature_settings("s3")
+    .await
+    .ok()
+    .flatten()
+    .unwrap_or((state.feature_registry.is_enabled("s3"), serde_json::json!({})));
+
+  // Merge existing settings with updates
+  let port = req.port.unwrap_or_else(|| {
+    existing_settings.get("port").and_then(|v| v.as_u64()).map(|v| v as u16).unwrap_or(current_port)
+  });
+  let storage_path = req.storage_path.clone().unwrap_or_else(|| {
+    existing_settings.get("storage_path").and_then(|v| v.as_str()).map(String::from).unwrap_or(current_storage)
+  });
+  let region = req.region.clone().unwrap_or_else(|| {
+    existing_settings.get("region").and_then(|v| v.as_str()).map(String::from).unwrap_or(current_region)
+  });
+  let max_object_size = existing_settings.get("max_object_size").and_then(|v| v.as_u64()).unwrap_or(current_max_object);
+  let max_part_size = existing_settings.get("max_part_size").and_then(|v| v.as_u64()).unwrap_or(current_max_part);
+  let min_part_size = existing_settings.get("min_part_size").and_then(|v| v.as_u64()).unwrap_or(current_min_part);
+
+  settings.insert("port".to_string(), serde_json::json!(port));
+  settings.insert("storage_path".to_string(), serde_json::json!(storage_path));
+  settings.insert("region".to_string(), serde_json::json!(region));
+  settings.insert("max_object_size".to_string(), serde_json::json!(max_object_size));
+  settings.insert("max_part_size".to_string(), serde_json::json!(max_part_size));
+  settings.insert("min_part_size".to_string(), serde_json::json!(min_part_size));
+
+  // Save settings to database
+  let settings_json = serde_json::Value::Object(settings.clone());
+  state
+    .backend
+    .update_feature_settings("s3", existing_enabled, settings_json)
+    .await
+    .map_err(|e| AppError::Internal(e))?;
+
+  emit_log(
+    "info",
+    "squirreldb::admin",
+    &format!(
+      "S3 settings saved to database: port={}, storage_path={}, region={}",
+      port, storage_path, region
+    ),
+  );
+
+  // If S3 is running, restart it with new settings
+  if state.feature_registry.is_enabled("s3") {
+    let feature_state = Arc::new(crate::features::AppState {
+      backend: state.backend.clone(),
+      engine_pool: state.engine_pool.clone(),
+      config: state.config.clone(),
+    });
+
+    state
+      .feature_registry
+      .restart("s3", feature_state)
+      .await
+      .map_err(|e| AppError::Internal(e))?;
+
+    emit_log(
+      "info",
+      "squirreldb::admin",
+      "S3 feature restarted with new settings",
+    );
+  }
+
+  Ok(Json(serde_json::json!({
+    "message": "S3 settings updated successfully",
+    "settings": {
+      "port": port,
+      "storage_path": storage_path,
+      "region": region
+    },
+    "restarted": state.feature_registry.is_enabled("s3")
+  })))
+}
+
+#[derive(Serialize)]
+struct S3BucketResponse {
+  name: String,
+  versioning_enabled: bool,
+  object_count: i64,
+  current_size: i64,
+  created_at: chrono::DateTime<chrono::Utc>,
+}
+
+async fn api_list_s3_buckets(
+  State(state): State<AppState>,
+) -> Result<Json<Vec<S3BucketResponse>>, AppError> {
+  let buckets = state.backend.list_s3_buckets().await?;
+  let response: Vec<S3BucketResponse> = buckets
+    .into_iter()
+    .map(|b| S3BucketResponse {
+      name: b.name,
+      versioning_enabled: b.versioning_enabled,
+      object_count: b.object_count,
+      current_size: b.current_size,
+      created_at: b.created_at,
+    })
+    .collect();
+  Ok(Json(response))
+}
+
+#[derive(Deserialize)]
+struct CreateS3BucketRequest {
+  name: String,
+}
+
+async fn api_create_s3_bucket(
+  State(state): State<AppState>,
+  Json(req): Json<CreateS3BucketRequest>,
+) -> Result<Json<serde_json::Value>, AppError> {
+  if req.name.is_empty() {
+    return Err(AppError::BadRequest("Bucket name is required".into()));
+  }
+
+  // Validate bucket name (S3 rules: 3-63 chars, lowercase, alphanumeric + hyphens)
+  if req.name.len() < 3 || req.name.len() > 63 {
+    return Err(AppError::BadRequest(
+      "Bucket name must be 3-63 characters".into(),
+    ));
+  }
+
+  for c in req.name.chars() {
+    if !c.is_ascii_lowercase() && !c.is_ascii_digit() && c != '-' {
+      return Err(AppError::BadRequest(
+        "Bucket name must contain only lowercase letters, numbers, and hyphens".into(),
+      ));
+    }
+  }
+
+  state.backend.create_s3_bucket(&req.name, None).await?;
+
+  emit_log(
+    "info",
+    "squirreldb::admin",
+    &format!("S3 bucket '{}' created", req.name),
+  );
+
+  Ok(Json(serde_json::json!({
+    "name": req.name,
+    "created": true
+  })))
+}
+
+async fn api_delete_s3_bucket(
+  State(state): State<AppState>,
+  Path(name): Path<String>,
+) -> Result<Json<serde_json::Value>, AppError> {
+  // Check if bucket exists and is empty
+  let bucket = state
+    .backend
+    .get_s3_bucket(&name)
+    .await?
+    .ok_or_else(|| AppError::NotFound)?;
+
+  if bucket.object_count > 0 {
+    return Err(AppError::BadRequest(
+      "Bucket must be empty before deletion".into(),
+    ));
+  }
+
+  state.backend.delete_s3_bucket(&name).await?;
+
+  emit_log(
+    "info",
+    "squirreldb::admin",
+    &format!("S3 bucket '{}' deleted", name),
+  );
+
+  Ok(Json(serde_json::json!({
+    "name": name,
+    "deleted": true
+  })))
+}
+
+#[derive(Serialize)]
+struct S3BucketStatsResponse {
+  name: String,
+  object_count: i64,
+  total_size: i64,
+  versioning_enabled: bool,
+}
+
+async fn api_get_s3_bucket_stats(
+  State(state): State<AppState>,
+  Path(name): Path<String>,
+) -> Result<Json<S3BucketStatsResponse>, AppError> {
+  let bucket = state
+    .backend
+    .get_s3_bucket(&name)
+    .await?
+    .ok_or_else(|| AppError::NotFound)?;
+
+  Ok(Json(S3BucketStatsResponse {
+    name: bucket.name,
+    object_count: bucket.object_count,
+    total_size: bucket.current_size,
+    versioning_enabled: bucket.versioning_enabled,
+  }))
+}
+
+#[derive(Serialize)]
+struct S3AccessKeyResponse {
+  access_key_id: String,
+  name: String,
+  created_at: chrono::DateTime<chrono::Utc>,
+}
+
+async fn api_list_s3_keys(
+  State(state): State<AppState>,
+) -> Result<Json<Vec<S3AccessKeyResponse>>, AppError> {
+  let keys = state.backend.list_s3_access_keys().await?;
+  let response: Vec<S3AccessKeyResponse> = keys
+    .into_iter()
+    .map(|k| S3AccessKeyResponse {
+      access_key_id: k.access_key_id,
+      name: k.name,
+      created_at: k.created_at,
+    })
+    .collect();
+  Ok(Json(response))
+}
+
+#[derive(Deserialize)]
+struct CreateS3KeyRequest {
+  name: String,
+}
+
+#[derive(Serialize)]
+struct CreateS3KeyResponse {
+  access_key_id: String,
+  secret_access_key: String,
+  name: String,
+}
+
+async fn api_create_s3_key(
+  State(state): State<AppState>,
+  Json(req): Json<CreateS3KeyRequest>,
+) -> Result<Json<CreateS3KeyResponse>, AppError> {
+  if req.name.is_empty() {
+    return Err(AppError::BadRequest("Key name is required".into()));
+  }
+
+  // Generate access key ID (20 chars, uppercase alphanumeric, starts with AKIA)
+  let access_key_id = generate_s3_access_key_id();
+
+  // Generate secret access key (40 chars, base64-like)
+  let secret_access_key = generate_s3_secret_key();
+
+  // Hash the secret key for storage
+  let secret_hash = hash_token(&secret_access_key);
+
+  // Store in database (no owner for admin-created keys)
+  state
+    .backend
+    .create_s3_access_key(&access_key_id, &secret_hash, None, &req.name)
+    .await?;
+
+  emit_log(
+    "info",
+    "squirreldb::admin",
+    &format!("S3 access key '{}' created", req.name),
+  );
+
+  // Return the plaintext secret key only once
+  Ok(Json(CreateS3KeyResponse {
+    access_key_id,
+    secret_access_key,
+    name: req.name,
+  }))
+}
+
+async fn api_delete_s3_key(
+  State(state): State<AppState>,
+  Path(id): Path<String>,
+) -> Result<Json<serde_json::Value>, AppError> {
+  let deleted = state.backend.delete_s3_access_key(&id).await?;
+  if deleted {
+    emit_log(
+      "info",
+      "squirreldb::admin",
+      &format!("S3 access key '{}' deleted", id),
+    );
+    Ok(Json(serde_json::json!({"deleted": true})))
+  } else {
+    Err(AppError::NotFound)
+  }
+}
+
+/// Generate an AWS-style access key ID (20 chars, starts with AKIA)
+fn generate_s3_access_key_id() -> String {
+  const CHARS: &[u8] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  let mut rng = rand::thread_rng();
+  let suffix: String = (0..16)
+    .map(|_| CHARS[rng.gen_range(0..CHARS.len())] as char)
+    .collect();
+  format!("AKIA{}", suffix)
+}
+
+/// Generate an AWS-style secret access key (40 chars)
+fn generate_s3_secret_key() -> String {
+  const CHARS: &[u8] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+  let mut rng = rand::thread_rng();
+  (0..40)
+    .map(|_| CHARS[rng.gen_range(0..CHARS.len())] as char)
+    .collect()
 }
 
 // =============================================================================

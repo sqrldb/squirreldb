@@ -51,6 +51,7 @@ fn test_query_spec_defaults() {
     map: None,
     order_by: None,
     limit: None,
+    offset: None,
     changes: None,
   };
   assert_eq!(spec.table, "users");
