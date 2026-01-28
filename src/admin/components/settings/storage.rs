@@ -14,6 +14,7 @@ pub fn StorageSettings() -> impl IntoView {
   let (storage_path, set_storage_path) = create_signal(String::from("./data/s3"));
   let (region, set_region) = create_signal(String::from("us-east-1"));
   let (saving, set_saving) = create_signal(false);
+  let (toggling, set_toggling) = create_signal(false);
 
   // Sync with state on load
   create_effect(move |_| {
@@ -29,6 +30,7 @@ pub fn StorageSettings() -> impl IntoView {
   let on_toggle = move |ev: web_sys::Event| {
     let checked = event_target_checked(&ev);
     set_enabled.set(checked);
+    set_toggling.set(true);
     let state = state_toggle.clone();
     spawn_local(async move {
       match apiclient::toggle_feature("s3", checked).await {
@@ -44,6 +46,7 @@ pub fn StorageSettings() -> impl IntoView {
           state.show_toast(&format!("Failed: {}", e), ToastLevel::Error);
         }
       }
+      set_toggling.set(false);
     });
   };
 
@@ -54,11 +57,24 @@ pub fn StorageSettings() -> impl IntoView {
     let path_val = storage_path.get();
     let region_val = region.get();
     let state = state_save.clone();
+    let is_running = enabled.get();
 
     spawn_local(async move {
-      match apiclient::update_s3_settings(port_val, Some(path_val), Some(region_val)).await {
+      match apiclient::update_s3_settings(port_val, Some(path_val.clone()), Some(region_val.clone())).await {
         Ok(_) => {
-          state.show_toast("Settings saved", ToastLevel::Success);
+          // Update local state with new settings
+          state.s3_settings.update(|s| {
+            if let Some(p) = port_val {
+              s.port = p;
+            }
+            s.storage_path = path_val;
+            s.region = region_val;
+          });
+          if is_running {
+            state.show_toast("Settings saved and S3 restarted", ToastLevel::Success);
+          } else {
+            state.show_toast("Settings saved", ToastLevel::Success);
+          }
         }
         Err(e) => {
           state.show_toast(&format!("Failed to save: {}", e), ToastLevel::Error);
@@ -87,6 +103,7 @@ pub fn StorageSettings() -> impl IntoView {
                 type="checkbox"
                 prop:checked=enabled
                 on:change=on_toggle
+                disabled=move || toggling.get() || saving.get()
               />
               <span class="toggle-slider"></span>
             </label>
@@ -96,7 +113,7 @@ pub fn StorageSettings() -> impl IntoView {
           <div class="settings-card-footer">
             <span class="status-badge success">
               <span class="status-dot"></span>
-              "Running"
+              {move || if toggling.get() { "Starting..." } else { "Running" }}
             </span>
           </div>
         </Show>
@@ -106,7 +123,7 @@ pub fn StorageSettings() -> impl IntoView {
       <div class="settings-card">
         <div class="settings-card-header">
           <h3>"Configuration"</h3>
-          <span class="settings-card-description">"S3 server settings"</span>
+          <span class="settings-card-description">"S3 server settings (saved to database)"</span>
         </div>
         <div class="settings-card-body">
           <div class="settings-form">
@@ -117,7 +134,7 @@ pub fn StorageSettings() -> impl IntoView {
                 class="input"
                 prop:value=port
                 on:input=move |ev| set_port.set(event_target_value(&ev))
-                disabled=move || enabled.get()
+                disabled=move || saving.get()
               />
               <p class="form-hint">"Port for the S3 API endpoint"</p>
             </div>
@@ -128,7 +145,7 @@ pub fn StorageSettings() -> impl IntoView {
                 class="input"
                 prop:value=storage_path
                 on:input=move |ev| set_storage_path.set(event_target_value(&ev))
-                disabled=move || enabled.get()
+                disabled=move || saving.get()
               />
               <p class="form-hint">"Directory where objects will be stored"</p>
             </div>
@@ -139,24 +156,32 @@ pub fn StorageSettings() -> impl IntoView {
                 class="input"
                 prop:value=region
                 on:input=move |ev| set_region.set(event_target_value(&ev))
-                disabled=move || enabled.get()
+                disabled=move || saving.get()
               />
               <p class="form-hint">"AWS region name for S3 compatibility"</p>
             </div>
             <div class="form-actions">
               <button
                 class="btn btn-primary"
-                disabled=move || enabled.get() || saving.get()
+                disabled=move || saving.get() || toggling.get()
                 on:click=on_save
               >
-                {move || if saving.get() { "Saving..." } else { "Save Changes" }}
+                {move || {
+                  if saving.get() {
+                    if enabled.get() { "Saving & Restarting..." } else { "Saving..." }
+                  } else if enabled.get() {
+                    "Save & Restart"
+                  } else {
+                    "Save Changes"
+                  }
+                }}
               </button>
             </div>
           </div>
         </div>
         <Show when=move || enabled.get()>
           <div class="settings-card-footer">
-            <p class="form-hint text-warning">"Disable storage to edit settings"</p>
+            <p class="form-hint">"Saving will restart the S3 server with new settings"</p>
           </div>
         </Show>
       </div>
