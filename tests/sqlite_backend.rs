@@ -98,7 +98,10 @@ async fn test_sqlite_backend_list_with_limit() {
     backend.insert("items", json!({"index": i})).await.unwrap();
   }
 
-  let items = backend.list("items", None, None, Some(5), None).await.unwrap();
+  let items = backend
+    .list("items", None, None, Some(5), None)
+    .await
+    .unwrap();
   assert_eq!(items.len(), 5);
 }
 

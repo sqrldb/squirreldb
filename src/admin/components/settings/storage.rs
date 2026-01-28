@@ -1,8 +1,8 @@
 //! Storage (S3) settings tab
 
-use leptos::*;
-use crate::admin::state::{AppState, ToastLevel};
 use crate::admin::apiclient;
+use crate::admin::state::{AppState, ToastLevel};
+use leptos::*;
 
 #[component]
 pub fn StorageSettings() -> impl IntoView {
@@ -37,7 +37,11 @@ pub fn StorageSettings() -> impl IntoView {
         Ok(_) => {
           state.storage_enabled.set(checked);
           state.show_toast(
-            if checked { "Storage enabled" } else { "Storage disabled" },
+            if checked {
+              "Storage enabled"
+            } else {
+              "Storage disabled"
+            },
             ToastLevel::Success,
           );
         }
@@ -60,7 +64,13 @@ pub fn StorageSettings() -> impl IntoView {
     let is_running = enabled.get();
 
     spawn_local(async move {
-      match apiclient::update_storage_settings(port_val, Some(path_val.clone()), Some(region_val.clone())).await {
+      match apiclient::update_storage_settings(
+        port_val,
+        Some(path_val.clone()),
+        Some(region_val.clone()),
+      )
+      .await
+      {
         Ok(_) => {
           // Update local state with new settings
           state.storage_settings.update(|s| {

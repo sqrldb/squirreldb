@@ -1,11 +1,11 @@
 //! Live changes component - real-time changefeed viewer
 
+use super::Icon;
+use crate::admin::state::AppState;
 use leptos::*;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 use web_sys::{js_sys, MessageEvent, WebSocket};
-use crate::admin::state::AppState;
-use super::Icon;
 
 #[derive(Clone)]
 struct ChangeEntry {
@@ -31,7 +31,11 @@ pub fn Live() -> impl IntoView {
   let start_watching = move |_| {
     let window = web_sys::window().unwrap();
     let location = window.location();
-    let protocol = if location.protocol().unwrap() == "https:" { "wss:" } else { "ws:" };
+    let protocol = if location.protocol().unwrap() == "https:" {
+      "wss:"
+    } else {
+      "ws:"
+    };
     let host = location.host().unwrap();
     let table = selected_table.get();
     let url = format!("{}//{}/ws", protocol, host);
@@ -57,16 +61,19 @@ pub fn Live() -> impl IntoView {
             let msg: String = txt.into();
             // Parse change message (JSON)
             if let Ok(val) = serde_json::from_str::<serde_json::Value>(&msg) {
-              let table = val.get("table")
+              let table = val
+                .get("table")
                 .and_then(|v| v.as_str())
                 .unwrap_or("unknown")
                 .to_string();
-              let operation = val.get("type")
+              let operation = val
+                .get("type")
                 .or_else(|| val.get("operation"))
                 .and_then(|v| v.as_str())
                 .unwrap_or("change")
                 .to_string();
-              let document = val.get("new_val")
+              let document = val
+                .get("new_val")
                 .or_else(|| val.get("old_val"))
                 .or_else(|| val.get("document"))
                 .map(|v| serde_json::to_string_pretty(v).unwrap_or_default())
@@ -84,7 +91,16 @@ pub fn Live() -> impl IntoView {
               );
 
               set_changes.update(|c| {
-                c.insert(0, ChangeEntry { id, timestamp, table, operation, document });
+                c.insert(
+                  0,
+                  ChangeEntry {
+                    id,
+                    timestamp,
+                    table,
+                    operation,
+                    document,
+                  },
+                );
                 // Keep only last 100 changes
                 if c.len() > 100 {
                   c.pop();
@@ -100,7 +116,10 @@ pub fn Live() -> impl IntoView {
         let subscribe_msg = if table == "*" {
           r#"{"type":"subscribe","query":"db.changes()"}"#.to_string()
         } else {
-          format!(r#"{{"type":"subscribe","query":"db.table('{}').changes()"}}"#, table)
+          format!(
+            r#"{{"type":"subscribe","query":"db.table('{}').changes()"}}"#,
+            table
+          )
         };
         let _ = socket.send_with_str(&subscribe_msg);
 

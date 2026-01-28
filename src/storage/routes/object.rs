@@ -250,7 +250,10 @@ async fn put_object_acl(
   let acl = ObjectAcl::default();
 
   // Update object ACL
-  state.backend.update_storage_object_acl(bucket, key, acl).await?;
+  state
+    .backend
+    .update_storage_object_acl(bucket, key, acl)
+    .await?;
 
   Ok(StatusCode::OK.into_response())
 }
@@ -350,7 +353,11 @@ async fn get_object(
 }
 
 /// GET /{bucket}/{key}?acl
-async fn get_object_acl(state: Arc<StorageState>, bucket: &str, key: &str) -> Result<Response, StorageError> {
+async fn get_object_acl(
+  state: Arc<StorageState>,
+  bucket: &str,
+  key: &str,
+) -> Result<Response, StorageError> {
   let object = state
     .backend
     .get_storage_object(bucket, key, None)

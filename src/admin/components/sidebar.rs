@@ -1,8 +1,8 @@
 //! Sidebar navigation component
 
-use leptos::*;
-use crate::admin::state::{AppState, Page, SettingsTab, Theme};
 use super::Icon;
+use crate::admin::state::{AppState, Page, SettingsTab, Theme};
+use leptos::*;
 
 #[component]
 pub fn Sidebar() -> impl IntoView {

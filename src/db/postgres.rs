@@ -4,9 +4,9 @@ use tokio::sync::broadcast;
 use tokio_postgres::NoTls;
 use uuid::Uuid;
 
-use super::backend::{ApiTokenInfo, DatabaseBackend, StorageAccessKeyInfo, SqlDialect};
+use super::backend::{ApiTokenInfo, DatabaseBackend, SqlDialect, StorageAccessKeyInfo};
 use super::sanitize::{validate_collection_name, validate_identifier, validate_limit};
-use crate::storage::{ObjectAcl, StorageBucket, MultipartUpload, StorageObject, MultipartPart};
+use crate::storage::{MultipartPart, MultipartUpload, ObjectAcl, StorageBucket, StorageObject};
 use crate::types::{Change, ChangeOperation, Document, OrderBySpec, OrderDirection};
 
 /// Pipe trait for method chaining
@@ -1402,7 +1402,11 @@ impl DatabaseBackend for PostgresBackend {
     Ok(())
   }
 
-  async fn unset_storage_object_latest(&self, bucket: &str, key: &str) -> Result<(), anyhow::Error> {
+  async fn unset_storage_object_latest(
+    &self,
+    bucket: &str,
+    key: &str,
+  ) -> Result<(), anyhow::Error> {
     self
       .pool
       .get()

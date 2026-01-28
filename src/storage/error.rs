@@ -260,7 +260,11 @@ impl StorageError {
 
   pub fn no_such_key(key: impl Into<String>) -> Self {
     let key = key.into();
-    Self::new(StorageErrorCode::NoSuchKey, "The specified key does not exist.").with_resource(key)
+    Self::new(
+      StorageErrorCode::NoSuchKey,
+      "The specified key does not exist.",
+    )
+    .with_resource(key)
   }
 
   pub fn bucket_already_exists(bucket: impl Into<String>) -> Self {

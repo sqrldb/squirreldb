@@ -69,10 +69,13 @@ impl QueryEnginePool {
   /// Cache a query result
   fn put_cached(&self, key: String, value: serde_json::Value) {
     let mut cache = self.result_cache.lock();
-    cache.put(key, CachedResult {
-      value,
-      expires_at: Instant::now() + self.result_cache_ttl,
-    });
+    cache.put(
+      key,
+      CachedResult {
+        value,
+        expires_at: Instant::now() + self.result_cache_ttl,
+      },
+    );
   }
 
   /// Clear the result cache (call after writes)
@@ -143,7 +146,13 @@ impl QueryEnginePool {
 
     let sql_filter = spec.filter.as_ref().and_then(|f| f.compiled_sql.as_deref());
     let mut docs = backend
-      .list(&spec.table, sql_filter, spec.order_by.as_ref(), spec.limit, spec.offset)
+      .list(
+        &spec.table,
+        sql_filter,
+        spec.order_by.as_ref(),
+        spec.limit,
+        spec.offset,
+      )
       .await?;
 
     // JS filtering - use batch evaluation for performance
@@ -237,7 +246,10 @@ impl QueryEngine {
         },
       });
       let limit = v["limit"].as_u64().map(|n| n as usize);
-      let offset = v["skip"].as_u64().or_else(|| v["offset"].as_u64()).map(|n| n as usize);
+      let offset = v["skip"]
+        .as_u64()
+        .or_else(|| v["offset"].as_u64())
+        .map(|n| n as usize);
       let changes = v["changes"].is_object().then(|| ChangesOptions {
         include_initial: v["changes"]["includeInitial"].as_bool().unwrap_or(false),
       });
@@ -262,7 +274,13 @@ impl QueryEngine {
     let spec = self.parse_query(query)?;
     let sql_filter = spec.filter.as_ref().and_then(|f| f.compiled_sql.as_deref());
     let mut docs = backend
-      .list(&spec.table, sql_filter, spec.order_by.as_ref(), spec.limit, spec.offset)
+      .list(
+        &spec.table,
+        sql_filter,
+        spec.order_by.as_ref(),
+        spec.limit,
+        spec.offset,
+      )
       .await?;
 
     if let Some(ref f) = spec.filter {

@@ -11,7 +11,10 @@ use crate::storage::server::StorageState;
 type HmacSha256 = Hmac<Sha256>;
 
 /// Verify AWS Signature Version 4 authentication
-pub async fn verify_sigv4(state: &StorageState, request: &Request) -> Result<AuthContext, StorageError> {
+pub async fn verify_sigv4(
+  state: &StorageState,
+  request: &Request,
+) -> Result<AuthContext, StorageError> {
   // Parse Authorization header
   let auth_header = request
     .headers()

@@ -11,15 +11,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   && update-ca-certificates \
   && rm -rf /var/lib/apt/lists/*
 
-# Copy manifests and vendored dependencies
+# Copy manifests first for better layer caching
 COPY Cargo.toml Cargo.lock* ./
-COPY vendor vendor
-
-# Configure cargo to use vendored dependencies (bypasses network)
-# Put config in project dir AND home dir to ensure it's found
-RUN mkdir -p .cargo /root/.cargo && \
-  printf '[source.crates-io]\nreplace-with = "vendored-sources"\n\n[source.vendored-sources]\ndirectory = "vendor"\n' > .cargo/config.toml && \
-  cp .cargo/config.toml /root/.cargo/config.toml
 
 # Create dummy src and benches to cache dependencies
 RUN mkdir -p src/bin src/admin/static benches && \
@@ -29,8 +22,8 @@ RUN mkdir -p src/bin src/admin/static benches && \
   echo "fn main() {}" > benches/database.rs && \
   echo "fn main() {}" > benches/query_engine.rs
 
-# Build dependencies only (offline - using vendored sources)
-RUN cargo build --release --offline && rm -rf src
+# Build dependencies only (this layer is cached unless Cargo.toml changes)
+RUN cargo build --release && rm -rf src
 
 # Copy actual source
 COPY src src
@@ -40,7 +33,7 @@ COPY migrations migrations
 RUN touch src/lib.rs src/bin/sqrld.rs src/bin/sqrl.rs
 
 # Build release binaries
-RUN cargo build --release --offline
+RUN cargo build --release
 
 # Runtime stage - use Debian slim for glibc compatibility
 FROM debian:bookworm-slim
@@ -71,6 +64,8 @@ USER squirrel
 EXPOSE 8080
 # Admin UI port
 EXPOSE 8081
+# Storage port
+EXPOSE 9000
 
 ENV RUST_LOG=info
 

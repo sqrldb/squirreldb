@@ -1,9 +1,9 @@
 //! Explorer component - query builder with results panel
 
-use leptos::*;
-use crate::admin::state::{AppState, ToastLevel};
-use crate::admin::apiclient;
 use super::Icon;
+use crate::admin::apiclient;
+use crate::admin::state::{AppState, ToastLevel};
+use leptos::*;
 
 #[component]
 pub fn Explorer() -> impl IntoView {
@@ -34,8 +34,7 @@ pub fn Explorer() -> impl IntoView {
           let count = val.as_array().map(|arr| arr.len());
           set_result_count.set(count);
 
-          let formatted = serde_json::to_string_pretty(&val)
-            .unwrap_or_else(|_| val.to_string());
+          let formatted = serde_json::to_string_pretty(&val).unwrap_or_else(|_| val.to_string());
           set_results.set(Some(formatted));
         }
         Err(e) => {

@@ -4,11 +4,11 @@ mod api;
 
 // CSR components (only compiled for WASM)
 #[cfg(feature = "csr")]
+pub mod apiclient;
+#[cfg(feature = "csr")]
 pub mod components;
 #[cfg(feature = "csr")]
 pub mod state;
-#[cfg(feature = "csr")]
-pub mod apiclient;
 
 #[cfg(feature = "server")]
 pub use api::AdminServer;

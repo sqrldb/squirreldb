@@ -1,9 +1,9 @@
 //! Toast notification component
 
-use leptos::*;
-use gloo_timers::callback::Timeout;
-use crate::admin::state::{AppState, ToastLevel};
 use super::Icon;
+use crate::admin::state::{AppState, ToastLevel};
+use gloo_timers::callback::Timeout;
+use leptos::*;
 
 #[component]
 pub fn ToastContainer() -> impl IntoView {

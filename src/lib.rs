@@ -13,9 +13,9 @@ pub mod mcp;
 #[cfg(feature = "server")]
 pub mod query;
 #[cfg(feature = "server")]
-pub mod storage;
-#[cfg(feature = "server")]
 pub mod server;
+#[cfg(feature = "server")]
+pub mod storage;
 #[cfg(feature = "server")]
 pub mod subscriptions;
 #[cfg(feature = "server")]

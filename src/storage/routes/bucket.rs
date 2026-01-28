@@ -12,7 +12,9 @@ use crate::storage::types::*;
 use crate::storage::xml;
 
 /// GET / - List all buckets
-pub async fn list_buckets(State(state): State<Arc<StorageState>>) -> Result<Response, StorageError> {
+pub async fn list_buckets(
+  State(state): State<Arc<StorageState>>,
+) -> Result<Response, StorageError> {
   let buckets = state.backend.list_storage_buckets().await?;
 
   let response = ListBucketsResponse {
@@ -191,7 +193,10 @@ async fn list_objects_v2(
 }
 
 /// GET /{bucket}?versioning
-async fn get_bucket_versioning(state: Arc<StorageState>, bucket: &str) -> Result<Response, StorageError> {
+async fn get_bucket_versioning(
+  state: Arc<StorageState>,
+  bucket: &str,
+) -> Result<Response, StorageError> {
   let b = state
     .backend
     .get_storage_bucket(bucket)
@@ -219,7 +224,10 @@ async fn get_bucket_acl(state: Arc<StorageState>, bucket: &str) -> Result<Respon
 }
 
 /// GET /{bucket}?lifecycle
-async fn get_bucket_lifecycle(state: Arc<StorageState>, bucket: &str) -> Result<Response, StorageError> {
+async fn get_bucket_lifecycle(
+  state: Arc<StorageState>,
+  bucket: &str,
+) -> Result<Response, StorageError> {
   let b = state
     .backend
     .get_storage_bucket(bucket)

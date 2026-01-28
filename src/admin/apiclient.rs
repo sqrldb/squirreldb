@@ -50,8 +50,13 @@ async fn fetch_with_auth<T: DeserializeOwned>(url: &str) -> Result<T, String> {
 }
 
 #[cfg(feature = "csr")]
-async fn post_with_auth<T: Serialize, R: DeserializeOwned>(url: &str, body: &T) -> Result<R, String> {
-  let req = add_auth_header(Request::post(url)).json(body).map_err(|e| e.to_string())?;
+async fn post_with_auth<T: Serialize, R: DeserializeOwned>(
+  url: &str,
+  body: &T,
+) -> Result<R, String> {
+  let req = add_auth_header(Request::post(url))
+    .json(body)
+    .map_err(|e| e.to_string())?;
   let resp = req.send().await.map_err(|e| e.to_string())?;
   if resp.status() == 401 {
     return Err("Unauthorized".to_string());
@@ -63,8 +68,13 @@ async fn post_with_auth<T: Serialize, R: DeserializeOwned>(url: &str, body: &T) 
 }
 
 #[cfg(feature = "csr")]
-async fn put_with_auth<T: Serialize, R: DeserializeOwned>(url: &str, body: &T) -> Result<R, String> {
-  let req = add_auth_header(Request::put(url)).json(body).map_err(|e| e.to_string())?;
+async fn put_with_auth<T: Serialize, R: DeserializeOwned>(
+  url: &str,
+  body: &T,
+) -> Result<R, String> {
+  let req = add_auth_header(Request::put(url))
+    .json(body)
+    .map_err(|e| e.to_string())?;
   let resp = req.send().await.map_err(|e| e.to_string())?;
   if resp.status() == 401 {
     return Err("Unauthorized".to_string());
@@ -116,7 +126,15 @@ pub async fn fetch_tables() -> Result<Vec<TableInfo>, String> {
     count: usize,
   }
   let collections: Vec<CollResp> = fetch_with_auth("/api/collections").await?;
-  Ok(collections.into_iter().map(|c| TableInfo { name: c.name, count: c.count }).collect())
+  Ok(
+    collections
+      .into_iter()
+      .map(|c| TableInfo {
+        name: c.name,
+        count: c.count,
+      })
+      .collect(),
+  )
 }
 
 #[cfg(feature = "csr")]
@@ -125,7 +143,11 @@ pub async fn fetch_storage_settings() -> Result<S3Settings, String> {
 }
 
 #[cfg(feature = "csr")]
-pub async fn update_storage_settings(port: Option<u16>, storage_path: Option<String>, region: Option<String>) -> Result<serde_json::Value, String> {
+pub async fn update_storage_settings(
+  port: Option<u16>,
+  storage_path: Option<String>,
+  region: Option<String>,
+) -> Result<serde_json::Value, String> {
   #[derive(Serialize)]
   struct UpdateReq {
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -135,7 +157,15 @@ pub async fn update_storage_settings(port: Option<u16>, storage_path: Option<Str
     #[serde(skip_serializing_if = "Option::is_none")]
     region: Option<String>,
   }
-  put_with_auth("/api/s3/settings", &UpdateReq { port, storage_path, region }).await
+  put_with_auth(
+    "/api/s3/settings",
+    &UpdateReq {
+      port,
+      storage_path,
+      region,
+    },
+  )
+  .await
 }
 
 #[cfg(feature = "csr")]
@@ -156,11 +186,16 @@ pub async fn fetch_buckets() -> Result<Vec<BucketInfo>, String> {
     current_size: i64,
   }
   let buckets: Vec<BucketResp> = fetch_with_auth("/api/s3/buckets").await?;
-  Ok(buckets.into_iter().map(|b| BucketInfo {
-    name: b.name,
-    object_count: b.object_count,
-    current_size: b.current_size,
-  }).collect())
+  Ok(
+    buckets
+      .into_iter()
+      .map(|b| BucketInfo {
+        name: b.name,
+        object_count: b.object_count,
+        current_size: b.current_size,
+      })
+      .collect(),
+  )
 }
 
 #[cfg(feature = "csr")]
@@ -169,7 +204,13 @@ pub async fn create_bucket(name: &str) -> Result<serde_json::Value, String> {
   struct CreateReq {
     name: String,
   }
-  post_with_auth("/api/s3/buckets", &CreateReq { name: name.to_string() }).await
+  post_with_auth(
+    "/api/s3/buckets",
+    &CreateReq {
+      name: name.to_string(),
+    },
+  )
+  .await
 }
 
 #[cfg(feature = "csr")]
@@ -186,11 +227,16 @@ pub async fn fetch_tokens() -> Result<Vec<TokenInfo>, String> {
     created_at: String,
   }
   let tokens: Vec<TokenResp> = fetch_with_auth("/api/tokens").await?;
-  Ok(tokens.into_iter().map(|t| TokenInfo {
-    id: t.id,
-    name: t.name,
-    created_at: t.created_at,
-  }).collect())
+  Ok(
+    tokens
+      .into_iter()
+      .map(|t| TokenInfo {
+        id: t.id,
+        name: t.name,
+        created_at: t.created_at,
+      })
+      .collect(),
+  )
 }
 
 #[cfg(feature = "csr")]
@@ -199,7 +245,13 @@ pub async fn create_token(name: &str) -> Result<serde_json::Value, String> {
   struct CreateReq {
     name: String,
   }
-  post_with_auth("/api/tokens", &CreateReq { name: name.to_string() }).await
+  post_with_auth(
+    "/api/tokens",
+    &CreateReq {
+      name: name.to_string(),
+    },
+  )
+  .await
 }
 
 #[cfg(feature = "csr")]
@@ -213,7 +265,13 @@ pub async fn run_query(query: &str) -> Result<serde_json::Value, String> {
   struct QueryReq {
     query: String,
   }
-  post_with_auth("/api/query", &QueryReq { query: query.to_string() }).await
+  post_with_auth(
+    "/api/query",
+    &QueryReq {
+      query: query.to_string(),
+    },
+  )
+  .await
 }
 
 #[cfg(feature = "csr")]
@@ -230,8 +288,7 @@ pub async fn drop_table(name: &str) -> Result<serde_json::Value, String> {
 
 #[cfg(feature = "csr")]
 pub async fn validate_token(token: &str) -> bool {
-  let req = Request::get("/api/settings")
-    .header("Authorization", &format!("Bearer {}", token));
+  let req = Request::get("/api/settings").header("Authorization", &format!("Bearer {}", token));
   match req.send().await {
     Ok(resp) => resp.ok(),
     Err(_) => false,

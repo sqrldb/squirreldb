@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use tokio::sync::broadcast;
 use uuid::Uuid;
 
-use crate::storage::{ObjectAcl, StorageBucket, MultipartUpload, StorageObject, MultipartPart};
+use crate::storage::{MultipartPart, MultipartUpload, ObjectAcl, StorageBucket, StorageObject};
 use crate::types::{Change, Document, OrderBySpec};
 
 /// API token metadata (without the actual secret)
@@ -194,8 +194,11 @@ pub trait DatabaseBackend: Send + Sync {
   async fn get_storage_bucket(&self, name: &str) -> Result<Option<StorageBucket>, anyhow::Error>;
 
   /// Create a new bucket
-  async fn create_storage_bucket(&self, name: &str, owner_id: Option<Uuid>)
-    -> Result<(), anyhow::Error>;
+  async fn create_storage_bucket(
+    &self,
+    name: &str,
+    owner_id: Option<Uuid>,
+  ) -> Result<(), anyhow::Error>;
 
   /// Delete a bucket
   async fn delete_storage_bucket(&self, name: &str) -> Result<(), anyhow::Error>;
@@ -250,7 +253,8 @@ pub trait DatabaseBackend: Send + Sync {
   ) -> Result<(), anyhow::Error>;
 
   /// Mark all versions of an object as not latest
-  async fn unset_storage_object_latest(&self, bucket: &str, key: &str) -> Result<(), anyhow::Error>;
+  async fn unset_storage_object_latest(&self, bucket: &str, key: &str)
+    -> Result<(), anyhow::Error>;
 
   /// Update object ACL
   async fn update_storage_object_acl(

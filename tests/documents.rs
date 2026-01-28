@@ -476,7 +476,10 @@ async fn test_list_with_limit() {
     backend.insert("items", json!({"index": i})).await.unwrap();
   }
 
-  let docs = backend.list("items", None, None, Some(5), None).await.unwrap();
+  let docs = backend
+    .list("items", None, None, Some(5), None)
+    .await
+    .unwrap();
   assert_eq!(docs.len(), 5);
 }
 
@@ -489,7 +492,10 @@ async fn test_list_limit_larger_than_count() {
     backend.insert("items", json!({"index": i})).await.unwrap();
   }
 
-  let docs = backend.list("items", None, None, Some(100), None).await.unwrap();
+  let docs = backend
+    .list("items", None, None, Some(100), None)
+    .await
+    .unwrap();
   assert_eq!(docs.len(), 3);
 }
 

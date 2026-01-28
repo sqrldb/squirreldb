@@ -1,7 +1,7 @@
 //! API Tokens settings tab
 
-use leptos::*;
 use crate::admin::state::{AppState, ToastLevel};
+use leptos::*;
 
 #[component]
 pub fn TokensSettings() -> impl IntoView {

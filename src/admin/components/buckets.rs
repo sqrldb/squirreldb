@@ -1,9 +1,9 @@
 //! Buckets page component for S3 bucket management
 
-use leptos::*;
-use crate::admin::state::{AppState, ToastLevel};
-use crate::admin::apiclient;
 use super::Icon;
+use crate::admin::apiclient;
+use crate::admin::state::{AppState, ToastLevel};
+use leptos::*;
 
 #[component]
 pub fn Buckets() -> impl IntoView {

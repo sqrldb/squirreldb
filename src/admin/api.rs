@@ -1,3 +1,4 @@
+use axum::extract::Request;
 use axum::{
   extract::{
     ws::{Message, WebSocket, WebSocketUpgrade},
@@ -9,7 +10,6 @@ use axum::{
   routing::{delete, get, post, put},
   Json, Router,
 };
-use axum::extract::Request;
 use futures_util::{SinkExt, StreamExt};
 use parking_lot::Mutex;
 use rand::Rng;
@@ -217,7 +217,11 @@ impl AdminServer {
     {
       CorsLayer::permissive()
     } else {
-      let origins: Vec<_> = self.config.server.cors_origins.iter()
+      let origins: Vec<_> = self
+        .config
+        .server
+        .cors_origins
+        .iter()
         .filter_map(|o| o.parse().ok())
         .collect();
       CorsLayer::new()
@@ -229,8 +233,7 @@ impl AdminServer {
     // Serve WASM bundle from target/admin, fallback to index.html for SPA routing
     let app = app
       .fallback_service(
-        ServeDir::new("target/admin")
-          .not_found_service(ServeFile::new("target/admin/index.html"))
+        ServeDir::new("target/admin").not_found_service(ServeFile::new("target/admin/index.html")),
       )
       .layer(cors)
       .with_state(state);
@@ -629,7 +632,10 @@ async fn api_collection_docs(
   Query(q): Query<ListQuery>,
 ) -> Result<Json<serde_json::Value>, AppError> {
   // Use database-level pagination for better performance
-  let docs = state.backend.list(&name, None, None, q.limit, q.offset).await?;
+  let docs = state
+    .backend
+    .list(&name, None, None, q.limit, q.offset)
+    .await?;
   Ok(Json(serde_json::to_value(docs)?))
 }
 
@@ -734,7 +740,13 @@ async fn api_query(
   let sql_filter = spec.filter.as_ref().and_then(|f| f.compiled_sql.as_deref());
   let docs = state
     .backend
-    .list(&spec.table, sql_filter, spec.order_by.as_ref(), spec.limit, spec.offset)
+    .list(
+      &spec.table,
+      sql_filter,
+      spec.order_by.as_ref(),
+      spec.limit,
+      spec.offset,
+    )
     .await?;
 
   emit_log(
@@ -1014,7 +1026,7 @@ async fn api_toggle_feature(
     .backend
     .update_feature_settings(&name, req.enabled, existing_settings)
     .await
-    .map_err(|e| AppError::Internal(e))?;
+    .map_err(AppError::Internal)?;
 
   if req.enabled {
     state
@@ -1072,11 +1084,29 @@ async fn api_get_storage_settings(State(state): State<AppState>) -> Json<S3Setti
     .flatten()
     .unwrap_or((s3_running, serde_json::json!({})));
 
-  let port = settings.get("port").and_then(|v| v.as_u64()).map(|v| v as u16).unwrap_or(state.config.storage.port);
-  let storage_path = settings.get("storage_path").and_then(|v| v.as_str()).map(String::from).unwrap_or_else(|| state.config.storage.storage_path.clone());
-  let max_object_size = settings.get("max_object_size").and_then(|v| v.as_u64()).unwrap_or(state.config.storage.max_object_size);
-  let max_part_size = settings.get("max_part_size").and_then(|v| v.as_u64()).unwrap_or(state.config.storage.max_part_size);
-  let region = settings.get("region").and_then(|v| v.as_str()).map(String::from).unwrap_or_else(|| state.config.storage.region.clone());
+  let port = settings
+    .get("port")
+    .and_then(|v| v.as_u64())
+    .map(|v| v as u16)
+    .unwrap_or(state.config.storage.port);
+  let storage_path = settings
+    .get("storage_path")
+    .and_then(|v| v.as_str())
+    .map(String::from)
+    .unwrap_or_else(|| state.config.storage.storage_path.clone());
+  let max_object_size = settings
+    .get("max_object_size")
+    .and_then(|v| v.as_u64())
+    .unwrap_or(state.config.storage.max_object_size);
+  let max_part_size = settings
+    .get("max_part_size")
+    .and_then(|v| v.as_u64())
+    .unwrap_or(state.config.storage.max_part_size);
+  let region = settings
+    .get("region")
+    .and_then(|v| v.as_str())
+    .map(String::from)
+    .unwrap_or_else(|| state.config.storage.region.clone());
 
   Json(S3SettingsResponse {
     enabled: enabled || s3_running,
@@ -1117,28 +1147,61 @@ async fn api_update_storage_settings(
     .await
     .ok()
     .flatten()
-    .unwrap_or((state.feature_registry.is_enabled("storage"), serde_json::json!({})));
+    .unwrap_or((
+      state.feature_registry.is_enabled("storage"),
+      serde_json::json!({}),
+    ));
 
   // Merge existing settings with updates
   let port = req.port.unwrap_or_else(|| {
-    existing_settings.get("port").and_then(|v| v.as_u64()).map(|v| v as u16).unwrap_or(current_port)
+    existing_settings
+      .get("port")
+      .and_then(|v| v.as_u64())
+      .map(|v| v as u16)
+      .unwrap_or(current_port)
   });
   let storage_path = req.storage_path.clone().unwrap_or_else(|| {
-    existing_settings.get("storage_path").and_then(|v| v.as_str()).map(String::from).unwrap_or(current_storage)
+    existing_settings
+      .get("storage_path")
+      .and_then(|v| v.as_str())
+      .map(String::from)
+      .unwrap_or(current_storage)
   });
   let region = req.region.clone().unwrap_or_else(|| {
-    existing_settings.get("region").and_then(|v| v.as_str()).map(String::from).unwrap_or(current_region)
+    existing_settings
+      .get("region")
+      .and_then(|v| v.as_str())
+      .map(String::from)
+      .unwrap_or(current_region)
   });
-  let max_object_size = existing_settings.get("max_object_size").and_then(|v| v.as_u64()).unwrap_or(current_max_object);
-  let max_part_size = existing_settings.get("max_part_size").and_then(|v| v.as_u64()).unwrap_or(current_max_part);
-  let min_part_size = existing_settings.get("min_part_size").and_then(|v| v.as_u64()).unwrap_or(current_min_part);
+  let max_object_size = existing_settings
+    .get("max_object_size")
+    .and_then(|v| v.as_u64())
+    .unwrap_or(current_max_object);
+  let max_part_size = existing_settings
+    .get("max_part_size")
+    .and_then(|v| v.as_u64())
+    .unwrap_or(current_max_part);
+  let min_part_size = existing_settings
+    .get("min_part_size")
+    .and_then(|v| v.as_u64())
+    .unwrap_or(current_min_part);
 
   settings.insert("port".to_string(), serde_json::json!(port));
   settings.insert("storage_path".to_string(), serde_json::json!(storage_path));
   settings.insert("region".to_string(), serde_json::json!(region));
-  settings.insert("max_object_size".to_string(), serde_json::json!(max_object_size));
-  settings.insert("max_part_size".to_string(), serde_json::json!(max_part_size));
-  settings.insert("min_part_size".to_string(), serde_json::json!(min_part_size));
+  settings.insert(
+    "max_object_size".to_string(),
+    serde_json::json!(max_object_size),
+  );
+  settings.insert(
+    "max_part_size".to_string(),
+    serde_json::json!(max_part_size),
+  );
+  settings.insert(
+    "min_part_size".to_string(),
+    serde_json::json!(min_part_size),
+  );
 
   // Save settings to database
   let settings_json = serde_json::Value::Object(settings.clone());
@@ -1146,7 +1209,7 @@ async fn api_update_storage_settings(
     .backend
     .update_feature_settings("storage", existing_enabled, settings_json)
     .await
-    .map_err(|e| AppError::Internal(e))?;
+    .map_err(AppError::Internal)?;
 
   emit_log(
     "info",
@@ -1169,7 +1232,7 @@ async fn api_update_storage_settings(
       .feature_registry
       .restart("storage", feature_state)
       .await
-      .map_err(|e| AppError::Internal(e))?;
+      .map_err(AppError::Internal)?;
 
     emit_log(
       "info",

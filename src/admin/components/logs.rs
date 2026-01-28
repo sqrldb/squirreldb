@@ -1,10 +1,10 @@
 //! Logs component - real-time server log streaming
 
+use super::Icon;
 use leptos::*;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 use web_sys::{js_sys, MessageEvent, WebSocket};
-use super::Icon;
 
 #[derive(Clone)]
 struct LogEntry {
@@ -26,7 +26,11 @@ pub fn Logs() -> impl IntoView {
   let connect = move || {
     let window = web_sys::window().unwrap();
     let location = window.location();
-    let protocol = if location.protocol().unwrap() == "https:" { "wss:" } else { "ws:" };
+    let protocol = if location.protocol().unwrap() == "https:" {
+      "wss:"
+    } else {
+      "ws:"
+    };
     let host = location.host().unwrap();
     let url = format!("{}//{}/ws/logs", protocol, host);
 
@@ -56,7 +60,12 @@ pub fn Logs() -> impl IntoView {
             next_id.set(id + 1);
 
             set_logs.update(|l| {
-              l.push(LogEntry { id, timestamp, level, message });
+              l.push(LogEntry {
+                id,
+                timestamp,
+                level,
+                message,
+              });
               // Keep only last 500 logs
               if l.len() > 500 {
                 l.remove(0);

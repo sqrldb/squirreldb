@@ -1,9 +1,9 @@
 //! Tables page component
 
-use leptos::*;
-use crate::admin::state::{AppState, ToastLevel};
-use crate::admin::apiclient;
 use super::Icon;
+use crate::admin::apiclient;
+use crate::admin::state::{AppState, ToastLevel};
+use leptos::*;
 
 #[component]
 pub fn Tables() -> impl IntoView {

@@ -5,9 +5,9 @@ use tokio::sync::broadcast;
 use tokio_rusqlite::Connection;
 use uuid::Uuid;
 
-use super::backend::{ApiTokenInfo, DatabaseBackend, StorageAccessKeyInfo, SqlDialect};
+use super::backend::{ApiTokenInfo, DatabaseBackend, SqlDialect, StorageAccessKeyInfo};
 use super::sanitize::{validate_collection_name, validate_identifier, validate_limit};
-use crate::storage::{ObjectAcl, StorageBucket, MultipartUpload, StorageObject, MultipartPart};
+use crate::storage::{MultipartPart, MultipartUpload, ObjectAcl, StorageBucket, StorageObject};
 use crate::types::{Change, ChangeOperation, Document, OrderBySpec, OrderDirection};
 
 const PRAGMAS: &str = r#"
@@ -627,7 +627,11 @@ impl DatabaseBackend for SqliteBackend {
     anyhow::bail!("S3 storage is not supported with SQLite backend")
   }
 
-  async fn unset_storage_object_latest(&self, _bucket: &str, _key: &str) -> Result<(), anyhow::Error> {
+  async fn unset_storage_object_latest(
+    &self,
+    _bucket: &str,
+    _key: &str,
+  ) -> Result<(), anyhow::Error> {
     anyhow::bail!("S3 storage is not supported with SQLite backend")
   }
 

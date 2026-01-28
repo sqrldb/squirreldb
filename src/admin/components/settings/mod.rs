@@ -1,15 +1,15 @@
 //! Settings page components
 
-use leptos::*;
 use crate::admin::state::{AppState, Page, SettingsTab};
+use leptos::*;
 
 mod general;
-mod tokens;
 mod storage;
+mod tokens;
 
 pub use general::GeneralSettings;
-pub use tokens::TokensSettings;
 pub use storage::StorageSettings;
+pub use tokens::TokensSettings;
 
 #[component]
 pub fn Settings() -> impl IntoView {
@@ -44,11 +44,7 @@ pub fn Settings() -> impl IntoView {
 }
 
 #[component]
-fn TabButton(
-  tab: SettingsTab,
-  label: &'static str,
-  current_page: RwSignal<Page>,
-) -> impl IntoView {
+fn TabButton(tab: SettingsTab, label: &'static str, current_page: RwSignal<Page>) -> impl IntoView {
   let is_active = move || {
     if let Page::Settings(current_tab) = current_page.get() {
       current_tab == tab

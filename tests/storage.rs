@@ -115,13 +115,15 @@ fn test_storage_error_new() {
 
 #[test]
 fn test_storage_error_with_resource() {
-  let error = StorageError::new(StorageErrorCode::NoSuchKey, "Key not found").with_resource("my-key");
+  let error =
+    StorageError::new(StorageErrorCode::NoSuchKey, "Key not found").with_resource("my-key");
   assert_eq!(error.resource, Some("my-key".to_string()));
 }
 
 #[test]
 fn test_storage_error_with_request_id() {
-  let error = StorageError::new(StorageErrorCode::InternalError, "Server error").with_request_id("req-123");
+  let error =
+    StorageError::new(StorageErrorCode::InternalError, "Server error").with_request_id("req-123");
   assert_eq!(error.request_id, Some("req-123".to_string()));
 }
 
@@ -207,7 +209,10 @@ fn test_storage_error_code_as_str() {
   assert_eq!(StorageErrorCode::NoSuchBucket.as_str(), "NoSuchBucket");
   assert_eq!(StorageErrorCode::NoSuchKey.as_str(), "NoSuchKey");
   assert_eq!(StorageErrorCode::InternalError.as_str(), "InternalError");
-  assert_eq!(StorageErrorCode::InvalidBucketName.as_str(), "InvalidBucketName");
+  assert_eq!(
+    StorageErrorCode::InvalidBucketName.as_str(),
+    "InvalidBucketName"
+  );
 }
 
 #[test]
@@ -221,7 +226,10 @@ fn test_storage_error_code_http_status() {
     StorageErrorCode::NoSuchBucket.http_status(),
     StatusCode::NOT_FOUND
   );
-  assert_eq!(StorageErrorCode::NoSuchKey.http_status(), StatusCode::NOT_FOUND);
+  assert_eq!(
+    StorageErrorCode::NoSuchKey.http_status(),
+    StatusCode::NOT_FOUND
+  );
   assert_eq!(
     StorageErrorCode::InternalError.http_status(),
     StatusCode::INTERNAL_SERVER_ERROR

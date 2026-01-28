@@ -7,8 +7,8 @@ use tokio::sync::oneshot;
 use tower_http::cors::{Any, CorsLayer};
 
 use super::config::StorageConfig;
-use super::routes::build_router;
 use super::filesystem::LocalFileStorage;
+use super::routes::build_router;
 use crate::db::DatabaseBackend;
 use crate::features::{AppState, Feature};
 
@@ -67,24 +67,45 @@ impl Feature for StorageFeature {
     }
 
     // Load config from database if available, otherwise use current config
-    let config = if let Ok(Some((_, settings))) = state.backend.get_feature_settings("storage").await {
-      let port = settings.get("port").and_then(|v| v.as_u64()).unwrap_or(self.config.read().port as u64) as u16;
-      let storage_path = settings.get("storage_path").and_then(|v| v.as_str()).map(String::from).unwrap_or_else(|| self.config.read().storage_path.clone());
-      let region = settings.get("region").and_then(|v| v.as_str()).map(String::from).unwrap_or_else(|| self.config.read().region.clone());
-      let max_object_size = settings.get("max_object_size").and_then(|v| v.as_u64()).unwrap_or(self.config.read().max_object_size);
-      let max_part_size = settings.get("max_part_size").and_then(|v| v.as_u64()).unwrap_or(self.config.read().max_part_size);
-      let min_part_size = settings.get("min_part_size").and_then(|v| v.as_u64()).unwrap_or(self.config.read().min_part_size);
-      StorageConfig {
-        port,
-        storage_path,
-        region,
-        max_object_size,
-        max_part_size,
-        min_part_size,
-      }
-    } else {
-      self.config.read().clone()
-    };
+    let config =
+      if let Ok(Some((_, settings))) = state.backend.get_feature_settings("storage").await {
+        let port = settings
+          .get("port")
+          .and_then(|v| v.as_u64())
+          .unwrap_or(self.config.read().port as u64) as u16;
+        let storage_path = settings
+          .get("storage_path")
+          .and_then(|v| v.as_str())
+          .map(String::from)
+          .unwrap_or_else(|| self.config.read().storage_path.clone());
+        let region = settings
+          .get("region")
+          .and_then(|v| v.as_str())
+          .map(String::from)
+          .unwrap_or_else(|| self.config.read().region.clone());
+        let max_object_size = settings
+          .get("max_object_size")
+          .and_then(|v| v.as_u64())
+          .unwrap_or(self.config.read().max_object_size);
+        let max_part_size = settings
+          .get("max_part_size")
+          .and_then(|v| v.as_u64())
+          .unwrap_or(self.config.read().max_part_size);
+        let min_part_size = settings
+          .get("min_part_size")
+          .and_then(|v| v.as_u64())
+          .unwrap_or(self.config.read().min_part_size);
+        StorageConfig {
+          port,
+          storage_path,
+          region,
+          max_object_size,
+          max_part_size,
+          min_part_size,
+        }
+      } else {
+        self.config.read().clone()
+      };
 
     // Update our stored config
     *self.config.write() = config.clone();

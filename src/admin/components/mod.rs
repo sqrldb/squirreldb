@@ -1,34 +1,34 @@
 //! Admin UI Components
 
-use leptos::*;
-use crate::admin::state::{AppState, Page};
 use crate::admin::apiclient;
+use crate::admin::state::{AppState, Page};
+use leptos::*;
 
-mod icons;
-mod sidebar;
-mod dashboard;
 mod buckets;
-mod tables;
-mod explorer;
 mod console;
+mod dashboard;
+mod explorer;
+mod icons;
 mod live;
 mod logs;
-mod settings;
-mod toast;
 mod modal;
+mod settings;
+mod sidebar;
+mod tables;
+mod toast;
 
-pub use icons::Icon;
-pub use sidebar::Sidebar;
-pub use dashboard::Dashboard;
 pub use buckets::Buckets;
-pub use tables::Tables;
-pub use explorer::Explorer;
 pub use console::Console;
+pub use dashboard::Dashboard;
+pub use explorer::Explorer;
+pub use icons::Icon;
 pub use live::Live;
 pub use logs::Logs;
-pub use settings::Settings;
-pub use toast::ToastContainer;
 pub use modal::ModalContainer;
+pub use settings::Settings;
+pub use sidebar::Sidebar;
+pub use tables::Tables;
+pub use toast::ToastContainer;
 
 /// Main App component
 #[component]

@@ -1,8 +1,8 @@
 //! Dashboard component
 
-use leptos::*;
-use crate::admin::state::AppState;
 use super::Icon;
+use crate::admin::state::AppState;
+use leptos::*;
 
 #[component]
 pub fn Dashboard() -> impl IntoView {
