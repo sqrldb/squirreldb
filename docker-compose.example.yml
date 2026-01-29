@@ -1,0 +1,66 @@
+# SquirrelDB Docker Compose Example
+# Copy to docker-compose.yml and customize
+
+services:
+  squirreldb:
+    build: .
+    # Or use pre-built image:
+    # image: squirreldb:latest
+    ports:
+      - "8080:8080"   # HTTP/WebSocket API
+      - "8081:8081"   # Admin UI
+      - "9000:9000"   # S3-compatible storage
+    volumes:
+      - squirreldb_data:/app/data
+    environment:
+      # Backend: sqlite or postgres
+      SQRL_BACKEND: sqlite
+
+      # Logging
+      SQRL_LOG_LEVEL: info
+
+      # Authentication (optional)
+      # SQRL_AUTH_ENABLED: "true"
+      # SQRL_ADMIN_TOKEN: "your-secret-token"
+
+      # Object Storage
+      SQRL_STORAGE_ENABLED: "true"
+      SQRL_STORAGE_REGION: us-east-1
+    healthcheck:
+      test: ["CMD", "sqrl", "status"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  # Example with PostgreSQL backend
+  # squirreldb-pg:
+  #   build: .
+  #   ports:
+  #     - "8080:8080"
+  #     - "8081:8081"
+  #     - "9000:9000"
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+  #   environment:
+  #     SQRL_BACKEND: postgres
+  #     DATABASE_URL: postgres://squirrel:squirrel@postgres/squirreldb
+  #     SQRL_STORAGE_ENABLED: "true"
+  #
+  # postgres:
+  #   image: postgres:16-alpine
+  #   environment:
+  #     POSTGRES_USER: squirrel
+  #     POSTGRES_PASSWORD: squirrel
+  #     POSTGRES_DB: squirreldb
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "pg_isready -U squirrel -d squirreldb"]
+  #     interval: 5s
+  #     timeout: 5s
+  #     retries: 5
+
+volumes:
+  squirreldb_data:
+  # postgres_data:

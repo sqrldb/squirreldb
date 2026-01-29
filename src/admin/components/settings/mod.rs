@@ -1,5 +1,6 @@
 //! Settings page components
 
+use super::UsersSettings;
 use crate::admin::state::{AppState, Page, SettingsTab};
 use leptos::*;
 
@@ -15,6 +16,7 @@ pub use tokens::TokensSettings;
 pub fn Settings() -> impl IntoView {
   let state = use_context::<AppState>().expect("AppState not found");
   let current_page = state.current_page;
+  let auth_status = state.auth_status;
 
   let current_tab = move || {
     if let Page::Settings(tab) = current_page.get() {
@@ -22,6 +24,15 @@ pub fn Settings() -> impl IntoView {
     } else {
       SettingsTab::General
     }
+  };
+
+  let is_owner = move || {
+    auth_status
+      .get()
+      .user
+      .as_ref()
+      .map(|u| u.role == "owner")
+      .unwrap_or(false)
   };
 
   view! {
@@ -33,11 +44,15 @@ pub fn Settings() -> impl IntoView {
         <TabButton tab=SettingsTab::General label="General" current_page=current_page/>
         <TabButton tab=SettingsTab::Tokens label="API Tokens" current_page=current_page/>
         <TabButton tab=SettingsTab::Storage label="Storage" current_page=current_page/>
+        <Show when=move || is_owner()>
+          <TabButton tab=SettingsTab::Users label="Users" current_page=current_page/>
+        </Show>
       </div>
       {move || match current_tab() {
         SettingsTab::General => view! { <GeneralSettings/> }.into_view(),
         SettingsTab::Tokens => view! { <TokensSettings/> }.into_view(),
         SettingsTab::Storage => view! { <StorageSettings/> }.into_view(),
+        SettingsTab::Users => view! { <UsersSettings/> }.into_view(),
       }}
     </section>
   }

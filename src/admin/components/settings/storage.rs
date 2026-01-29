@@ -1,7 +1,8 @@
 //! Storage (S3) settings tab
 
+use super::super::Icon;
 use crate::admin::apiclient;
-use crate::admin::state::{AppState, ToastLevel};
+use crate::admin::state::{AppState, S3AccessKey, ToastLevel};
 use leptos::*;
 
 #[component]
@@ -195,6 +196,261 @@ pub fn StorageSettings() -> impl IntoView {
           </div>
         </Show>
       </div>
+
+      // Access Keys Card
+      <AccessKeysCard/>
     </div>
+  }
+}
+
+/// Access keys management component
+#[component]
+fn AccessKeysCard() -> impl IntoView {
+  let state = use_context::<AppState>().expect("AppState not found");
+
+  let (keys, set_keys) = create_signal(Vec::<S3AccessKey>::new());
+  let (loading, set_loading) = create_signal(true);
+  let (show_create, set_show_create) = create_signal(false);
+  let (new_key_name, set_new_key_name) = create_signal(String::new());
+  let (creating, set_creating) = create_signal(false);
+  let (new_key_result, set_new_key_result) = create_signal(None::<(String, String)>);
+
+  // Load keys on mount
+  {
+    let state = state.clone();
+    create_effect(move |_| {
+      let state = state.clone();
+      let set_keys = set_keys;
+      let set_loading = set_loading;
+      spawn_local(async move {
+        match apiclient::fetch_s3_keys().await {
+          Ok(list) => set_keys.set(list),
+          Err(e) => state.show_toast(&format!("Failed to load keys: {}", e), ToastLevel::Error),
+        }
+        set_loading.set(false);
+      });
+    });
+  }
+
+  view! {
+    <div class="settings-card settings-card-wide">
+      <div class="settings-card-header">
+        <h3>"Access Keys"</h3>
+        <span class="settings-card-description">"AWS Signature V4 credentials for S3 API access"</span>
+      </div>
+      <div class="settings-card-body">
+        <Show when=move || loading.get()>
+          <div class="loading-spinner"></div>
+          " Loading..."
+        </Show>
+
+        <Show when=move || !loading.get()>
+          // Create Key Button
+          <Show when=move || !show_create.get() && new_key_result.get().is_none()>
+            <button class="btn btn-primary btn-sm" on:click=move |_| set_show_create.set(true)>
+              <Icon name="plus" size=14/>
+              " Create Access Key"
+            </button>
+          </Show>
+
+          // Create Key Form
+          <Show when=move || show_create.get() && new_key_result.get().is_none()>
+            <CreateKeyForm
+              new_key_name=new_key_name
+              set_new_key_name=set_new_key_name
+              creating=creating
+              set_creating=set_creating
+              set_show_create=set_show_create
+              set_new_key_result=set_new_key_result
+              set_keys=set_keys
+            />
+          </Show>
+
+          // New Key Result (show once after creation)
+          <Show when=move || new_key_result.get().is_some()>
+            {move || {
+              let (access_key_id, secret_key) = new_key_result.get().unwrap();
+              view! {
+                <div class="key-created-alert">
+                  <div class="alert-header">
+                    <Icon name="check-circle" size=20/>
+                    <strong>"Access key created successfully"</strong>
+                  </div>
+                  <p class="alert-warning">
+                    "Save these credentials now. The secret key will not be shown again."
+                  </p>
+                  <div class="credential-row">
+                    <span class="credential-label">"Access Key ID:"</span>
+                    <code class="credential-value">{access_key_id.clone()}</code>
+                  </div>
+                  <div class="credential-row">
+                    <span class="credential-label">"Secret Access Key:"</span>
+                    <code class="credential-value">{secret_key}</code>
+                  </div>
+                  <button
+                    class="btn btn-secondary btn-sm"
+                    on:click=move |_| set_new_key_result.set(None)
+                  >
+                    "Done"
+                  </button>
+                </div>
+              }
+            }}
+          </Show>
+
+          // Keys Table
+          <Show when=move || !keys.get().is_empty() && new_key_result.get().is_none()>
+            <table class="data-table" style="margin-top: 16px">
+              <thead>
+                <tr>
+                  <th>"Name"</th>
+                  <th>"Access Key ID"</th>
+                  <th>"Created"</th>
+                  <th>"Actions"</th>
+                </tr>
+              </thead>
+              <tbody>
+                <For
+                  each=move || keys.get()
+                  key=|k| k.access_key_id.clone()
+                  children=move |key| {
+                    let key_id = key.access_key_id.clone();
+                    view! {
+                      <tr>
+                        <td>{key.name.clone()}</td>
+                        <td><code>{key.access_key_id.clone()}</code></td>
+                        <td>{format_date(&key.created_at)}</td>
+                        <td>
+                          <DeleteKeyButton key_id=key_id set_keys=set_keys/>
+                        </td>
+                      </tr>
+                    }
+                  }
+                />
+              </tbody>
+            </table>
+          </Show>
+
+          // Empty State
+          <Show when=move || keys.get().is_empty() && !loading.get() && new_key_result.get().is_none()>
+            <p class="text-muted" style="margin-top: 12px">"No access keys yet"</p>
+          </Show>
+        </Show>
+      </div>
+    </div>
+  }
+}
+
+/// Create key form component
+#[component]
+fn CreateKeyForm(
+  new_key_name: ReadSignal<String>,
+  set_new_key_name: WriteSignal<String>,
+  creating: ReadSignal<bool>,
+  set_creating: WriteSignal<bool>,
+  set_show_create: WriteSignal<bool>,
+  set_new_key_result: WriteSignal<Option<(String, String)>>,
+  set_keys: WriteSignal<Vec<S3AccessKey>>,
+) -> impl IntoView {
+  let state = use_context::<AppState>().expect("AppState not found");
+
+  view! {
+    <div class="inline-form">
+      <input
+        type="text"
+        class="input"
+        placeholder="Key name (e.g., app-uploads)"
+        prop:value=new_key_name
+        on:input=move |ev| set_new_key_name.set(event_target_value(&ev))
+      />
+      <button
+        class="btn btn-primary"
+        disabled=move || creating.get()
+        on:click=move |_| {
+          let name = new_key_name.get();
+          if name.is_empty() {
+            state.show_toast("Key name is required", ToastLevel::Warning);
+            return;
+          }
+          set_creating.set(true);
+          let state = state.clone();
+          spawn_local(async move {
+            match apiclient::create_s3_key(&name).await {
+              Ok(resp) => {
+                let access_key_id = resp
+                  .get("access_key_id")
+                  .and_then(|v| v.as_str())
+                  .unwrap_or("")
+                  .to_string();
+                let secret_key = resp
+                  .get("secret_access_key")
+                  .and_then(|v| v.as_str())
+                  .unwrap_or("")
+                  .to_string();
+                set_new_key_result.set(Some((access_key_id, secret_key)));
+                set_new_key_name.set(String::new());
+                if let Ok(list) = apiclient::fetch_s3_keys().await {
+                  set_keys.set(list);
+                }
+              }
+              Err(e) => {
+                state.show_toast(&format!("Failed to create key: {}", e), ToastLevel::Error);
+              }
+            }
+            set_creating.set(false);
+          });
+        }
+      >
+        {move || if creating.get() { "Creating..." } else { "Create" }}
+      </button>
+      <button class="btn btn-secondary" on:click=move |_| set_show_create.set(false)>
+        "Cancel"
+      </button>
+    </div>
+  }
+}
+
+/// Delete key button component
+#[component]
+fn DeleteKeyButton(key_id: String, set_keys: WriteSignal<Vec<S3AccessKey>>) -> impl IntoView {
+  let state = use_context::<AppState>().expect("AppState not found");
+  let (deleting, set_deleting) = create_signal(false);
+
+  view! {
+    <button
+      class="btn btn-ghost btn-sm text-danger"
+      disabled=move || deleting.get()
+      on:click=move |_| {
+        let key_id = key_id.clone();
+        let state = state.clone();
+        set_deleting.set(true);
+        spawn_local(async move {
+          match apiclient::delete_s3_key(&key_id).await {
+            Ok(_) => {
+              state.show_toast("Access key deleted", ToastLevel::Success);
+              if let Ok(list) = apiclient::fetch_s3_keys().await {
+                set_keys.set(list);
+              }
+            }
+            Err(e) => {
+              state.show_toast(&format!("Failed to delete: {}", e), ToastLevel::Error);
+            }
+          }
+          set_deleting.set(false);
+        });
+      }
+    >
+      <Icon name="trash-2" size=14/>
+      {move || if deleting.get() { " Deleting..." } else { " Delete" }}
+    </button>
+  }
+}
+
+fn format_date(date_str: &str) -> String {
+  // Parse ISO date and return friendly format
+  if let Some(date_part) = date_str.split('T').next() {
+    date_part.to_string()
+  } else {
+    date_str.to_string()
   }
 }

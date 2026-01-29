@@ -1968,6 +1968,65 @@ code {
   cursor: not-allowed;
 }
 
+/* Access Keys / Credentials */
+.inline-form {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.inline-form .input {
+  flex: 1;
+  min-width: 200px;
+}
+
+.key-created-alert {
+  background: var(--success-light);
+  border: 1px solid var(--success);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.key-created-alert .alert-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--success);
+  margin-bottom: 8px;
+}
+
+.key-created-alert .alert-warning {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-bottom: 12px;
+}
+
+.credential-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+  padding: 8px 12px;
+  background: var(--bg-primary);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-light);
+}
+
+.credential-label {
+  font-size: 12px;
+  color: var(--text-secondary);
+  min-width: 120px;
+}
+
+.credential-value {
+  font-family: "SF Mono", Monaco, Consolas, monospace;
+  font-size: 13px;
+  color: var(--text-primary);
+  word-break: break-all;
+}
+
 /* Token List */
 .token-actions {
   margin-bottom: 16px;
@@ -2911,4 +2970,197 @@ code {
   font-size: 14px;
   color: var(--text-primary);
   font-family: 'SF Mono', Monaco, Menlo, monospace;
+}
+
+/* =============================================================================
+   Authentication Pages
+   ============================================================================= */
+
+.auth-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  font-size: 14px;
+  gap: 8px;
+}
+
+.auth-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: var(--bg-secondary);
+  padding: 20px;
+}
+
+.auth-card {
+  background: var(--bg-primary);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  width: 100%;
+  max-width: 400px;
+  overflow: hidden;
+}
+
+.auth-header {
+  padding: 32px 32px 24px;
+  text-align: center;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.auth-header h1 {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.auth-subtitle {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.auth-form {
+  padding: 24px 32px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.auth-error {
+  background: var(--danger-light);
+  color: var(--danger);
+  padding: 12px 14px;
+  border-radius: var(--radius);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.auth-footer {
+  padding: 16px 32px 24px;
+  text-align: center;
+}
+
+.auth-footer .text-sm {
+  font-size: 12px;
+}
+
+/* Sidebar User Section */
+.sidebar-user {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-top: 1px solid var(--border-light);
+  margin-bottom: 8px;
+}
+
+.sidebar-user-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sidebar-username {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.sidebar-role {
+  font-size: 11px;
+  color: var(--text-secondary);
+  text-transform: capitalize;
+}
+
+.logout-btn {
+  padding: 6px !important;
+  color: var(--text-secondary) !important;
+}
+
+.logout-btn:hover {
+  color: var(--danger) !important;
+  background: var(--danger-light) !important;
+}
+
+/* User Management */
+.create-user-form {
+  background: var(--bg-secondary);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.create-user-form .form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.create-user-form .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.create-user-form .form-group label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.create-user-form .form-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.user-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.role-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.role-badge.role-owner {
+  background: var(--accent-light);
+  color: var(--accent);
+}
+
+.role-badge.role-admin {
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+}
+
+.text-danger {
+  color: var(--danger) !important;
+}
+
+@media (max-width: 480px) {
+  .auth-card {
+    max-width: 100%;
+  }
+
+  .auth-header,
+  .auth-form,
+  .auth-footer {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  .create-user-form .form-row {
+    grid-template-columns: 1fr;
+  }
 }

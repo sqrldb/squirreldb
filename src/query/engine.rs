@@ -4,10 +4,11 @@ use std::time::{Duration, Instant};
 use lru::LruCache;
 use parking_lot::Mutex;
 
-use super::QueryCompiler;
+use super::{QueryCompiler, StructuredCompiler};
 use crate::db::{DatabaseBackend, SqlDialect};
 use crate::types::{
   ChangesOptions, CompiledFilter, Document, FilterSpec, OrderBySpec, OrderDirection, QuerySpec,
+  StructuredQuery,
 };
 use rquickjs::{Context, Function, Runtime, Value};
 
@@ -25,6 +26,7 @@ pub struct QueryEnginePool {
   parse_cache: Mutex<LruCache<String, QuerySpec>>,
   result_cache: Mutex<LruCache<String, CachedResult>>,
   result_cache_ttl: Duration,
+  structured_compiler: StructuredCompiler,
 }
 
 impl QueryEnginePool {
@@ -46,6 +48,7 @@ impl QueryEnginePool {
       parse_cache: Mutex::new(LruCache::new(std::num::NonZeroUsize::new(1024).unwrap())),
       result_cache: Mutex::new(LruCache::new(std::num::NonZeroUsize::new(256).unwrap())),
       result_cache_ttl,
+      structured_compiler: StructuredCompiler::new(dialect),
     }
   }
 
@@ -170,6 +173,54 @@ impl QueryEnginePool {
     } else {
       serde_json::to_value(&docs)?
     };
+
+    // Cache the result
+    if is_cacheable {
+      self.put_cached(cache_key, result.clone());
+    }
+
+    Ok(result)
+  }
+
+  /// Parse a structured query into a QuerySpec (no JS evaluation)
+  pub fn parse_structured(&self, query: &StructuredQuery) -> Result<QuerySpec, anyhow::Error> {
+    self.structured_compiler.compile(query)
+  }
+
+  /// Execute a structured query (no JS evaluation, direct SQL compilation)
+  pub async fn execute_structured(
+    &self,
+    query: &StructuredQuery,
+    backend: &dyn DatabaseBackend,
+  ) -> Result<serde_json::Value, anyhow::Error> {
+    // Generate cache key from the structured query
+    let cache_key = serde_json::to_string(query)?;
+
+    // Only cache read queries without changes subscription
+    let is_cacheable = query.changes.is_none();
+    if is_cacheable {
+      if let Some(cached) = self.get_cached(&cache_key) {
+        return Ok(cached);
+      }
+    }
+
+    // Compile structured query to QuerySpec
+    let spec = self.parse_structured(query)?;
+
+    // Execute against backend
+    let sql_filter = spec.filter.as_ref().and_then(|f| f.compiled_sql.as_deref());
+    let docs = backend
+      .list(
+        &spec.table,
+        sql_filter,
+        spec.order_by.as_ref(),
+        spec.limit,
+        spec.offset,
+      )
+      .await?;
+
+    // No JS filtering needed for structured queries - SQL handles it all
+    let result = serde_json::to_value(&docs)?;
 
     // Cache the result
     if is_cacheable {

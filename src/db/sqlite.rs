@@ -5,7 +5,10 @@ use tokio::sync::broadcast;
 use tokio_rusqlite::Connection;
 use uuid::Uuid;
 
-use super::backend::{ApiTokenInfo, DatabaseBackend, SqlDialect, StorageAccessKeyInfo};
+use super::backend::{
+  AdminRole, AdminSession, AdminUser, ApiTokenInfo, DatabaseBackend, SqlDialect,
+  StorageAccessKeyInfo,
+};
 use super::sanitize::{validate_collection_name, validate_identifier, validate_limit};
 use crate::storage::{MultipartPart, MultipartUpload, ObjectAcl, StorageBucket, StorageObject};
 use crate::types::{Change, ChangeOperation, Document, OrderBySpec, OrderDirection};
@@ -750,6 +753,84 @@ impl DatabaseBackend for SqliteBackend {
   ) -> Result<(), anyhow::Error> {
     // SQLite doesn't support feature settings storage
     anyhow::bail!("Feature settings are not supported with SQLite backend")
+  }
+
+  // =========================================================================
+  // Admin Users (authentication) - Stubs for SQLite
+  // =========================================================================
+
+  async fn has_admin_users(&self) -> Result<bool, anyhow::Error> {
+    // SQLite admin auth not yet implemented - return false to allow setup
+    Ok(false)
+  }
+
+  async fn create_admin_user(
+    &self,
+    _username: &str,
+    _email: Option<&str>,
+    _password_hash: &str,
+    _role: AdminRole,
+  ) -> Result<AdminUser, anyhow::Error> {
+    anyhow::bail!("Admin authentication requires PostgreSQL backend")
+  }
+
+  async fn get_admin_user_by_username(
+    &self,
+    _username: &str,
+  ) -> Result<Option<(AdminUser, String)>, anyhow::Error> {
+    Ok(None) // No users in SQLite mode
+  }
+
+  async fn get_admin_user(&self, _id: Uuid) -> Result<Option<AdminUser>, anyhow::Error> {
+    Ok(None)
+  }
+
+  async fn list_admin_users(&self) -> Result<Vec<AdminUser>, anyhow::Error> {
+    Ok(vec![])
+  }
+
+  async fn delete_admin_user(&self, _id: Uuid) -> Result<bool, anyhow::Error> {
+    Ok(false)
+  }
+
+  async fn update_admin_user_role(
+    &self,
+    _id: Uuid,
+    _role: AdminRole,
+  ) -> Result<bool, anyhow::Error> {
+    Ok(false)
+  }
+
+  // =========================================================================
+  // Admin Sessions - Stubs for SQLite
+  // =========================================================================
+
+  async fn create_admin_session(
+    &self,
+    _user_id: Uuid,
+    _session_token_hash: &str,
+    _expires_at: chrono::DateTime<chrono::Utc>,
+  ) -> Result<AdminSession, anyhow::Error> {
+    anyhow::bail!("Admin authentication requires PostgreSQL backend")
+  }
+
+  async fn validate_admin_session(
+    &self,
+    _session_token_hash: &str,
+  ) -> Result<Option<(AdminSession, AdminUser)>, anyhow::Error> {
+    Ok(None)
+  }
+
+  async fn delete_admin_session(&self, _session_id: Uuid) -> Result<bool, anyhow::Error> {
+    Ok(false)
+  }
+
+  async fn delete_admin_sessions_for_user(&self, _user_id: Uuid) -> Result<u64, anyhow::Error> {
+    Ok(0)
+  }
+
+  async fn cleanup_expired_sessions(&self) -> Result<u64, anyhow::Error> {
+    Ok(0)
   }
 
   // =========================================================================

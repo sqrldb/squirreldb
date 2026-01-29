@@ -1,18 +1,87 @@
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use super::Document;
+use super::{Document, StructuredQuery};
+
+/// Query input - either a JS string (legacy) or a structured query object
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum QueryInput {
+  /// Structured query object sent from SDKs
+  Structured(StructuredQuery),
+  /// Legacy JS string query
+  Script(String),
+}
+
+impl QueryInput {
+  /// Check if this is a structured query
+  pub fn is_structured(&self) -> bool {
+    matches!(self, Self::Structured(_))
+  }
+
+  /// Get the table name from the query (if determinable)
+  pub fn table(&self) -> Option<&str> {
+    match self {
+      Self::Structured(q) => Some(&q.table),
+      Self::Script(_) => None,
+    }
+  }
+
+  /// Check if the query (as a string representation) contains a pattern
+  /// For Script queries, checks the script string
+  /// For Structured queries, checks the table name
+  pub fn contains(&self, pattern: &str) -> bool {
+    match self {
+      Self::Script(s) => s.contains(pattern),
+      Self::Structured(q) => q.table.contains(pattern),
+    }
+  }
+
+  /// Get the script string if this is a Script query
+  pub fn as_script(&self) -> Option<&str> {
+    match self {
+      Self::Script(s) => Some(s),
+      Self::Structured(_) => None,
+    }
+  }
+
+  /// Get the structured query if this is a Structured query
+  pub fn as_structured(&self) -> Option<&StructuredQuery> {
+    match self {
+      Self::Structured(q) => Some(q),
+      Self::Script(_) => None,
+    }
+  }
+}
+
+impl From<String> for QueryInput {
+  fn from(s: String) -> Self {
+    Self::Script(s)
+  }
+}
+
+impl From<&str> for QueryInput {
+  fn from(s: &str) -> Self {
+    Self::Script(s.to_string())
+  }
+}
+
+impl From<StructuredQuery> for QueryInput {
+  fn from(q: StructuredQuery) -> Self {
+    Self::Structured(q)
+  }
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "lowercase")]
 pub enum ClientMessage {
   Query {
     id: String,
-    query: String,
+    query: QueryInput,
   },
   Subscribe {
     id: String,
-    query: String,
+    query: QueryInput,
   },
   Unsubscribe {
     id: String,

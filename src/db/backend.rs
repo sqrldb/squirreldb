@@ -15,6 +15,52 @@ pub struct ApiTokenInfo {
   pub created_at: DateTime<Utc>,
 }
 
+/// Admin user role
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum AdminRole {
+  Owner,
+  Admin,
+}
+
+impl std::fmt::Display for AdminRole {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    match self {
+      Self::Owner => write!(f, "owner"),
+      Self::Admin => write!(f, "admin"),
+    }
+  }
+}
+
+impl std::str::FromStr for AdminRole {
+  type Err = String;
+  fn from_str(s: &str) -> Result<Self, Self::Err> {
+    match s.to_lowercase().as_str() {
+      "owner" => Ok(Self::Owner),
+      "admin" => Ok(Self::Admin),
+      _ => Err(format!("Invalid role: {}", s)),
+    }
+  }
+}
+
+/// Admin user info (without password hash)
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AdminUser {
+  pub id: Uuid,
+  pub username: String,
+  pub email: Option<String>,
+  pub role: AdminRole,
+  pub created_at: DateTime<Utc>,
+}
+
+/// Admin session info
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AdminSession {
+  pub id: Uuid,
+  pub user_id: Uuid,
+  pub expires_at: DateTime<Utc>,
+}
+
 /// SQL dialect for query compilation
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum SqlDialect {
@@ -358,6 +404,67 @@ pub trait DatabaseBackend: Send + Sync {
     enabled: bool,
     settings: serde_json::Value,
   ) -> Result<(), anyhow::Error>;
+
+  // =========================================================================
+  // Admin Users (authentication)
+  // =========================================================================
+
+  /// Check if any admin users exist (for setup flow)
+  async fn has_admin_users(&self) -> Result<bool, anyhow::Error>;
+
+  /// Create an admin user (returns user ID)
+  async fn create_admin_user(
+    &self,
+    username: &str,
+    email: Option<&str>,
+    password_hash: &str,
+    role: AdminRole,
+  ) -> Result<AdminUser, anyhow::Error>;
+
+  /// Get admin user by username (for login)
+  async fn get_admin_user_by_username(
+    &self,
+    username: &str,
+  ) -> Result<Option<(AdminUser, String)>, anyhow::Error>; // Returns user + password_hash
+
+  /// Get admin user by ID
+  async fn get_admin_user(&self, id: Uuid) -> Result<Option<AdminUser>, anyhow::Error>;
+
+  /// List all admin users
+  async fn list_admin_users(&self) -> Result<Vec<AdminUser>, anyhow::Error>;
+
+  /// Delete an admin user
+  async fn delete_admin_user(&self, id: Uuid) -> Result<bool, anyhow::Error>;
+
+  /// Update admin user role
+  async fn update_admin_user_role(&self, id: Uuid, role: AdminRole) -> Result<bool, anyhow::Error>;
+
+  // =========================================================================
+  // Admin Sessions
+  // =========================================================================
+
+  /// Create a session for an admin user
+  async fn create_admin_session(
+    &self,
+    user_id: Uuid,
+    session_token_hash: &str,
+    expires_at: DateTime<Utc>,
+  ) -> Result<AdminSession, anyhow::Error>;
+
+  /// Validate a session token and return the session + user
+  async fn validate_admin_session(
+    &self,
+    session_token_hash: &str,
+  ) -> Result<Option<(AdminSession, AdminUser)>, anyhow::Error>;
+
+  /// Delete a session (logout)
+  async fn delete_admin_session(&self, session_id: Uuid) -> Result<bool, anyhow::Error>;
+
+  /// Delete all sessions for a user (logout everywhere)
+  async fn delete_admin_sessions_for_user(&self, user_id: Uuid) -> Result<u64, anyhow::Error>;
+
+  /// Clean up expired sessions
+  async fn cleanup_expired_sessions(&self) -> Result<u64, anyhow::Error>;
 
   // =========================================================================
   // Storage Atomic Operations (reduces round-trips)

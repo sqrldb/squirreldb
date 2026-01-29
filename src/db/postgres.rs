@@ -4,7 +4,10 @@ use tokio::sync::broadcast;
 use tokio_postgres::NoTls;
 use uuid::Uuid;
 
-use super::backend::{ApiTokenInfo, DatabaseBackend, SqlDialect, StorageAccessKeyInfo};
+use super::backend::{
+  AdminRole, AdminSession, AdminUser, ApiTokenInfo, DatabaseBackend, SqlDialect,
+  StorageAccessKeyInfo,
+};
 use super::sanitize::{validate_collection_name, validate_identifier, validate_limit};
 use crate::storage::{MultipartPart, MultipartUpload, ObjectAcl, StorageBucket, StorageObject};
 use crate::types::{Change, ChangeOperation, Document, OrderBySpec, OrderDirection};
@@ -408,6 +411,28 @@ CREATE TABLE IF NOT EXISTS feature_settings (
     settings JSONB NOT NULL DEFAULT '{}',
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- Admin users for authentication
+CREATE TABLE IF NOT EXISTS admin_users (
+    id UUID PRIMARY KEY DEFAULT uuid(),
+    username VARCHAR(255) UNIQUE NOT NULL,
+    email VARCHAR(255),
+    password_hash VARCHAR(255) NOT NULL,
+    role VARCHAR(20) NOT NULL DEFAULT 'admin',
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_admin_users_username ON admin_users(username);
+
+-- Admin sessions
+CREATE TABLE IF NOT EXISTS admin_sessions (
+    id UUID PRIMARY KEY DEFAULT uuid(),
+    user_id UUID NOT NULL REFERENCES admin_users(id) ON DELETE CASCADE,
+    session_token_hash VARCHAR(64) NOT NULL,
+    expires_at TIMESTAMPTZ NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_admin_sessions_token ON admin_sessions(session_token_hash);
+CREATE INDEX IF NOT EXISTS idx_admin_sessions_expires ON admin_sessions(expires_at);
 
 -- =========================================================================
 -- S3 Atomic Operations (reduces round-trips for better performance)
@@ -1780,6 +1805,240 @@ impl DatabaseBackend for PostgresBackend {
       )
       .await?;
     Ok(())
+  }
+
+  // =========================================================================
+  // Admin Users (authentication)
+  // =========================================================================
+
+  async fn has_admin_users(&self) -> Result<bool, anyhow::Error> {
+    let row = self
+      .pool
+      .get()
+      .await?
+      .query_one("SELECT EXISTS(SELECT 1 FROM admin_users)", &[])
+      .await?;
+    Ok(row.get::<_, bool>(0))
+  }
+
+  async fn create_admin_user(
+    &self,
+    username: &str,
+    email: Option<&str>,
+    password_hash: &str,
+    role: AdminRole,
+  ) -> Result<AdminUser, anyhow::Error> {
+    let role_str = role.to_string();
+    let row = self
+      .pool
+      .get()
+      .await?
+      .query_one(
+        "INSERT INTO admin_users (username, email, password_hash, role)
+         VALUES ($1, $2, $3, $4)
+         RETURNING id, username, email, role, created_at",
+        &[&username, &email, &password_hash, &role_str],
+      )
+      .await?;
+    Ok(AdminUser {
+      id: row.get(0),
+      username: row.get(1),
+      email: row.get(2),
+      role: row.get::<_, String>(3).parse().unwrap_or(AdminRole::Admin),
+      created_at: row.get(4),
+    })
+  }
+
+  async fn get_admin_user_by_username(
+    &self,
+    username: &str,
+  ) -> Result<Option<(AdminUser, String)>, anyhow::Error> {
+    let rows = self
+      .pool
+      .get()
+      .await?
+      .query(
+        "SELECT id, username, email, role, created_at, password_hash FROM admin_users WHERE username = $1",
+        &[&username],
+      )
+      .await?;
+    if rows.is_empty() {
+      return Ok(None);
+    }
+    let row = &rows[0];
+    let user = AdminUser {
+      id: row.get(0),
+      username: row.get(1),
+      email: row.get(2),
+      role: row.get::<_, String>(3).parse().unwrap_or(AdminRole::Admin),
+      created_at: row.get(4),
+    };
+    let password_hash: String = row.get(5);
+    Ok(Some((user, password_hash)))
+  }
+
+  async fn get_admin_user(&self, id: Uuid) -> Result<Option<AdminUser>, anyhow::Error> {
+    let rows = self
+      .pool
+      .get()
+      .await?
+      .query(
+        "SELECT id, username, email, role, created_at FROM admin_users WHERE id = $1",
+        &[&id],
+      )
+      .await?;
+    if rows.is_empty() {
+      return Ok(None);
+    }
+    let row = &rows[0];
+    Ok(Some(AdminUser {
+      id: row.get(0),
+      username: row.get(1),
+      email: row.get(2),
+      role: row.get::<_, String>(3).parse().unwrap_or(AdminRole::Admin),
+      created_at: row.get(4),
+    }))
+  }
+
+  async fn list_admin_users(&self) -> Result<Vec<AdminUser>, anyhow::Error> {
+    let rows = self
+      .pool
+      .get()
+      .await?
+      .query(
+        "SELECT id, username, email, role, created_at FROM admin_users ORDER BY created_at",
+        &[],
+      )
+      .await?;
+    Ok(
+      rows
+        .iter()
+        .map(|row| AdminUser {
+          id: row.get(0),
+          username: row.get(1),
+          email: row.get(2),
+          role: row.get::<_, String>(3).parse().unwrap_or(AdminRole::Admin),
+          created_at: row.get(4),
+        })
+        .collect(),
+    )
+  }
+
+  async fn delete_admin_user(&self, id: Uuid) -> Result<bool, anyhow::Error> {
+    let result = self
+      .pool
+      .get()
+      .await?
+      .execute("DELETE FROM admin_users WHERE id = $1", &[&id])
+      .await?;
+    Ok(result > 0)
+  }
+
+  async fn update_admin_user_role(&self, id: Uuid, role: AdminRole) -> Result<bool, anyhow::Error> {
+    let role_str = role.to_string();
+    let result = self
+      .pool
+      .get()
+      .await?
+      .execute(
+        "UPDATE admin_users SET role = $2 WHERE id = $1",
+        &[&id, &role_str],
+      )
+      .await?;
+    Ok(result > 0)
+  }
+
+  // =========================================================================
+  // Admin Sessions
+  // =========================================================================
+
+  async fn create_admin_session(
+    &self,
+    user_id: Uuid,
+    session_token_hash: &str,
+    expires_at: chrono::DateTime<chrono::Utc>,
+  ) -> Result<AdminSession, anyhow::Error> {
+    let row = self
+      .pool
+      .get()
+      .await?
+      .query_one(
+        "INSERT INTO admin_sessions (user_id, session_token_hash, expires_at)
+         VALUES ($1, $2, $3)
+         RETURNING id, user_id, expires_at",
+        &[&user_id, &session_token_hash, &expires_at],
+      )
+      .await?;
+    Ok(AdminSession {
+      id: row.get(0),
+      user_id: row.get(1),
+      expires_at: row.get(2),
+    })
+  }
+
+  async fn validate_admin_session(
+    &self,
+    session_token_hash: &str,
+  ) -> Result<Option<(AdminSession, AdminUser)>, anyhow::Error> {
+    let rows = self
+      .pool
+      .get()
+      .await?
+      .query(
+        "SELECT s.id, s.user_id, s.expires_at, u.id, u.username, u.email, u.role, u.created_at
+         FROM admin_sessions s
+         JOIN admin_users u ON s.user_id = u.id
+         WHERE s.session_token_hash = $1 AND s.expires_at > NOW()",
+        &[&session_token_hash],
+      )
+      .await?;
+    if rows.is_empty() {
+      return Ok(None);
+    }
+    let row = &rows[0];
+    let session = AdminSession {
+      id: row.get(0),
+      user_id: row.get(1),
+      expires_at: row.get(2),
+    };
+    let user = AdminUser {
+      id: row.get(3),
+      username: row.get(4),
+      email: row.get(5),
+      role: row.get::<_, String>(6).parse().unwrap_or(AdminRole::Admin),
+      created_at: row.get(7),
+    };
+    Ok(Some((session, user)))
+  }
+
+  async fn delete_admin_session(&self, session_id: Uuid) -> Result<bool, anyhow::Error> {
+    let result = self
+      .pool
+      .get()
+      .await?
+      .execute("DELETE FROM admin_sessions WHERE id = $1", &[&session_id])
+      .await?;
+    Ok(result > 0)
+  }
+
+  async fn delete_admin_sessions_for_user(&self, user_id: Uuid) -> Result<u64, anyhow::Error> {
+    let result = self
+      .pool
+      .get()
+      .await?
+      .execute("DELETE FROM admin_sessions WHERE user_id = $1", &[&user_id])
+      .await?;
+    Ok(result)
+  }
+
+  async fn cleanup_expired_sessions(&self) -> Result<u64, anyhow::Error> {
+    let result = self
+      .pool
+      .get()
+      .await?
+      .execute("DELETE FROM admin_sessions WHERE expires_at <= NOW()", &[])
+      .await?;
+    Ok(result)
   }
 
   // =========================================================================

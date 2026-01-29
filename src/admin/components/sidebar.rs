@@ -1,7 +1,8 @@
 //! Sidebar navigation component
 
 use super::Icon;
-use crate::admin::state::{AppState, Page, SettingsTab, Theme};
+use crate::admin::apiclient;
+use crate::admin::state::{AppState, AuthStatus, Page, SettingsTab, Theme, ToastLevel};
 use leptos::*;
 
 #[component]
@@ -10,6 +11,7 @@ pub fn Sidebar() -> impl IntoView {
   let current_page = state.current_page;
   let theme = state.theme;
   let storage_enabled = state.storage_enabled;
+  let auth_status = state.auth_status;
 
   // Apply theme on change
   create_effect(move |_| {
@@ -84,7 +86,20 @@ pub fn Sidebar() -> impl IntoView {
         </ul>
       </div>
       <div class="sidebar-footer">
-        <div class="sidebar-footer-info">"SquirrelDB v0.1"</div>
+        <Show when=move || auth_status.get().user.is_some()>
+          <div class="sidebar-user">
+            <div class="sidebar-user-info">
+              <span class="sidebar-username">
+                {move || auth_status.get().user.as_ref().map(|u| u.username.clone()).unwrap_or_default()}
+              </span>
+              <span class="sidebar-role">
+                {move || auth_status.get().user.as_ref().map(|u| u.role.clone()).unwrap_or_default()}
+              </span>
+            </div>
+            <LogoutButton/>
+          </div>
+        </Show>
+        <div class="sidebar-footer-info">"SquirrelDB v0.2"</div>
       </div>
     </nav>
   }
@@ -118,5 +133,43 @@ fn NavItem(
       <Icon name=icon size=18/>
       <span>{label}</span>
     </a>
+  }
+}
+
+#[component]
+fn LogoutButton() -> impl IntoView {
+  let state = use_context::<AppState>().expect("AppState not found");
+  let (logging_out, set_logging_out) = create_signal(false);
+
+  let on_logout = move |_| {
+    let state = state.clone();
+    set_logging_out.set(true);
+    spawn_local(async move {
+      match apiclient::logout().await {
+        Ok(_) => {
+          // Reset auth state
+          state.auth_status.set(AuthStatus {
+            needs_setup: false,
+            logged_in: false,
+            user: None,
+          });
+        }
+        Err(e) => {
+          state.show_toast(&format!("Logout failed: {}", e), ToastLevel::Error);
+        }
+      }
+      set_logging_out.set(false);
+    });
+  };
+
+  view! {
+    <button
+      class="btn btn-ghost btn-sm logout-btn"
+      title="Sign out"
+      disabled=move || logging_out.get()
+      on:click=on_logout
+    >
+      <Icon name="log-out" size=16/>
+    </button>
   }
 }

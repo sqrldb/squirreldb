@@ -4,7 +4,7 @@ use uuid::Uuid;
 use crate::db::DatabaseBackend;
 use crate::query::QueryEnginePool;
 use crate::subscriptions::SubscriptionManager;
-use crate::types::{ClientMessage, ServerMessage};
+use crate::types::{ClientMessage, QueryInput, ServerMessage};
 
 pub struct MessageHandler {
   backend: Arc<dyn DatabaseBackend>,
@@ -25,19 +25,39 @@ impl MessageHandler {
     }
   }
 
+  /// Execute a query, routing to structured or JS execution based on input type
+  async fn execute_query(&self, query: &QueryInput) -> Result<serde_json::Value, anyhow::Error> {
+    match query {
+      QueryInput::Structured(q) => {
+        self
+          .engine_pool
+          .execute_structured(q, self.backend.as_ref())
+          .await
+      }
+      QueryInput::Script(script) => {
+        self
+          .engine_pool
+          .execute(script, self.backend.as_ref())
+          .await
+      }
+    }
+  }
+
+  /// Parse a query into a QuerySpec, routing based on input type
+  fn parse_query(&self, query: &QueryInput) -> Result<crate::types::QuerySpec, anyhow::Error> {
+    match query {
+      QueryInput::Structured(q) => self.engine_pool.parse_structured(q),
+      QueryInput::Script(script) => self.engine_pool.parse_query(script),
+    }
+  }
+
   pub async fn handle(&self, client_id: Uuid, msg: ClientMessage) -> ServerMessage {
     match msg {
-      ClientMessage::Query { id, query } => {
-        match self
-          .engine_pool
-          .execute(&query, self.backend.as_ref())
-          .await
-        {
-          Ok(data) => ServerMessage::result(id, data),
-          Err(e) => ServerMessage::error(id, e.to_string()),
-        }
-      }
-      ClientMessage::Subscribe { id, query } => match self.engine_pool.parse_query(&query) {
+      ClientMessage::Query { id, query } => match self.execute_query(&query).await {
+        Ok(data) => ServerMessage::result(id, data),
+        Err(e) => ServerMessage::error(id, e.to_string()),
+      },
+      ClientMessage::Subscribe { id, query } => match self.parse_query(&query) {
         Ok(spec) => {
           self
             .subs

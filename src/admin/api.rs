@@ -4,7 +4,7 @@ use axum::{
     ws::{Message, WebSocket, WebSocketUpgrade},
     Path, Query, State,
   },
-  http::{header, StatusCode},
+  http::{header, HeaderMap, StatusCode},
   middleware::Next,
   response::{Html, IntoResponse, Response},
   routing::{delete, get, post, put},
@@ -22,7 +22,8 @@ use tower_http::cors::{Any, CorsLayer};
 use tower_http::services::{ServeDir, ServeFile};
 use uuid::Uuid;
 
-use crate::db::{ApiTokenInfo, DatabaseBackend, SqlDialect};
+use super::auth;
+use crate::db::{AdminRole, AdminUser, ApiTokenInfo, DatabaseBackend, SqlDialect};
 use crate::features::{FeatureInfo, FeatureRegistry};
 use crate::query::{QueryEngine, QueryEnginePool};
 use crate::server::{MessageHandler, ServerConfig};
@@ -153,7 +154,12 @@ impl AdminServer {
             .route("/setup", get(serve_setup_page))
             .route("/login", get(serve_login_page))
             // Setup API - only works when no tokens exist
-            .route("/api/setup", post(api_setup_token));
+            .route("/api/setup", post(api_setup_token))
+            // User authentication endpoints - public
+            .route("/api/auth/status", get(api_auth_status))
+            .route("/api/auth/setup", post(api_auth_setup))
+            .route("/api/auth/login", post(api_auth_login))
+            .route("/api/auth/logout", post(api_auth_logout));
 
     // Admin API routes (protected by admin auth)
     let admin_routes = Router::new()
@@ -177,6 +183,11 @@ impl AdminServer {
       .route("/api/s3/keys", get(api_list_s3_keys))
       .route("/api/s3/keys", post(api_create_s3_key))
       .route("/api/s3/keys/{id}", delete(api_delete_s3_key))
+      // User management (owner only)
+      .route("/api/users", get(api_list_users))
+      .route("/api/users", post(api_create_user))
+      .route("/api/users/{id}", delete(api_delete_user))
+      .route("/api/users/{id}/role", put(api_update_user_role))
       .layer(axum::middleware::from_fn_with_state(
         state.clone(),
         admin_auth_middleware,
@@ -676,7 +687,7 @@ async fn api_get_doc(
   let doc = state.backend.get(&name, id).await?;
   match doc {
     Some(d) => Ok(Json(serde_json::to_value(d)?)),
-    None => Err(AppError::NotFound),
+    None => Err(AppError::NotFound("Not found".to_string())),
   }
 }
 
@@ -691,7 +702,7 @@ async fn api_update_doc(
   let doc = state.backend.update(&name, id, data).await?;
   match doc {
     Some(d) => Ok(Json(serde_json::to_value(d)?)),
-    None => Err(AppError::NotFound),
+    None => Err(AppError::NotFound("Not found".to_string())),
   }
 }
 
@@ -712,7 +723,7 @@ async fn api_delete_doc(
       );
       Ok(Json(serde_json::to_value(d)?))
     }
-    None => Err(AppError::NotFound),
+    None => Err(AppError::NotFound("Not found".to_string())),
   }
 }
 
@@ -780,30 +791,32 @@ fn generate_token() -> String {
 
 /// Extract token from request (Authorization header or query param)
 fn extract_token(req: &Request) -> Option<String> {
-  // Try Authorization header first
-  if let Some(token) = req
-    .headers()
+  extract_token_from_headers(req.headers()).or_else(|| extract_token_from_query(req.uri().query()))
+}
+
+/// Extract token from headers only
+fn extract_token_from_headers(headers: &HeaderMap) -> Option<String> {
+  headers
     .get("Authorization")
     .and_then(|v| v.to_str().ok())
     .and_then(|s| s.strip_prefix("Bearer "))
-  {
-    return Some(token.to_string());
-  }
+    .map(|s| s.to_string())
+}
 
-  // Try query parameter
-  if let Some(query) = req.uri().query() {
-    for pair in query.split('&') {
+/// Extract token from query string
+fn extract_token_from_query(query: Option<&str>) -> Option<String> {
+  query.and_then(|q| {
+    for pair in q.split('&') {
       if let Some(token) = pair.strip_prefix("token=") {
         return Some(token.to_string());
       }
     }
-  }
-
-  None
+    None
+  })
 }
 
 /// Auth middleware for admin UI routes
-/// Allows access if: auth disabled, admin_token matches, or valid API token
+/// Allows access if: auth disabled, valid session, admin_token matches, or valid API token
 async fn admin_auth_middleware(
   State(state): State<AppState>,
   req: Request,
@@ -819,6 +832,14 @@ async fn admin_auth_middleware(
 
   match token {
     Some(t) => {
+      // Check if it's a session token (starts with "session_")
+      if let Some(session_token) = t.strip_prefix("session_") {
+        let session_hash = auth::hash_session_token(session_token);
+        if let Ok(Some(_)) = state.backend.validate_admin_session(&session_hash).await {
+          return next.run(req).await;
+        }
+      }
+
       // Check if it matches admin_token (if configured)
       if let Some(ref admin_token) = state.config.auth.admin_token {
         if !admin_token.is_empty() && t == *admin_token {
@@ -843,6 +864,343 @@ async fn admin_auth_middleware(
     )
       .into_response(),
   }
+}
+
+// =============================================================================
+// User Authentication API
+// =============================================================================
+
+/// Auth status response
+#[derive(Serialize)]
+struct AuthStatusResponse {
+  needs_setup: bool,
+  logged_in: bool,
+  user: Option<AdminUserResponse>,
+}
+
+#[derive(Serialize)]
+struct AdminUserResponse {
+  id: String,
+  username: String,
+  email: Option<String>,
+  role: String,
+  created_at: String,
+}
+
+impl From<AdminUser> for AdminUserResponse {
+  fn from(u: AdminUser) -> Self {
+    Self {
+      id: u.id.to_string(),
+      username: u.username,
+      email: u.email,
+      role: u.role.to_string(),
+      created_at: u.created_at.to_rfc3339(),
+    }
+  }
+}
+
+/// GET /api/auth/status - Check if setup is needed or if logged in
+async fn api_auth_status(
+  State(state): State<AppState>,
+  headers: HeaderMap,
+) -> Result<Json<AuthStatusResponse>, AppError> {
+  // Check if any admin users exist
+  let has_users = state.backend.has_admin_users().await?;
+
+  if !has_users {
+    return Ok(Json(AuthStatusResponse {
+      needs_setup: true,
+      logged_in: false,
+      user: None,
+    }));
+  }
+
+  // Check if user is logged in via session
+  if let Some(token) = extract_token_from_headers(&headers) {
+    if let Some(session_token) = token.strip_prefix("session_") {
+      let session_hash = auth::hash_session_token(session_token);
+      if let Ok(Some((_, user))) = state.backend.validate_admin_session(&session_hash).await {
+        return Ok(Json(AuthStatusResponse {
+          needs_setup: false,
+          logged_in: true,
+          user: Some(user.into()),
+        }));
+      }
+    }
+  }
+
+  Ok(Json(AuthStatusResponse {
+    needs_setup: false,
+    logged_in: false,
+    user: None,
+  }))
+}
+
+#[derive(Deserialize)]
+struct SetupRequest {
+  username: String,
+  email: Option<String>,
+  password: String,
+}
+
+#[derive(Serialize)]
+struct LoginResponse {
+  token: String,
+  user: AdminUserResponse,
+}
+
+/// POST /api/auth/setup - Create the first owner user
+async fn api_auth_setup(
+  State(state): State<AppState>,
+  Json(req): Json<SetupRequest>,
+) -> Result<Json<LoginResponse>, AppError> {
+  // Check if setup is already done
+  if state.backend.has_admin_users().await? {
+    return Err(AppError::BadRequest(
+      "Setup already completed. Use login instead.".to_string(),
+    ));
+  }
+
+  // Validate input
+  if req.username.trim().is_empty() {
+    return Err(AppError::BadRequest("Username is required".to_string()));
+  }
+  if req.password.len() < 8 {
+    return Err(AppError::BadRequest(
+      "Password must be at least 8 characters".to_string(),
+    ));
+  }
+
+  // Hash password
+  let password_hash = auth::hash_password(&req.password)
+    .map_err(|e| AppError::Internal(anyhow::anyhow!("Password hash error: {}", e)))?;
+
+  // Create owner user
+  let user = state
+    .backend
+    .create_admin_user(
+      &req.username.trim().to_lowercase(),
+      req.email.as_deref(),
+      &password_hash,
+      AdminRole::Owner,
+    )
+    .await?;
+
+  // Create session
+  let session_token = auth::generate_session_token();
+  let session_hash = auth::hash_session_token(&session_token);
+  let expires_at = chrono::Utc::now() + chrono::Duration::days(30);
+  state
+    .backend
+    .create_admin_session(user.id, &session_hash, expires_at)
+    .await?;
+
+  Ok(Json(LoginResponse {
+    token: format!("session_{}", session_token),
+    user: user.into(),
+  }))
+}
+
+#[derive(Deserialize)]
+struct LoginRequest {
+  username: String,
+  password: String,
+}
+
+/// POST /api/auth/login - Login with username/password
+async fn api_auth_login(
+  State(state): State<AppState>,
+  Json(req): Json<LoginRequest>,
+) -> Result<Json<LoginResponse>, AppError> {
+  // Find user
+  let (user, password_hash) = state
+    .backend
+    .get_admin_user_by_username(&req.username.trim().to_lowercase())
+    .await?
+    .ok_or_else(|| AppError::Unauthorized("Invalid credentials".to_string()))?;
+
+  // Verify password
+  if !auth::verify_password(&req.password, &password_hash) {
+    return Err(AppError::Unauthorized("Invalid credentials".to_string()));
+  }
+
+  // Create session
+  let session_token = auth::generate_session_token();
+  let session_hash = auth::hash_session_token(&session_token);
+  let expires_at = chrono::Utc::now() + chrono::Duration::days(30);
+  state
+    .backend
+    .create_admin_session(user.id, &session_hash, expires_at)
+    .await?;
+
+  Ok(Json(LoginResponse {
+    token: format!("session_{}", session_token),
+    user: user.into(),
+  }))
+}
+
+/// POST /api/auth/logout - Logout (invalidate session)
+async fn api_auth_logout(
+  State(state): State<AppState>,
+  headers: HeaderMap,
+) -> Result<Json<serde_json::Value>, AppError> {
+  if let Some(token) = extract_token_from_headers(&headers) {
+    if let Some(session_token) = token.strip_prefix("session_") {
+      let session_hash = auth::hash_session_token(session_token);
+      if let Ok(Some((session, _))) = state.backend.validate_admin_session(&session_hash).await {
+        state.backend.delete_admin_session(session.id).await?;
+      }
+    }
+  }
+  Ok(Json(serde_json::json!({"message": "Logged out"})))
+}
+
+// =============================================================================
+// User Management API (owner only)
+// =============================================================================
+
+/// Helper to check if current user is owner
+async fn require_owner(state: &AppState, headers: &HeaderMap) -> Result<AdminUser, AppError> {
+  let token = extract_token_from_headers(headers)
+    .ok_or_else(|| AppError::Unauthorized("Not logged in".to_string()))?;
+  let session_token = token
+    .strip_prefix("session_")
+    .ok_or_else(|| AppError::Unauthorized("Invalid session".to_string()))?;
+  let session_hash = auth::hash_session_token(session_token);
+  let (_, user) = state
+    .backend
+    .validate_admin_session(&session_hash)
+    .await?
+    .ok_or_else(|| AppError::Unauthorized("Invalid session".to_string()))?;
+  if user.role != AdminRole::Owner {
+    return Err(AppError::Forbidden("Owner access required".to_string()));
+  }
+  Ok(user)
+}
+
+/// GET /api/users - List all admin users (owner only)
+async fn api_list_users(
+  State(state): State<AppState>,
+  headers: HeaderMap,
+) -> Result<Json<Vec<AdminUserResponse>>, AppError> {
+  require_owner(&state, &headers).await?;
+  let users = state.backend.list_admin_users().await?;
+  Ok(Json(users.into_iter().map(|u| u.into()).collect()))
+}
+
+#[derive(Deserialize)]
+struct CreateUserRequest {
+  username: String,
+  email: Option<String>,
+  password: String,
+  role: String,
+}
+
+/// POST /api/users - Create a new admin user (owner only)
+async fn api_create_user(
+  State(state): State<AppState>,
+  headers: HeaderMap,
+  Json(body): Json<CreateUserRequest>,
+) -> Result<Json<AdminUserResponse>, AppError> {
+  require_owner(&state, &headers).await?;
+
+  // Validate
+  if body.username.trim().is_empty() {
+    return Err(AppError::BadRequest("Username is required".to_string()));
+  }
+  if body.password.len() < 8 {
+    return Err(AppError::BadRequest(
+      "Password must be at least 8 characters".to_string(),
+    ));
+  }
+  let role: AdminRole = body
+    .role
+    .parse()
+    .map_err(|_| AppError::BadRequest("Invalid role".to_string()))?;
+
+  // Hash password
+  let password_hash = auth::hash_password(&body.password)
+    .map_err(|e| AppError::Internal(anyhow::anyhow!("Password hash error: {}", e)))?;
+
+  // Create user
+  let user = state
+    .backend
+    .create_admin_user(
+      &body.username.trim().to_lowercase(),
+      body.email.as_deref(),
+      &password_hash,
+      role,
+    )
+    .await?;
+
+  Ok(Json(user.into()))
+}
+
+/// DELETE /api/users/:id - Delete an admin user (owner only)
+async fn api_delete_user(
+  State(state): State<AppState>,
+  headers: HeaderMap,
+  Path(id): Path<String>,
+) -> Result<Json<serde_json::Value>, AppError> {
+  let current_user = require_owner(&state, &headers).await?;
+  let user_id: Uuid = id
+    .parse()
+    .map_err(|_| AppError::BadRequest("Invalid user ID".to_string()))?;
+
+  // Prevent self-deletion
+  if user_id == current_user.id {
+    return Err(AppError::BadRequest("Cannot delete yourself".to_string()));
+  }
+
+  let deleted = state.backend.delete_admin_user(user_id).await?;
+  if !deleted {
+    return Err(AppError::NotFound("User not found".to_string()));
+  }
+
+  // Also delete all sessions for this user
+  state
+    .backend
+    .delete_admin_sessions_for_user(user_id)
+    .await?;
+
+  Ok(Json(serde_json::json!({"deleted": true})))
+}
+
+#[derive(Deserialize)]
+struct UpdateRoleRequest {
+  role: String,
+}
+
+/// PUT /api/users/:id/role - Update user role (owner only)
+async fn api_update_user_role(
+  State(state): State<AppState>,
+  headers: HeaderMap,
+  Path(id): Path<String>,
+  Json(body): Json<UpdateRoleRequest>,
+) -> Result<Json<serde_json::Value>, AppError> {
+  let current_user = require_owner(&state, &headers).await?;
+  let user_id: Uuid = id
+    .parse()
+    .map_err(|_| AppError::BadRequest("Invalid user ID".to_string()))?;
+
+  // Prevent changing own role
+  if user_id == current_user.id {
+    return Err(AppError::BadRequest(
+      "Cannot change your own role".to_string(),
+    ));
+  }
+
+  let role: AdminRole = body
+    .role
+    .parse()
+    .map_err(|_| AppError::BadRequest("Invalid role".to_string()))?;
+
+  let updated = state.backend.update_admin_user_role(user_id, role).await?;
+  if !updated {
+    return Err(AppError::NotFound("User not found".to_string()));
+  }
+
+  Ok(Json(serde_json::json!({"updated": true})))
 }
 
 // =============================================================================
@@ -983,7 +1341,7 @@ async fn api_delete_token(
   if deleted {
     Ok(Json(serde_json::json!({"deleted": true})))
   } else {
-    Err(AppError::NotFound)
+    Err(AppError::NotFound("Not found".to_string()))
   }
 }
 
@@ -1329,7 +1687,7 @@ async fn api_delete_storage_bucket(
     .backend
     .get_storage_bucket(&name)
     .await?
-    .ok_or_else(|| AppError::NotFound)?;
+    .ok_or_else(|| AppError::NotFound("Not found".to_string()))?;
 
   if bucket.object_count > 0 {
     return Err(AppError::BadRequest(
@@ -1367,7 +1725,7 @@ async fn api_get_storage_bucket_stats(
     .backend
     .get_storage_bucket(&name)
     .await?
-    .ok_or_else(|| AppError::NotFound)?;
+    .ok_or_else(|| AppError::NotFound("Not found".to_string()))?;
 
   Ok(Json(StorageBucketStatsResponse {
     name: bucket.name,
@@ -1461,7 +1819,7 @@ async fn api_delete_s3_key(
     );
     Ok(Json(serde_json::json!({"deleted": true})))
   } else {
-    Err(AppError::NotFound)
+    Err(AppError::NotFound("Not found".to_string()))
   }
 }
 
@@ -1627,8 +1985,10 @@ async fn handle_log_stream(socket: WebSocket, state: AppState) {
 
 enum AppError {
   Internal(anyhow::Error),
-  NotFound,
+  NotFound(String),
   BadRequest(String),
+  Unauthorized(String),
+  Forbidden(String),
 }
 
 impl From<anyhow::Error> for AppError {
@@ -1647,8 +2007,10 @@ impl IntoResponse for AppError {
   fn into_response(self) -> Response {
     let (status, msg) = match self {
       Self::Internal(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()),
-      Self::NotFound => (StatusCode::NOT_FOUND, "Not found".into()),
+      Self::NotFound(msg) => (StatusCode::NOT_FOUND, msg),
       Self::BadRequest(msg) => (StatusCode::BAD_REQUEST, msg),
+      Self::Unauthorized(msg) => (StatusCode::UNAUTHORIZED, msg),
+      Self::Forbidden(msg) => (StatusCode::FORBIDDEN, msg),
     };
     (status, Json(serde_json::json!({ "error": msg }))).into_response()
   }

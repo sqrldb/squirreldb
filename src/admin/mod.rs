@@ -1,6 +1,8 @@
 // Server-side API (only compiled with server feature)
 #[cfg(feature = "server")]
 mod api;
+#[cfg(feature = "server")]
+mod auth;
 
 // CSR components (only compiled for WASM)
 #[cfg(feature = "csr")]

@@ -49,25 +49,78 @@ WORKDIR /app
 COPY --from=builder /app/target/release/sqrld /usr/local/bin/
 COPY --from=builder /app/target/release/sqrl /usr/local/bin/
 
-# Copy example config and migrations
-COPY squirreldb.example.yaml /app/squirreldb.example.yaml
+# Copy Docker config and migrations
+COPY squirreldb.docker.yaml /app/squirreldb.yaml
 COPY migrations /app/migrations
 
-# Create non-root user
+# Create non-root user and data directories
 RUN useradd -r -s /bin/false squirrel && \
-  mkdir -p /app/data && \
+  mkdir -p /app/data /app/data/storage && \
   chown -R squirrel:squirrel /app
 
 USER squirrel
 
-# WebSocket port
-EXPOSE 8080
-# Admin UI port
-EXPOSE 8081
-# Storage port
-EXPOSE 9000
+# =============================================================================
+# Environment Variables - Override these when running the container
+# =============================================================================
 
+# Backend: postgres or sqlite
+ENV SQRL_BACKEND=sqlite
+
+# Server binding
+ENV SQRL_HOST=0.0.0.0
+
+# Ports
+ENV SQRL_PORT_HTTP=8080
+ENV SQRL_PORT_ADMIN=8081
+ENV SQRL_PORT_TCP=8082
+ENV SQRL_PORT_MCP=8083
+ENV SQRL_PORT_STORAGE=9000
+
+# PostgreSQL (when SQRL_BACKEND=postgres)
+ENV DATABASE_URL=postgres://postgres:postgres@localhost/squirreldb
+ENV SQRL_PG_MAX_CONNECTIONS=20
+
+# SQLite (when SQRL_BACKEND=sqlite)
+ENV SQRL_SQLITE_PATH=/app/data/squirreldb.db
+
+# Authentication
+ENV SQRL_AUTH_ENABLED=false
+ENV SQRL_ADMIN_TOKEN=
+
+# MCP protocol
+ENV SQRL_MCP_ENABLED=false
+
+# Rate limits
+ENV SQRL_LIMIT_CONNECTIONS_PER_IP=100
+ENV SQRL_LIMIT_RPS=100
+ENV SQRL_LIMIT_BURST=50
+ENV SQRL_LIMIT_QUERY_TIMEOUT=30000
+ENV SQRL_LIMIT_CONCURRENT_QUERIES=10
+ENV SQRL_LIMIT_MESSAGE_SIZE=16777216
+
+# Object Storage (S3-compatible)
+ENV SQRL_STORAGE_ENABLED=false
+ENV SQRL_STORAGE_PATH=/app/data/storage
+ENV SQRL_STORAGE_REGION=us-east-1
+
+# Logging
+ENV SQRL_LOG_LEVEL=info
 ENV RUST_LOG=info
+
+# =============================================================================
+# Exposed Ports
+# =============================================================================
+# HTTP/WebSocket API
+EXPOSE 8080
+# Admin UI
+EXPOSE 8081
+# TCP protocol
+EXPOSE 8082
+# MCP protocol
+EXPOSE 8083
+# S3-compatible storage
+EXPOSE 9000
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \

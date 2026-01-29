@@ -8,7 +8,9 @@ use gloo_storage::{LocalStorage, Storage};
 use serde::{de::DeserializeOwned, Serialize};
 
 #[cfg(feature = "csr")]
-use crate::admin::state::{BucketInfo, S3Settings, Stats, TableInfo, TokenInfo};
+use crate::admin::state::{
+  AdminUserInfo, AuthStatus, BucketInfo, S3AccessKey, S3Settings, Stats, TableInfo, TokenInfo,
+};
 
 const TOKEN_KEY: &str = "sqrl_admin_token";
 
@@ -293,4 +295,174 @@ pub async fn validate_token(token: &str) -> bool {
     Ok(resp) => resp.ok(),
     Err(_) => false,
   }
+}
+
+// =============================================================================
+// S3 Access Keys
+// =============================================================================
+
+#[cfg(feature = "csr")]
+pub async fn fetch_s3_keys() -> Result<Vec<S3AccessKey>, String> {
+  #[derive(serde::Deserialize)]
+  struct KeyResp {
+    access_key_id: String,
+    name: String,
+    created_at: String,
+  }
+  let keys: Vec<KeyResp> = fetch_with_auth("/api/s3/keys").await?;
+  Ok(
+    keys
+      .into_iter()
+      .map(|k| S3AccessKey {
+        access_key_id: k.access_key_id,
+        name: k.name,
+        created_at: k.created_at,
+      })
+      .collect(),
+  )
+}
+
+#[cfg(feature = "csr")]
+pub async fn create_s3_key(name: &str) -> Result<serde_json::Value, String> {
+  #[derive(Serialize)]
+  struct CreateReq {
+    name: String,
+  }
+  post_with_auth(
+    "/api/s3/keys",
+    &CreateReq {
+      name: name.to_string(),
+    },
+  )
+  .await
+}
+
+#[cfg(feature = "csr")]
+pub async fn delete_s3_key(access_key_id: &str) -> Result<serde_json::Value, String> {
+  delete_with_auth(&format!("/api/s3/keys/{}", access_key_id)).await
+}
+
+// =============================================================================
+// User Authentication
+// =============================================================================
+
+#[cfg(feature = "csr")]
+pub async fn fetch_auth_status() -> Result<AuthStatus, String> {
+  fetch_with_auth("/api/auth/status").await
+}
+
+#[cfg(feature = "csr")]
+pub async fn setup_admin(
+  username: &str,
+  email: Option<&str>,
+  password: &str,
+) -> Result<serde_json::Value, String> {
+  #[derive(serde::Serialize)]
+  struct SetupReq {
+    username: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    email: Option<String>,
+    password: String,
+  }
+  let resp: serde_json::Value = post_with_auth(
+    "/api/auth/setup",
+    &SetupReq {
+      username: username.to_string(),
+      email: email.map(|s| s.to_string()),
+      password: password.to_string(),
+    },
+  )
+  .await?;
+
+  // Store the session token
+  if let Some(token) = resp.get("token").and_then(|v| v.as_str()) {
+    set_stored_token(token);
+  }
+  Ok(resp)
+}
+
+#[cfg(feature = "csr")]
+pub async fn login(username: &str, password: &str) -> Result<serde_json::Value, String> {
+  #[derive(serde::Serialize)]
+  struct LoginReq {
+    username: String,
+    password: String,
+  }
+  let resp: serde_json::Value = post_with_auth(
+    "/api/auth/login",
+    &LoginReq {
+      username: username.to_string(),
+      password: password.to_string(),
+    },
+  )
+  .await?;
+
+  // Store the session token
+  if let Some(token) = resp.get("token").and_then(|v| v.as_str()) {
+    set_stored_token(token);
+  }
+  Ok(resp)
+}
+
+#[cfg(feature = "csr")]
+pub async fn logout() -> Result<serde_json::Value, String> {
+  let resp = post_with_auth("/api/auth/logout", &serde_json::json!({})).await;
+  clear_stored_token();
+  resp
+}
+
+// =============================================================================
+// User Management
+// =============================================================================
+
+#[cfg(feature = "csr")]
+pub async fn fetch_admin_users() -> Result<Vec<AdminUserInfo>, String> {
+  fetch_with_auth("/api/users").await
+}
+
+#[cfg(feature = "csr")]
+pub async fn create_admin_user(
+  username: &str,
+  email: Option<&str>,
+  password: &str,
+  role: &str,
+) -> Result<AdminUserInfo, String> {
+  #[derive(serde::Serialize)]
+  struct CreateReq {
+    username: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    email: Option<String>,
+    password: String,
+    role: String,
+  }
+  post_with_auth(
+    "/api/users",
+    &CreateReq {
+      username: username.to_string(),
+      email: email.map(|s| s.to_string()),
+      password: password.to_string(),
+      role: role.to_string(),
+    },
+  )
+  .await
+}
+
+#[cfg(feature = "csr")]
+pub async fn delete_admin_user(id: &str) -> Result<serde_json::Value, String> {
+  delete_with_auth(&format!("/api/users/{}", id)).await
+}
+
+#[cfg(feature = "csr")]
+pub async fn update_admin_user_role(id: &str, role: &str) -> Result<serde_json::Value, String> {
+  #[derive(serde::Serialize)]
+  struct UpdateRoleReq {
+    role: String,
+  }
+  put_with_auth(
+    &format!("/api/users/{}/role", id),
+    &UpdateRoleReq {
+      role: role.to_string(),
+    },
+  )
+  .await
 }

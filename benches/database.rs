@@ -226,7 +226,7 @@ fn bench_list(c: &mut Criterion) {
     group.bench_with_input(BenchmarkId::new("all_documents", size), size, |b, _| {
       b.iter(|| {
         rt.block_on(async {
-          black_box(backend.list("items", None, None, None).await.unwrap());
+          black_box(backend.list("items", None, None, None, None).await.unwrap());
         });
       });
     });
@@ -266,6 +266,7 @@ fn bench_list_with_filter(c: &mut Criterion) {
               Some("CAST(json_extract(data, '$.price') AS REAL) > 50"),
               None,
               None,
+              None,
             )
             .await
             .unwrap(),
@@ -302,7 +303,7 @@ fn bench_list_with_limit(c: &mut Criterion) {
         rt.block_on(async {
           black_box(
             backend
-              .list("large", None, None, Some(limit))
+              .list("large", None, None, Some(limit), None)
               .await
               .unwrap(),
           );

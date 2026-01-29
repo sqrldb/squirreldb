@@ -1,0 +1,50 @@
+# SquirrelDB Docker Configuration
+# All values reference environment variables with sensible defaults set in Dockerfile
+
+backend: ${SQRL_BACKEND}
+
+server:
+  host: ${SQRL_HOST}
+  ports:
+    http: ${SQRL_PORT_HTTP}
+    admin: ${SQRL_PORT_ADMIN}
+    tcp: ${SQRL_PORT_TCP}
+    mcp: ${SQRL_PORT_MCP}
+  protocols:
+    rest: true
+    websocket: true
+    sse: false
+    tcp: true
+    mcp: ${SQRL_MCP_ENABLED}
+  cors_origins:
+    - "*"
+
+postgres:
+  url: ${DATABASE_URL}
+  max_connections: ${SQRL_PG_MAX_CONNECTIONS}
+
+sqlite:
+  path: ${SQRL_SQLITE_PATH}
+
+auth:
+  enabled: ${SQRL_AUTH_ENABLED}
+  admin_token: ${SQRL_ADMIN_TOKEN}
+
+limits:
+  max_connections_per_ip: ${SQRL_LIMIT_CONNECTIONS_PER_IP}
+  requests_per_second: ${SQRL_LIMIT_RPS}
+  burst_size: ${SQRL_LIMIT_BURST}
+  query_timeout_ms: ${SQRL_LIMIT_QUERY_TIMEOUT}
+  max_concurrent_queries: ${SQRL_LIMIT_CONCURRENT_QUERIES}
+  max_message_size: ${SQRL_LIMIT_MESSAGE_SIZE}
+
+features:
+  storage: ${SQRL_STORAGE_ENABLED}
+
+storage:
+  port: ${SQRL_PORT_STORAGE}
+  storage_path: ${SQRL_STORAGE_PATH}
+  region: ${SQRL_STORAGE_REGION}
+
+logging:
+  level: ${SQRL_LOG_LEVEL}

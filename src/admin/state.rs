@@ -35,6 +35,7 @@ pub enum SettingsTab {
   General,
   Tokens,
   Storage,
+  Users,
 }
 
 /// Toast notification
@@ -100,6 +101,32 @@ pub struct TokenInfo {
   pub created_at: String,
 }
 
+/// S3 access key info
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct S3AccessKey {
+  pub access_key_id: String,
+  pub name: String,
+  pub created_at: String,
+}
+
+/// Admin user info
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct AdminUserInfo {
+  pub id: String,
+  pub username: String,
+  pub email: Option<String>,
+  pub role: String,
+  pub created_at: String,
+}
+
+/// Auth status
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub struct AuthStatus {
+  pub needs_setup: bool,
+  pub logged_in: bool,
+  pub user: Option<AdminUserInfo>,
+}
+
 /// Server stats
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct Stats {
@@ -125,6 +152,9 @@ pub struct AppState {
   pub connected: RwSignal<bool>,
   pub toast_counter: RwSignal<u32>,
   pub theme: RwSignal<Theme>,
+  // Auth state
+  pub auth_status: RwSignal<AuthStatus>,
+  pub admin_users: RwSignal<Vec<AdminUserInfo>>,
 }
 
 #[cfg(feature = "csr")]
@@ -143,6 +173,8 @@ impl AppState {
       connected: create_rw_signal(true),
       toast_counter: create_rw_signal(0),
       theme: create_rw_signal(Theme::System),
+      auth_status: create_rw_signal(AuthStatus::default()),
+      admin_users: create_rw_signal(Vec::new()),
     }
   }
 
