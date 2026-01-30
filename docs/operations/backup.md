@@ -2,6 +2,34 @@
 
 This guide covers backup and restore strategies for SquirrelDB.
 
+## Built-in Automatic Backups
+
+SquirrelDB includes a built-in backup feature that automatically creates periodic backups. See [Features > Backup](../features/backup.md) for details.
+
+### Quick Setup
+
+```yaml
+features:
+  backup: true
+
+backup:
+  interval: 3600    # Every hour
+  retention: 7      # Keep 7 backups
+```
+
+Or enable via Admin UI at **Settings > General > Database Backups**.
+
+### Backup Storage
+
+- **With Storage enabled**: Backups stored to `s3://backups/`
+- **Without Storage**: Backups stored to `./backup/`
+
+---
+
+## Manual Database Backups
+
+For additional backup strategies, use your database's native tools.
+
 ## PostgreSQL Backups
 
 ### pg_dump (Recommended)
@@ -302,3 +330,14 @@ services:
    - Daily backups for 7 days
    - Weekly backups for 4 weeks
    - Monthly backups for 12 months
+
+## Combining Backup Strategies
+
+For production deployments, combine multiple approaches:
+
+| Layer | Strategy | Purpose |
+|-------|----------|---------|
+| Application | Built-in backups | Quick recovery, portability |
+| Database | pg_dump / WAL archiving | Full database state |
+| Infrastructure | Volume snapshots | Rapid recovery |
+| Cloud | Cross-region replication | Disaster recovery |

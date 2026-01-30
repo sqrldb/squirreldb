@@ -26,6 +26,7 @@ pub struct StorageFeature {
   config: RwLock<StorageConfig>,
   shutdown_tx: RwLock<Option<oneshot::Sender<()>>>,
   running: RwLock<bool>,
+  storage_backend: RwLock<Option<Arc<dyn StorageBackend>>>,
 }
 
 impl StorageFeature {
@@ -34,6 +35,7 @@ impl StorageFeature {
       config: RwLock::new(config),
       shutdown_tx: RwLock::new(None),
       running: RwLock::new(false),
+      storage_backend: RwLock::new(None),
     }
   }
 
@@ -51,6 +53,11 @@ impl StorageFeature {
   /// Get the current configuration
   pub fn get_config(&self) -> StorageConfig {
     self.config.read().clone()
+  }
+
+  /// Get the storage backend (if running)
+  pub fn get_backend(&self) -> Option<Arc<dyn StorageBackend>> {
+    self.storage_backend.read().clone()
   }
 }
 
@@ -191,6 +198,9 @@ impl Feature for StorageFeature {
       storage.name(),
       config.mode
     );
+
+    // Store the storage backend for external access
+    *self.storage_backend.write() = Some(storage.clone());
 
     // Create S3 state
     let s3_state = Arc::new(StorageState {

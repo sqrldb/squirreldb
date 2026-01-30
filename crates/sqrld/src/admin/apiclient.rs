@@ -9,8 +9,8 @@ use serde::{de::DeserializeOwned, Serialize};
 
 #[cfg(feature = "csr")]
 use crate::admin::state::{
-  AdminUserInfo, AuthStatus, BucketInfo, CacheSettings, CacheStats, ProjectInfo, ProjectMemberInfo,
-  S3AccessKey, S3Settings, Stats, TableInfo, TokenInfo,
+  AdminUserInfo, AuthStatus, BackupInfo, BackupSettings, BucketInfo, CacheSettings, CacheStats,
+  ProjectInfo, ProjectMemberInfo, S3AccessKey, S3Settings, Stats, TableInfo, TokenInfo,
 };
 
 const TOKEN_KEY: &str = "sqrl_admin_token";
@@ -1007,4 +1007,58 @@ pub async fn update_cache_settings_extended(
     },
   )
   .await
+}
+
+// =============================================================================
+// Backup Management
+// =============================================================================
+
+#[cfg(feature = "csr")]
+pub async fn fetch_backup_settings() -> Result<BackupSettings, String> {
+  fetch_with_auth("/api/backup/settings").await
+}
+
+#[cfg(feature = "csr")]
+pub async fn update_backup_settings(
+  interval: Option<u64>,
+  retention: Option<u32>,
+  local_path: Option<String>,
+  storage_path: Option<String>,
+) -> Result<serde_json::Value, String> {
+  #[derive(Serialize)]
+  struct UpdateReq {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    interval: Option<u64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    retention: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    local_path: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    storage_path: Option<String>,
+  }
+  put_with_auth(
+    "/api/backup/settings",
+    &UpdateReq {
+      interval,
+      retention,
+      local_path,
+      storage_path,
+    },
+  )
+  .await
+}
+
+#[cfg(feature = "csr")]
+pub async fn fetch_backups() -> Result<Vec<BackupInfo>, String> {
+  fetch_with_auth("/api/backup/list").await
+}
+
+#[cfg(feature = "csr")]
+pub async fn create_backup() -> Result<BackupInfo, String> {
+  post_with_auth("/api/backup/create", &serde_json::json!({})).await
+}
+
+#[cfg(feature = "csr")]
+pub async fn delete_backup(id: &str) -> Result<serde_json::Value, String> {
+  delete_with_auth(&format!("/api/backup/{}", id)).await
 }

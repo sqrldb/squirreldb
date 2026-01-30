@@ -4,6 +4,7 @@ use tokio::sync::broadcast;
 
 use super::{RateLimiter, ServerConfig, TcpServer, WebSocketServer};
 use crate::admin::{emit_log, AdminServer};
+use crate::backup::BackupFeature;
 use crate::cache::{CacheConfig, CacheFeature};
 use crate::db::DatabaseBackend;
 use crate::features::{AppState, FeatureRegistry};
@@ -53,6 +54,10 @@ impl Daemon {
     let cache_config = CacheConfig::from(&config.caching);
     let cache_feature = Arc::new(CacheFeature::new(cache_config));
     feature_registry.register(cache_feature);
+
+    // Register backup feature
+    let backup_feature = Arc::new(BackupFeature::new());
+    feature_registry.register(backup_feature);
 
     Self {
       config,
@@ -196,6 +201,55 @@ impl Daemon {
     } else {
       emit_log("warn", "squirreldb::cache", "Cache feature disabled");
       tracing::info!("Cache feature disabled");
+    }
+
+    // Start backup feature if enabled
+    if self.config.features.backup {
+      let app_state = Arc::new(AppState {
+        backend: self.backend.clone(),
+        engine_pool: self.engine_pool.clone(),
+        config: self.config.clone(),
+      });
+
+      // If storage is enabled, set the storage backend for backup
+      if self.config.features.storage {
+        if let Some(storage_feature) = self.feature_registry.get("storage") {
+          if let Some(sf) = storage_feature.as_any().downcast_ref::<StorageFeature>() {
+            if let Some(backend) = sf.get_backend() {
+              if let Some(backup_feature) = self.feature_registry.get("backup") {
+                if let Some(bf) = backup_feature.as_any().downcast_ref::<BackupFeature>() {
+                  bf.set_storage_backend(backend);
+                  emit_log(
+                    "info",
+                    "squirreldb::backup",
+                    "Backup will store to S3 storage",
+                  );
+                }
+              }
+            }
+          }
+        }
+      }
+
+      emit_log("info", "squirreldb::backup", "Starting backup service");
+      if let Err(e) = self.feature_registry.start("backup", app_state).await {
+        tracing::error!("Failed to start backup feature: {}", e);
+      } else {
+        let location = if self.config.features.storage {
+          format!("S3: /{}", self.config.backup.storage_path)
+        } else {
+          self.config.backup.local_path.clone()
+        };
+        tracing::info!(
+          "SquirrelDB Backup enabled (interval: {}s, retention: {}, storage: {})",
+          self.config.backup.interval,
+          self.config.backup.retention,
+          location
+        );
+      }
+    } else {
+      emit_log("warn", "squirreldb::backup", "Backup feature disabled");
+      tracing::info!("Backup feature disabled");
     }
 
     // Start MCP SSE server if enabled

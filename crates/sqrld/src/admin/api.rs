@@ -225,6 +225,14 @@ impl AdminServer {
       )
       .route("/api/cache/stats", get(api_get_cache_stats))
       .route("/api/cache/flush", post(api_flush_cache))
+      // Backup management
+      .route(
+        "/api/backup/settings",
+        get(api_get_backup_settings).put(api_update_backup_settings),
+      )
+      .route("/api/backup/list", get(api_list_backups))
+      .route("/api/backup/create", post(api_create_backup))
+      .route("/api/backup/{id}", delete(api_delete_backup))
       // User management (owner only)
       .route("/api/users", get(api_list_users))
       .route("/api/users", post(api_create_user))
@@ -2723,6 +2731,239 @@ async fn api_flush_cache(State(state): State<AppState>) -> Result<Json<serde_jso
   }
 
   Err(AppError::BadRequest("Cache is not running".to_string()))
+}
+
+// =============================================================================
+// Backup API
+// =============================================================================
+
+#[derive(Serialize)]
+struct BackupSettingsResponse {
+  enabled: bool,
+  interval: u64,
+  retention: u32,
+  local_path: String,
+  storage_path: String,
+  last_backup: Option<String>,
+  next_backup: Option<String>,
+  storage_enabled: bool,
+}
+
+async fn api_get_backup_settings(State(state): State<AppState>) -> Json<BackupSettingsResponse> {
+  let backup_config = &state.config.backup;
+  let storage_enabled = state.feature_registry.is_enabled("storage");
+
+  // Get last/next backup times from the feature if running
+  let (last_backup, next_backup) = if let Some(feature) = state.feature_registry.get("backup") {
+    if let Some(backup_feature) = feature
+      .as_any()
+      .downcast_ref::<crate::backup::BackupFeature>()
+    {
+      (
+        backup_feature.last_backup().map(|t| t.to_rfc3339()),
+        backup_feature.next_backup().map(|t| t.to_rfc3339()),
+      )
+    } else {
+      (None, None)
+    }
+  } else {
+    (None, None)
+  };
+
+  Json(BackupSettingsResponse {
+    enabled: state.feature_registry.is_enabled("backup"),
+    interval: backup_config.interval,
+    retention: backup_config.retention,
+    local_path: backup_config.local_path.clone(),
+    storage_path: backup_config.storage_path.clone(),
+    last_backup,
+    next_backup,
+    storage_enabled,
+  })
+}
+
+#[derive(Deserialize)]
+struct UpdateBackupSettingsReq {
+  interval: Option<u64>,
+  retention: Option<u32>,
+  local_path: Option<String>,
+  storage_path: Option<String>,
+}
+
+async fn api_update_backup_settings(
+  State(state): State<AppState>,
+  Json(req): Json<UpdateBackupSettingsReq>,
+) -> Result<Json<serde_json::Value>, AppError> {
+  // Get current settings
+  let (_, current_settings) = state
+    .backend
+    .get_feature_settings("backup")
+    .await
+    .map_err(|e| AppError::Internal(anyhow::anyhow!("{}", e)))?
+    .unwrap_or((false, serde_json::json!({})));
+
+  // Merge updates
+  let mut settings = current_settings.clone();
+  if let Some(interval) = req.interval {
+    settings["interval"] = serde_json::json!(interval);
+  }
+  if let Some(retention) = req.retention {
+    settings["retention"] = serde_json::json!(retention);
+  }
+  if let Some(local_path) = req.local_path {
+    settings["local_path"] = serde_json::json!(local_path);
+  }
+  if let Some(storage_path) = req.storage_path {
+    settings["storage_path"] = serde_json::json!(storage_path);
+  }
+
+  // Save to database
+  let enabled = state.feature_registry.is_enabled("backup");
+  state
+    .backend
+    .update_feature_settings("backup", enabled, settings.clone())
+    .await
+    .map_err(|e| AppError::Internal(anyhow::anyhow!("{}", e)))?;
+
+  emit_log("info", "squirreldb::admin", "Backup settings updated");
+
+  Ok(Json(serde_json::json!({
+    "message": "Backup settings updated",
+    "settings": settings,
+    "restart_required": true
+  })))
+}
+
+#[derive(Serialize)]
+struct BackupInfoResponse {
+  id: String,
+  filename: String,
+  size: i64,
+  created_at: String,
+  backend: String,
+  location: String,
+}
+
+async fn api_list_backups(State(state): State<AppState>) -> Result<Json<Vec<BackupInfoResponse>>, AppError> {
+  if let Some(feature) = state.feature_registry.get("backup") {
+    if let Some(backup_feature) = feature
+      .as_any()
+      .downcast_ref::<crate::backup::BackupFeature>()
+    {
+      let backups = backup_feature
+        .list_backups(&state.config)
+        .await
+        .map_err(|e| AppError::Internal(anyhow::anyhow!("{}", e)))?;
+
+      let response: Vec<BackupInfoResponse> = backups
+        .into_iter()
+        .map(|b| BackupInfoResponse {
+          id: b.id,
+          filename: b.filename,
+          size: b.size,
+          created_at: b.created_at.to_rfc3339(),
+          backend: b.backend,
+          location: b.location,
+        })
+        .collect();
+
+      return Ok(Json(response));
+    }
+  }
+
+  // If backup feature not available, try to list from filesystem
+  let local_path = std::path::PathBuf::from(&state.config.backup.local_path);
+  let mut backups = Vec::new();
+
+  if local_path.exists() {
+    if let Ok(mut entries) = tokio::fs::read_dir(&local_path).await {
+      while let Ok(Some(entry)) = entries.next_entry().await {
+        let path = entry.path();
+        if path.extension().map_or(false, |ext| ext == "sql") {
+          if let Ok(metadata) = entry.metadata().await {
+            let filename = path.file_name().unwrap_or_default().to_string_lossy().to_string();
+            backups.push(BackupInfoResponse {
+              id: filename.split('_').last().unwrap_or("unknown").replace(".sql", ""),
+              filename: filename.clone(),
+              size: metadata.len() as i64,
+              created_at: metadata
+                .modified()
+                .ok()
+                .map(|t| {
+                  chrono::DateTime::<chrono::Utc>::from(t).to_rfc3339()
+                })
+                .unwrap_or_default(),
+              backend: "unknown".to_string(),
+              location: path.to_string_lossy().to_string(),
+            });
+          }
+        }
+      }
+    }
+  }
+
+  Ok(Json(backups))
+}
+
+async fn api_create_backup(State(state): State<AppState>) -> Result<Json<BackupInfoResponse>, AppError> {
+  if let Some(feature) = state.feature_registry.get("backup") {
+    if let Some(backup_feature) = feature
+      .as_any()
+      .downcast_ref::<crate::backup::BackupFeature>()
+    {
+      let backup = backup_feature
+        .create_backup(&state.backend, &state.config)
+        .await
+        .map_err(|e| AppError::Internal(anyhow::anyhow!("{}", e)))?;
+
+      emit_log(
+        "info",
+        "squirreldb::admin",
+        &format!("Manual backup created: {}", backup.filename),
+      );
+
+      return Ok(Json(BackupInfoResponse {
+        id: backup.id,
+        filename: backup.filename,
+        size: backup.size,
+        created_at: backup.created_at.to_rfc3339(),
+        backend: backup.backend,
+        location: backup.location,
+      }));
+    }
+  }
+
+  Err(AppError::BadRequest("Backup feature is not available".to_string()))
+}
+
+async fn api_delete_backup(
+  Path(id): Path<String>,
+  State(state): State<AppState>,
+) -> Result<Json<serde_json::Value>, AppError> {
+  if let Some(feature) = state.feature_registry.get("backup") {
+    if let Some(backup_feature) = feature
+      .as_any()
+      .downcast_ref::<crate::backup::BackupFeature>()
+    {
+      let deleted = backup_feature
+        .delete_backup(&state.config, &id)
+        .await
+        .map_err(|e| AppError::Internal(anyhow::anyhow!("{}", e)))?;
+
+      if deleted {
+        emit_log(
+          "info",
+          "squirreldb::admin",
+          &format!("Backup deleted: {}", id),
+        );
+        return Ok(Json(serde_json::json!({ "deleted": true, "id": id })));
+      } else {
+        return Err(AppError::NotFound(format!("Backup '{}' not found", id)));
+      }
+    }
+  }
+
+  Err(AppError::BadRequest("Backup feature is not available".to_string()))
 }
 
 // =============================================================================

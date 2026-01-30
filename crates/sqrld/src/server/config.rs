@@ -76,6 +76,8 @@ pub struct ServerConfig {
   pub storage: StorageSection,
   #[serde(default)]
   pub caching: CachingSection,
+  #[serde(default)]
+  pub backup: BackupSection,
 }
 
 /// Feature toggle configuration
@@ -87,6 +89,9 @@ pub struct FeaturesSection {
   /// Enable in-memory caching
   #[serde(default)]
   pub caching: bool,
+  /// Enable automatic database backups
+  #[serde(default)]
+  pub backup: bool,
 }
 
 /// Object storage configuration
@@ -227,6 +232,53 @@ impl Default for CachingSection {
       eviction: default_cache_eviction(),
       default_ttl: 0,
       snapshot: CacheSnapshotSection::default(),
+    }
+  }
+}
+
+/// Database backup configuration
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BackupSection {
+  /// Interval between automatic backups in seconds (default: 1 hour)
+  #[serde(default = "default_backup_interval")]
+  pub interval: u64,
+
+  /// Maximum number of backups to retain (default: 7)
+  #[serde(default = "default_backup_retention")]
+  pub retention: u32,
+
+  /// Local backup directory (used when storage is disabled)
+  #[serde(default = "default_backup_path")]
+  pub local_path: String,
+
+  /// Storage bucket path prefix for backups (used when storage is enabled)
+  #[serde(default = "default_backup_storage_path")]
+  pub storage_path: String,
+}
+
+fn default_backup_interval() -> u64 {
+  3600 // 1 hour
+}
+
+fn default_backup_retention() -> u32 {
+  7
+}
+
+fn default_backup_path() -> String {
+  "./backup".to_string()
+}
+
+fn default_backup_storage_path() -> String {
+  "backups".to_string()
+}
+
+impl Default for BackupSection {
+  fn default() -> Self {
+    Self {
+      interval: default_backup_interval(),
+      retention: default_backup_retention(),
+      local_path: default_backup_path(),
+      storage_path: default_backup_storage_path(),
     }
   }
 }

@@ -3,6 +3,8 @@ pub mod admin;
 
 // Server-side modules (only compiled with server feature)
 #[cfg(feature = "server")]
+pub mod backup;
+#[cfg(feature = "server")]
 pub mod cache;
 #[cfg(feature = "server")]
 pub mod db;

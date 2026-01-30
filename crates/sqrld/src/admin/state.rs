@@ -196,6 +196,45 @@ pub struct CacheStats {
   pub expired: u64,
 }
 
+/// Backup settings
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct BackupSettings {
+  pub enabled: bool,
+  pub interval: u64,
+  pub retention: u32,
+  pub local_path: String,
+  pub storage_path: String,
+  pub last_backup: Option<String>,
+  pub next_backup: Option<String>,
+  pub storage_enabled: bool,
+}
+
+impl Default for BackupSettings {
+  fn default() -> Self {
+    Self {
+      enabled: false,
+      interval: 3600,
+      retention: 7,
+      local_path: "./backup".to_string(),
+      storage_path: "backups".to_string(),
+      last_backup: None,
+      next_backup: None,
+      storage_enabled: false,
+    }
+  }
+}
+
+/// Backup info for listing
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct BackupInfo {
+  pub id: String,
+  pub filename: String,
+  pub size: i64,
+  pub created_at: String,
+  pub backend: String,
+  pub location: String,
+}
+
 /// API token info
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct TokenInfo {
@@ -279,6 +318,8 @@ pub struct AppState {
   pub cache_settings: RwSignal<CacheSettings>,
   pub cache_enabled: RwSignal<bool>,
   pub cache_stats: RwSignal<CacheStats>,
+  pub backup_settings: RwSignal<BackupSettings>,
+  pub backup_enabled: RwSignal<bool>,
   pub tokens: RwSignal<Vec<TokenInfo>>,
   pub api_auth_required: RwSignal<bool>,
   pub connected: RwSignal<bool>,
@@ -320,6 +361,8 @@ impl AppState {
       cache_settings: create_rw_signal(CacheSettings::default()),
       cache_enabled: create_rw_signal(false),
       cache_stats: create_rw_signal(CacheStats::default()),
+      backup_settings: create_rw_signal(BackupSettings::default()),
+      backup_enabled: create_rw_signal(false),
       tokens: create_rw_signal(Vec::new()),
       api_auth_required: create_rw_signal(false),
       connected: create_rw_signal(true),

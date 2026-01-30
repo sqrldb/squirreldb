@@ -9,8 +9,10 @@ pub fn GeneralSettings() -> impl IntoView {
   let state = use_context::<AppState>().expect("AppState not found");
   let protocol_settings = state.protocol_settings;
   let cors_settings = state.cors_settings;
+  let backup_settings = state.backup_settings;
   let loading = create_rw_signal(false);
   let cors_loading = create_rw_signal(false);
+  let backup_loading = create_rw_signal(false);
   let restarting = create_rw_signal(false);
   let restart_logs = create_rw_signal::<Vec<(String, String)>>(Vec::new());
   let new_origin = create_rw_signal(String::new());
@@ -25,6 +27,9 @@ pub fn GeneralSettings() -> impl IntoView {
       }
       if let Ok(settings) = apiclient::fetch_cors_settings().await {
         cors_settings.set(settings);
+      }
+      if let Ok(settings) = apiclient::fetch_backup_settings().await {
+        backup_settings.set(settings);
       }
     });
   });
@@ -247,6 +252,33 @@ pub fn GeneralSettings() -> impl IntoView {
   let is_permissive = move || {
     let origins = cors_settings.get().origins;
     origins.len() == 1 && origins.first().map(|s| s.as_str()) == Some("*")
+  };
+
+  let toggle_backup = move |checked: bool| {
+    backup_loading.set(true);
+    spawn_local(async move {
+      match apiclient::toggle_feature("backup", checked).await {
+        Ok(_) => {
+          let st = state_stored.get_value();
+          st.show_toast(
+            &format!(
+              "Automatic backups {} (restart required)",
+              if checked { "enabled" } else { "disabled" }
+            ),
+            ToastLevel::Success,
+          );
+          // Refresh backup settings
+          if let Ok(settings) = apiclient::fetch_backup_settings().await {
+            backup_settings.set(settings);
+          }
+        }
+        Err(e) => {
+          let st = state_stored.get_value();
+          st.show_toast(&format!("Failed to update: {}", e), ToastLevel::Error);
+        }
+      }
+      backup_loading.set(false);
+    });
   };
 
   view! {
@@ -473,6 +505,102 @@ pub fn GeneralSettings() -> impl IntoView {
             <path d="M8 16A8 8 0 108 0a8 8 0 000 16zm.93-9.412l-1 4.705c-.07.34.029.533.304.533.194 0 .487-.07.686-.246l-.088.416c-.287.346-.92.598-1.465.598-.703 0-1.002-.422-.808-1.319l.738-3.468c.064-.293.006-.399-.287-.47l-.451-.081.082-.381 2.29-.287h.001zM8 5.5a1 1 0 110-2 1 1 0 010 2z"/>
           </svg>
           <span class="text-muted">"CORS changes require server restart"</span>
+        </div>
+      </div>
+
+      // Backup Settings Card
+      <div class="settings-card">
+        <div class="settings-card-header">
+          <h3>"Database Backups"</h3>
+          <span class="settings-card-description">"Automatic database backup configuration"</span>
+        </div>
+        <div class="settings-card-body">
+          <div class="setting-row">
+            <div class="setting-info">
+              <span class="setting-label">"Enable Automatic Backups"</span>
+              <span class="setting-description">
+                {move || {
+                  if backup_settings.get().storage_enabled {
+                    "Backups will be stored in S3 Storage (/backups)"
+                  } else {
+                    "Backups will be stored locally in ./backup/"
+                  }
+                }}
+              </span>
+            </div>
+            <label class="toggle">
+              <input
+                type="checkbox"
+                prop:checked=move || backup_settings.get().enabled
+                prop:disabled=move || backup_loading.get()
+                on:change=move |ev| {
+                  let checked = event_target_checked(&ev);
+                  toggle_backup(checked);
+                }
+              />
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+
+          <Show when=move || backup_settings.get().enabled>
+            <div class="backup-info">
+              <div class="backup-info-row">
+                <span class="backup-info-label">"Backup Interval:"</span>
+                <span class="backup-info-value">
+                  {move || {
+                    let interval = backup_settings.get().interval;
+                    if interval >= 3600 {
+                      format!("{} hour(s)", interval / 3600)
+                    } else if interval >= 60 {
+                      format!("{} minute(s)", interval / 60)
+                    } else {
+                      format!("{} seconds", interval)
+                    }
+                  }}
+                </span>
+              </div>
+              <div class="backup-info-row">
+                <span class="backup-info-label">"Retention:"</span>
+                <span class="backup-info-value">
+                  {move || format!("{} backups", backup_settings.get().retention)}
+                </span>
+              </div>
+              <div class="backup-info-row">
+                <span class="backup-info-label">"Storage:"</span>
+                <span class="backup-info-value">
+                  {move || {
+                    if backup_settings.get().storage_enabled {
+                      format!("S3: /{}", backup_settings.get().storage_path)
+                    } else {
+                      backup_settings.get().local_path.clone()
+                    }
+                  }}
+                </span>
+              </div>
+              <Show when=move || backup_settings.get().last_backup.is_some()>
+                <div class="backup-info-row">
+                  <span class="backup-info-label">"Last Backup:"</span>
+                  <span class="backup-info-value">
+                    {move || backup_settings.get().last_backup.unwrap_or_else(|| "Never".to_string())}
+                  </span>
+                </div>
+              </Show>
+              <Show when=move || backup_settings.get().next_backup.is_some()>
+                <div class="backup-info-row">
+                  <span class="backup-info-label">"Next Backup:"</span>
+                  <span class="backup-info-value">
+                    {move || backup_settings.get().next_backup.unwrap_or_else(|| "Pending".to_string())}
+                  </span>
+                </div>
+              </Show>
+            </div>
+          </Show>
+        </div>
+        <div class="settings-card-footer">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" style="margin-right: 6px; opacity: 0.7;">
+            <path d="M8 16A8 8 0 108 0a8 8 0 000 16zm.93-9.412l-1 4.705c-.07.34.029.533.304.533.194 0 .487-.07.686-.246l-.088.416c-.287.346-.92.598-1.465.598-.703 0-1.002-.422-.808-1.319l.738-3.468c.064-.293.006-.399-.287-.47l-.451-.081.082-.381 2.29-.287h.001zM8 5.5a1 1 0 110-2 1 1 0 010 2z"/>
+          </svg>
+          <span class="text-muted">"Backup changes require server restart"</span>
         </div>
       </div>
 
