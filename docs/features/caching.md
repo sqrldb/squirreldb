@@ -17,6 +17,12 @@ caching:
   eviction: "lru"        # Eviction policy (builtin mode)
 ```
 
+Or via environment variable:
+
+```bash
+SQRL_CACHE_ENABLED=true sqrld
+```
+
 ## Cache Modes
 
 ### Built-in Mode (Default)

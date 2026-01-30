@@ -55,9 +55,25 @@ This is the recommended approach for production deployments where secrets should
 
 | Option | Default | Description |
 |--------|---------|-------------|
-| `server.host` | `0.0.0.0` | Bind address for both servers |
+| `server.host` | `0.0.0.0` | Bind address for all servers |
 | `server.port` | `8080` | WebSocket server port |
 | `server.admin_port` | `8081` | Admin UI HTTP port |
+| `server.admin` | `true` | Enable admin UI |
+
+#### Disabling Admin UI
+
+For production deployments where the admin UI should not be exposed:
+
+```yaml
+server:
+  admin: false
+```
+
+Or via environment variable:
+
+```bash
+SQRL_ADMIN_ENABLED=false sqrld
+```
 
 ### Backend Selection
 
@@ -160,6 +176,10 @@ Some settings can be set directly via environment variables:
 |----------|-------------|
 | `SQUIRRELDB_PG_URL` | PostgreSQL connection URL |
 | `SQUIRRELDB_SQLITE_PATH` | SQLite database path |
+| `SQRL_ADMIN_ENABLED` | Enable/disable admin UI (`true`/`false`) |
+| `SQRL_STORAGE_ENABLED` | Enable/disable S3 storage (`true`/`false`) |
+| `SQRL_CACHE_ENABLED` | Enable/disable cache (`true`/`false`) |
+| `SQRL_BACKUP_ENABLED` | Enable/disable automatic backups (`true`/`false`) |
 | `RUST_LOG` | Log level (standard Rust logging) |
 
 ## Configuration Precedence
@@ -199,6 +219,7 @@ server:
   host: "0.0.0.0"
   port: 8080
   admin_port: 8081
+  admin: true          # Set to false to disable admin UI
 
 postgres:
   url: $DATABASE_URL

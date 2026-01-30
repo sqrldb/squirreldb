@@ -16,6 +16,12 @@ storage:
   data_path: "./storage" # Local storage directory (builtin mode)
 ```
 
+Or via environment variable:
+
+```bash
+SQRL_STORAGE_ENABLED=true sqrld
+```
+
 ## Storage Modes
 
 SquirrelDB supports two storage modes:

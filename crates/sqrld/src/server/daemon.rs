@@ -104,27 +104,32 @@ impl Daemon {
       }
     });
 
-    // Start admin UI server with shutdown signal
-    let admin = AdminServer::new(
-      self.backend.clone(),
-      self.subs.clone(),
-      self.engine_pool.clone(),
-      self.shutdown_tx.subscribe(),
-      self.shutdown_tx.clone(),
-      self.config.clone(),
-      self.feature_registry.clone(),
-    );
-    let admin_addr = self.config.admin_address();
-    emit_log(
-      "info",
-      "squirreldb::admin",
-      &format!("Starting admin UI on {}", admin_addr),
-    );
-    tokio::spawn(async move {
-      if let Err(e) = admin.run(&admin_addr).await {
-        tracing::error!("Admin server error: {}", e);
-      }
-    });
+    // Start admin UI server with shutdown signal (if enabled)
+    if self.config.server.admin {
+      let admin = AdminServer::new(
+        self.backend.clone(),
+        self.subs.clone(),
+        self.engine_pool.clone(),
+        self.shutdown_tx.subscribe(),
+        self.shutdown_tx.clone(),
+        self.config.clone(),
+        self.feature_registry.clone(),
+      );
+      let admin_addr = self.config.admin_address();
+      emit_log(
+        "info",
+        "squirreldb::admin",
+        &format!("Starting admin UI on {}", admin_addr),
+      );
+      tokio::spawn(async move {
+        if let Err(e) = admin.run(&admin_addr).await {
+          tracing::error!("Admin server error: {}", e);
+        }
+      });
+    } else {
+      emit_log("warn", "squirreldb::admin", "Admin UI disabled");
+      tracing::info!("Admin UI disabled");
+    }
 
     // Start TCP wire protocol server if enabled
     if self.config.server.protocols.tcp {

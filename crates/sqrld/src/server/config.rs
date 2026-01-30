@@ -295,6 +295,9 @@ pub struct ServerSection {
   /// Use ["*"] for permissive mode, or specify origins like ["http://localhost:3000"]
   #[serde(default)]
   pub cors_origins: Vec<String>,
+  /// Enable admin UI (default: true)
+  #[serde(default = "default_true")]
+  pub admin: bool,
 }
 
 fn default_host() -> String {
@@ -308,6 +311,7 @@ impl Default for ServerSection {
       ports: PortsSection::default(),
       protocols: ProtocolsSection::default(),
       cors_origins: vec!["*".to_string()], // Permissive by default for development
+      admin: true,
     }
   }
 }

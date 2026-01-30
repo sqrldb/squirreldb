@@ -85,9 +85,24 @@ backup:
   retention: 7      # Keep 7 backups
 ```
 
-## Admin UI
+## Admin UI Configuration
 
-All features can be configured through the Admin UI:
+The Admin UI itself can be disabled for production deployments:
+
+```yaml
+server:
+  admin: false
+```
+
+Or via environment variable:
+
+```bash
+SQRL_ADMIN_ENABLED=false
+```
+
+## Configuring Features via Admin UI
+
+When enabled, all features can be configured through the Admin UI:
 
 ### Storage & Caching
 

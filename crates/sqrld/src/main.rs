@@ -55,6 +55,20 @@ async fn main() -> Result<(), anyhow::Error> {
     config.logging.level = level;
   }
 
+  // Environment variable overrides
+  if let Ok(val) = std::env::var("SQRL_ADMIN_ENABLED") {
+    config.server.admin = val.to_lowercase() == "true" || val == "1";
+  }
+  if let Ok(val) = std::env::var("SQRL_STORAGE_ENABLED") {
+    config.features.storage = val.to_lowercase() == "true" || val == "1";
+  }
+  if let Ok(val) = std::env::var("SQRL_CACHE_ENABLED") {
+    config.features.caching = val.to_lowercase() == "true" || val == "1";
+  }
+  if let Ok(val) = std::env::var("SQRL_BACKUP_ENABLED") {
+    config.features.backup = val.to_lowercase() == "true" || val == "1";
+  }
+
   tracing_subscriber::registry()
     .with(
       tracing_subscriber::EnvFilter::try_from_default_env()
