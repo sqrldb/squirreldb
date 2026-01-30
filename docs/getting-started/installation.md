@@ -4,10 +4,20 @@ This guide covers how to install and run SquirrelDB.
 
 ## Requirements
 
-- **Rust 1.75+** (for building from source)
 - **PostgreSQL 14+** or **SQLite 3.35+** (database backend)
+- **Rust 1.75+** (only if building from source)
 
 ## Installation Methods
+
+### From crates.io (Recommended)
+
+```bash
+# Install the server
+cargo install sqrld
+
+# Install the CLI client
+cargo install sqrl
+```
 
 ### From Source
 
@@ -105,25 +115,37 @@ Open http://localhost:8081 in your browser to access the Admin UI.
 
 ```bash
 # Using npm
-npm install squirreldb
+npm install squirreldb-sdk
 
 # Using bun
-bun add squirreldb
+bun add squirreldb-sdk
 
 # Using yarn
-yarn add squirreldb
+yarn add squirreldb-sdk
 ```
 
 ### Python
 
 ```bash
-pip install squirreldb
+pip install squirreldb-sdk
+```
+
+### Rust
+
+```bash
+cargo add squirreldb-sdk
+```
+
+### Go
+
+```bash
+go get github.com/squirreldb/squirreldb-sdk-go
 ```
 
 ### Ruby
 
 ```bash
-gem install squirreldb
+gem install squirreldb-sdk
 ```
 
 ### Elixir
@@ -133,7 +155,7 @@ Add to your `mix.exs`:
 ```elixir
 defp deps do
   [
-    {:squirreldb, "~> 0.0.1"}
+    {:squirreldb_sdk, "~> 0.1.0"}
   ]
 end
 ```

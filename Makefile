@@ -85,12 +85,27 @@ checksums:
 
 # === Publish ===
 
-publish-crates:
-	cargo publish --dry-run
-	@echo "Run 'cargo publish' to publish to crates.io"
+publish-types:
+	cd crates/types && cargo publish
 
-publish-crates-force:
-	cargo publish
+publish-client: publish-types
+	cd crates/client && cargo publish
+
+publish-sqrl: publish-client
+	cd crates/sqrl && cargo publish
+
+publish-sqrld: publish-client
+	cd crates/sqrld && cargo publish
+
+publish-crates: publish-types publish-client publish-sqrl publish-sqrld
+	@echo "All crates published to crates.io"
+
+publish-crates-dry:
+	cd crates/types && cargo publish --dry-run
+	cd crates/client && cargo publish --dry-run
+	cd crates/sqrl && cargo publish --dry-run
+	cd crates/sqrld && cargo publish --dry-run
+	@echo "Dry run complete. Run 'make publish-crates' to publish."
 
 # === Release (full workflow) ===
 
@@ -142,7 +157,8 @@ help:
 	@echo "  docker-multiarch Build and push multi-arch Docker image"
 	@echo "  dist             Create release archives for all platforms"
 	@echo "  checksums        Generate SHA256 checksums"
-	@echo "  publish-crates   Dry-run publish to crates.io"
+	@echo "  publish-crates   Publish all crates to crates.io"
+	@echo "  publish-crates-dry  Dry-run publish to crates.io"
 	@echo "  release          Full release workflow (check, dist, docker)"
 	@echo "  clean            Clean build artifacts"
 	@echo "  deps             Install build dependencies"

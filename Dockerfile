@@ -104,6 +104,16 @@ ENV SQRL_STORAGE_ENABLED=false
 ENV SQRL_STORAGE_PATH=/app/data/storage
 ENV SQRL_STORAGE_REGION=us-east-1
 
+# In-Memory Cache (Redis-compatible)
+ENV SQRL_CACHE_ENABLED=false
+ENV SQRL_CACHE_PORT=6379
+ENV SQRL_CACHE_MAX_MEMORY=256mb
+ENV SQRL_CACHE_EVICTION=lru
+ENV SQRL_CACHE_DEFAULT_TTL=0
+ENV SQRL_CACHE_SNAPSHOT_ENABLED=false
+ENV SQRL_CACHE_SNAPSHOT_PATH=/app/data/cache.snapshot
+ENV SQRL_CACHE_SNAPSHOT_INTERVAL=300
+
 # Logging
 ENV SQRL_LOG_LEVEL=info
 ENV RUST_LOG=info
@@ -121,6 +131,8 @@ EXPOSE 8082
 EXPOSE 8083
 # S3-compatible storage
 EXPOSE 9000
+# Redis-compatible cache
+EXPOSE 6379
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \

@@ -310,6 +310,93 @@ ssh -L 8081:localhost:8081 user@server
 
 Then open http://localhost:8081 in your browser.
 
+## Storage Browser
+
+When storage is enabled, the Admin UI includes a file browser for managing S3-compatible objects.
+
+### Accessing Storage
+
+1. Enable storage in your configuration:
+   ```yaml
+   features:
+     storage: true
+   ```
+
+2. Navigate to **Storage** in the sidebar
+
+3. Create a bucket or select an existing one
+
+4. Click **View** to open the file browser
+
+### Browser Interface
+
+The file browser displays:
+
+| Column | Description |
+|--------|-------------|
+| Checkbox | Select files for bulk operations |
+| Icon | Folder or file type icon |
+| Name | Object key/filename |
+| Size | File size (folders show "-") |
+| Modified | Last modification date |
+| Actions | Download, Delete buttons |
+
+### Navigation
+
+- **Click folders** to navigate into them
+- **Breadcrumbs** at the top show current path
+- **Click breadcrumb segments** to navigate up
+
+### Uploading Files
+
+1. Click **Upload** button in the toolbar
+2. Either:
+   - **Drag and drop** files into the drop zone
+   - Click **Choose Files** to open file picker
+3. Review selected files in the list
+4. Click **Upload** to start
+5. Progress bar shows upload status
+
+Features:
+- Multiple file upload
+- Drag-and-drop support
+- Upload progress tracking
+- Remove files before uploading
+
+### Downloading Files
+
+Click the **download icon** on any file row. The file downloads directly to your browser.
+
+### Deleting Files
+
+**Single file:**
+- Click the **delete icon** on the file row
+- Confirm deletion in the modal
+
+**Multiple files:**
+1. Check the boxes next to files to delete
+2. Click **Delete Selected** in the toolbar
+3. Confirm deletion
+
+### File Preview
+
+Click on a file name to preview:
+
+| File Type | Preview |
+|-----------|---------|
+| Images (PNG, JPG, GIF, WebP, SVG) | Inline image display |
+| Text files (.txt, .md, .log) | Syntax-highlighted text |
+| JSON files | Formatted JSON viewer |
+| Other files | Download prompt |
+
+### Keyboard Shortcuts
+
+| Key | Action |
+|-----|--------|
+| Enter | Open selected folder/preview file |
+| Backspace | Navigate to parent folder |
+| Delete | Delete selected files |
+
 ## Customization
 
 The Admin UI is built with vanilla HTML, CSS, and JavaScript. The styles use CSS variables for theming:

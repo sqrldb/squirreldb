@@ -1,0 +1,7 @@
+[build]
+target = "index.html"
+dist = "../../target/admin"
+
+[watch]
+watch = ["src/admin"]
+ignore = []

@@ -10,6 +10,8 @@
 - **WebSocket protocol** - Simple JSON-based protocol over WebSocket
 - **Admin UI** - Built-in web interface for database management
 - **Multi-language SDKs** - Official clients for TypeScript, Python, Ruby, and Elixir
+- **S3-compatible storage** - Object storage with built-in or external S3 provider support
+- **Redis-compatible cache** - In-memory caching with built-in or external Redis support
 
 ## Quick Example
 
@@ -61,6 +63,12 @@ await db.subscribe('db.table("users").changes()', (change) => {
 - [Ruby](./sdks/ruby.md) - Official Ruby SDK
 - [Elixir](./sdks/elixir.md) - Official Elixir SDK
 
+### Features
+
+- [Features Overview](./features/index.md) - Optional feature modules
+- [Object Storage](./features/storage.md) - S3-compatible storage with file browser
+- [Caching](./features/caching.md) - Redis-compatible in-memory cache
+
 ### Operations
 
 - [Admin UI](./operations/admin-ui.md) - Using the web administration interface
@@ -110,6 +118,12 @@ await db.subscribe('db.table("users").changes()', (change) => {
 │  ┌───────────────────────────────────────────────────────┐  │
 │  │               Database Backend (Trait)                 │  │
 │  └───────────────────────────────────────────────────────┘  │
+│                                                              │
+│  ┌────────────────────────┐  ┌────────────────────────┐    │
+│  │  Storage (Optional)    │  │  Cache (Optional)      │    │
+│  │  S3 API :9000          │  │  Redis API :6379       │    │
+│  │  Local / S3 Proxy      │  │  Built-in / Redis Proxy│    │
+│  └────────────────────────┘  └────────────────────────┘    │
 └─────────────────────────────────────────────────────────────┘
                               │
               ┌───────────────┴───────────────┐

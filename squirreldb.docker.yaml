@@ -40,11 +40,22 @@ limits:
 
 features:
   storage: ${SQRL_STORAGE_ENABLED}
+  caching: ${SQRL_CACHE_ENABLED}
 
 storage:
   port: ${SQRL_PORT_STORAGE}
   storage_path: ${SQRL_STORAGE_PATH}
   region: ${SQRL_STORAGE_REGION}
+
+caching:
+  port: ${SQRL_CACHE_PORT}
+  max_memory: ${SQRL_CACHE_MAX_MEMORY}
+  eviction: ${SQRL_CACHE_EVICTION}
+  default_ttl: ${SQRL_CACHE_DEFAULT_TTL}
+  snapshot:
+    enabled: ${SQRL_CACHE_SNAPSHOT_ENABLED}
+    path: ${SQRL_CACHE_SNAPSHOT_PATH}
+    interval: ${SQRL_CACHE_SNAPSHOT_INTERVAL}
 
 logging:
   level: ${SQRL_LOG_LEVEL}
