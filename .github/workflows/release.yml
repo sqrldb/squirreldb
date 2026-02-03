@@ -235,6 +235,14 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      - name: Update Docker Hub description
+        uses: peter-evans/dockerhub-description@v4
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          repository: squirreldb/squirreldb
+          readme-filepath: ./DOCKER.md
+
   create-release:
     name: Create GitHub Release
     runs-on: ubuntu-latest

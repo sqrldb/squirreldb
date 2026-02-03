@@ -1,35 +1,28 @@
-version: "3.8"
-
 services:
   squirreldb:
     build: .
+    # Or use: image: squirreldb/squirreldb:latest
     ports:
-      - "8080:8080"   # WebSocket / REST API
+      - "8080:8080"   # HTTP/WebSocket API
       - "8081:8081"   # Admin UI
-    environment:
-      - RUST_LOG=info
-      - DATABASE_URL=postgres://squirreldb:squirreldb@postgres:5432/squirreldb
-    depends_on:
-      postgres:
-        condition: service_healthy
+      - "8082:8082"   # TCP binary protocol
+      - "8083:8083"   # MCP (AI assistants)
+      - "9000:9000"   # S3-compatible storage
+      - "6379:6379"   # Redis-compatible cache
     volumes:
-      - ./squirreldb.yaml:/app/squirreldb.yaml:ro
-    restart: unless-stopped
-
-  postgres:
-    image: postgres:16-alpine
+      - squirreldb_data:/app/data
     environment:
-      POSTGRES_USER: squirreldb
-      POSTGRES_PASSWORD: squirreldb
-      POSTGRES_DB: squirreldb
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
+      SQRL_BACKEND: sqlite
+      SQRL_LOG_LEVEL: info
+      SQRL_STORAGE_ENABLED: "true"
+      SQRL_CACHE_ENABLED: "true"
+      SQRL_MCP_ENABLED: "true"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U squirreldb"]
-      interval: 5s
+      test: ["CMD", "sqrl", "status"]
+      interval: 30s
       timeout: 5s
-      retries: 5
+      retries: 3
     restart: unless-stopped
 
 volumes:
-  postgres_data:
+  squirreldb_data:
