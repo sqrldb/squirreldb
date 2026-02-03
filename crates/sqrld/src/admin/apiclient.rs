@@ -904,6 +904,7 @@ pub async fn test_cache_connection(
 // =============================================================================
 
 #[cfg(feature = "csr")]
+#[allow(clippy::too_many_arguments)]
 pub async fn update_storage_settings_extended(
   port: Option<u16>,
   storage_path: Option<String>,
@@ -962,6 +963,7 @@ pub async fn update_storage_settings_extended(
 // =============================================================================
 
 #[cfg(feature = "csr")]
+#[allow(clippy::too_many_arguments)]
 pub async fn update_cache_settings_extended(
   port: Option<u16>,
   max_memory: Option<String>,

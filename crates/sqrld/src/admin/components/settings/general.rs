@@ -234,22 +234,19 @@ pub fn GeneralSettings() -> impl IntoView {
 
             add_log(&format!("Polling server... (attempt {})", attempts));
 
-            match apiclient::health_check().await {
-              Ok(_) => {
-                add_log("✓ Server is back online!");
-                add_log("Reloading page...");
+            if apiclient::health_check().await.is_ok() {
+              add_log("✓ Server is back online!");
+              add_log("Reloading page...");
 
-                gloo_timers::future::TimeoutFuture::new(500).await;
+              gloo_timers::future::TimeoutFuture::new(500).await;
 
-                let st = state_stored.get_value();
-                st.show_toast("Server restarted successfully", ToastLevel::Success);
+              let st = state_stored.get_value();
+              st.show_toast("Server restarted successfully", ToastLevel::Success);
 
-                if let Some(window) = web_sys::window() {
-                  let _ = window.location().reload();
-                }
-                break;
+              if let Some(window) = web_sys::window() {
+                let _ = window.location().reload();
               }
-              Err(_) => {}
+              break;
             }
           }
         }

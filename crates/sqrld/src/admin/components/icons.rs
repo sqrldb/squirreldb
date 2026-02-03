@@ -1,5 +1,5 @@
 //! Lucide icons as Leptos components
-//! https://lucide.dev/icons/
+//! <https://lucide.dev/icons/>
 
 use leptos::*;
 

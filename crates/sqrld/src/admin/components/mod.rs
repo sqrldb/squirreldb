@@ -112,7 +112,7 @@ pub fn App() -> impl IntoView {
     });
   });
 
-  let on_login = on_setup_complete.clone();
+  let on_login = on_setup_complete;
 
   view! {
     <Router>

@@ -230,7 +230,7 @@ where
               {move || {
                 files.get().into_iter().enumerate().map(|(index, file)| {
                   let name = file.name();
-                  let size = format_size(file.size() as f64);
+                  let size = format_size(file.size());
                   view! {
                     <div class="upload-file-item">
                       <div class="upload-file-info">

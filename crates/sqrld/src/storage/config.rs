@@ -35,7 +35,7 @@ impl std::str::FromStr for StorageMode {
 /// Configuration for proxy mode (external S3)
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct ProxyConfig {
-  /// S3 endpoint URL (e.g., https://s3.amazonaws.com)
+  /// S3 endpoint URL (e.g., `https://s3.amazonaws.com`)
   #[serde(default)]
   pub endpoint: String,
 

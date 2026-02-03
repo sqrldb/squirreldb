@@ -113,7 +113,7 @@ pub fn BucketBrowser(bucket: String) -> impl IntoView {
     spawn_local(async move {
       let mut errors = 0;
       for key in &keys {
-        if let Err(_) = apiclient::delete_bucket_object(&bucket, key).await {
+        if apiclient::delete_bucket_object(&bucket, key).await.is_err() {
           errors += 1;
         }
       }
@@ -368,7 +368,7 @@ pub fn BucketBrowser(bucket: String) -> impl IntoView {
                       let key = key_for_delete.clone();
                       let current_prefix = prefix.get();
                       spawn_local(async move {
-                        if let Ok(_) = apiclient::delete_bucket_object(&bucket, &key).await {
+                        if apiclient::delete_bucket_object(&bucket, &key).await.is_ok() {
                           if let Ok((objs, fldrs)) = apiclient::list_bucket_objects(&bucket, Some(&current_prefix)).await {
                             set_objects.set(objs);
                             set_folders.set(fldrs);
