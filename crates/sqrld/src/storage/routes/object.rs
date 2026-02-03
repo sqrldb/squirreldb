@@ -8,6 +8,7 @@ use std::collections::HashMap;
 use std::sync::Arc;
 use uuid::Uuid;
 
+use crate::security::validate_object_key;
 use crate::storage::error::StorageError;
 use crate::storage::server::StorageState;
 use crate::storage::types::*;
@@ -21,6 +22,14 @@ pub async fn put_object_or_operation(
   headers: HeaderMap,
   body: Bytes,
 ) -> Result<Response, StorageError> {
+  // Validate object key to prevent path traversal attacks
+  validate_object_key(&key).map_err(|e| {
+    StorageError::new(
+      crate::storage::error::StorageErrorCode::InvalidArgument,
+      format!("Invalid object key: {}", e),
+    )
+  })?;
+
   // Check for special operations
   if params.contains_key("acl") {
     return put_object_acl(state, &bucket, &key, body).await;
@@ -265,6 +274,14 @@ pub async fn get_object_or_operation(
   Query(params): Query<HashMap<String, String>>,
   headers: HeaderMap,
 ) -> Result<Response, StorageError> {
+  // Validate object key to prevent path traversal attacks
+  validate_object_key(&key).map_err(|e| {
+    StorageError::new(
+      crate::storage::error::StorageErrorCode::InvalidArgument,
+      format!("Invalid object key: {}", e),
+    )
+  })?;
+
   // Check for special operations
   if params.contains_key("acl") {
     return get_object_acl(state, &bucket, &key).await;
@@ -375,6 +392,14 @@ pub async fn head_object(
   Path((bucket, key)): Path<(String, String)>,
   Query(params): Query<HashMap<String, String>>,
 ) -> Result<Response, StorageError> {
+  // Validate object key to prevent path traversal attacks
+  validate_object_key(&key).map_err(|e| {
+    StorageError::new(
+      crate::storage::error::StorageErrorCode::InvalidArgument,
+      format!("Invalid object key: {}", e),
+    )
+  })?;
+
   // Check bucket exists
   state
     .backend
@@ -418,6 +443,14 @@ pub async fn delete_object_or_operation(
   Path((bucket, key)): Path<(String, String)>,
   Query(params): Query<HashMap<String, String>>,
 ) -> Result<Response, StorageError> {
+  // Validate object key to prevent path traversal attacks
+  validate_object_key(&key).map_err(|e| {
+    StorageError::new(
+      crate::storage::error::StorageErrorCode::InvalidArgument,
+      format!("Invalid object key: {}", e),
+    )
+  })?;
+
   // Check for multipart abort
   if params.contains_key("uploadId") {
     return super::abort_multipart_upload(state, &bucket, &key, params).await;
@@ -496,6 +529,14 @@ pub async fn post_object_operation(
   Query(params): Query<HashMap<String, String>>,
   body: Bytes,
 ) -> Result<Response, StorageError> {
+  // Validate object key to prevent path traversal attacks
+  validate_object_key(&key).map_err(|e| {
+    StorageError::new(
+      crate::storage::error::StorageErrorCode::InvalidArgument,
+      format!("Invalid object key: {}", e),
+    )
+  })?;
+
   // Check for multipart operations
   if params.contains_key("uploads") {
     return super::initiate_multipart_upload(state, &bucket, &key).await;

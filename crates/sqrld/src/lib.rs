@@ -1,6 +1,9 @@
 // Admin module (server API or CSR components depending on feature)
 pub mod admin;
 
+// Security module (always available)
+pub mod security;
+
 // Server-side modules (only compiled with server feature)
 #[cfg(feature = "server")]
 pub mod backup;

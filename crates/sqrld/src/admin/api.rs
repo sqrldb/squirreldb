@@ -25,11 +25,12 @@ use tower_http::services::{ServeDir, ServeFile};
 use uuid::Uuid;
 
 use super::auth;
+use crate::security::headers::SecurityHeadersLayer;
 use crate::cache::CacheStore;
 use crate::db::{AdminRole, AdminUser, ApiTokenInfo, DatabaseBackend, SqlDialect};
 use crate::features::{FeatureInfo, FeatureRegistry};
 use crate::query::{QueryEngine, QueryEnginePool};
-use crate::server::{MessageHandler, ServerConfig};
+use crate::server::{MessageHandler, RateLimiter, ServerConfig};
 use crate::subscriptions::SubscriptionManager;
 use crate::types::{ClientMessage, ServerMessage, DEFAULT_PROJECT_ID};
 
@@ -59,6 +60,7 @@ pub struct AppState {
   pub log_tx: broadcast::Sender<LogEntry>,
   pub feature_registry: Arc<FeatureRegistry>,
   pub shutdown_tx: Option<broadcast::Sender<()>>,
+  pub rate_limiter: Arc<RateLimiter>,
 }
 
 /// Global log broadcaster - initialized once and used throughout the app
@@ -97,6 +99,7 @@ pub struct AdminServer {
   shutdown_tx: broadcast::Sender<()>,
   config: ServerConfig,
   feature_registry: Arc<FeatureRegistry>,
+  rate_limiter: Arc<RateLimiter>,
 }
 
 impl AdminServer {
@@ -108,6 +111,7 @@ impl AdminServer {
     shutdown_tx: broadcast::Sender<()>,
     config: ServerConfig,
     feature_registry: Arc<FeatureRegistry>,
+    rate_limiter: Arc<RateLimiter>,
   ) -> Self {
     Self {
       backend,
@@ -117,6 +121,7 @@ impl AdminServer {
       shutdown_tx,
       config,
       feature_registry,
+      rate_limiter,
     }
   }
 
@@ -137,6 +142,7 @@ impl AdminServer {
       log_tx,
       feature_registry: self.feature_registry.clone(),
       shutdown_tx: Some(self.shutdown_tx.clone()),
+      rate_limiter: self.rate_limiter.clone(),
     };
 
     // Spawn task to forward subscription changes to WebSocket clients
@@ -258,12 +264,16 @@ impl AdminServer {
       .layer(axum::middleware::from_fn_with_state(
         state.clone(),
         admin_auth_middleware,
+      ))
+      .layer(axum::middleware::from_fn_with_state(
+        state.clone(),
+        rate_limit_middleware,
       ));
     app = app.merge(admin_routes);
 
-    // REST API routes (conditional, public - no auth required)
+    // REST API routes (conditional, public - no auth required, but rate limited)
     if self.config.server.protocols.rest {
-      app = app
+      let rest_routes = Router::new()
         .route("/api/status", get(api_status))
         .route("/api/collections", get(api_collections))
         .route("/api/collections/{name}", get(api_collection_docs))
@@ -278,7 +288,12 @@ impl AdminServer {
           "/api/collections/{name}/documents/{id}",
           delete(api_delete_doc),
         )
-        .route("/api/query", post(api_query));
+        .route("/api/query", post(api_query))
+        .layer(axum::middleware::from_fn_with_state(
+          state.clone(),
+          rate_limit_middleware,
+        ));
+      app = app.merge(rest_routes);
     }
 
     // WebSocket endpoint (conditional, public - no auth required)
@@ -313,6 +328,7 @@ impl AdminServer {
       .fallback_service(
         ServeDir::new("target/admin").not_found_service(ServeFile::new("target/admin/index.html")),
       )
+      .layer(SecurityHeadersLayer)
       .layer(cors)
       .with_state(state);
 
@@ -916,8 +932,9 @@ async fn admin_auth_middleware(
       }
 
       // Check if it matches admin_token (if configured)
+      // Uses constant-time comparison to prevent timing attacks
       if let Some(ref admin_token) = state.config.auth.admin_token {
-        if !admin_token.is_empty() && t == *admin_token {
+        if !admin_token.is_empty() && crate::security::constant_time_compare(&t, admin_token) {
           return next.run(req).await;
         }
       }
@@ -939,6 +956,60 @@ async fn admin_auth_middleware(
     )
       .into_response(),
   }
+}
+
+/// Rate limiting middleware for admin API routes
+/// Extracts client IP and checks against the rate limiter
+async fn rate_limit_middleware(
+  State(state): State<AppState>,
+  req: Request,
+  next: Next,
+) -> Response {
+  // Extract client IP from headers (X-Forwarded-For, X-Real-IP) or socket
+  let ip = extract_client_ip(&req);
+
+  // Check rate limit
+  if let Err(e) = state.rate_limiter.check_request(ip) {
+    return (
+      StatusCode::TOO_MANY_REQUESTS,
+      [(header::RETRY_AFTER, "1")],
+      Json(serde_json::json!({
+        "error": "Rate limit exceeded",
+        "message": e.to_string()
+      })),
+    )
+      .into_response();
+  }
+
+  next.run(req).await
+}
+
+/// Extract client IP from request headers or connection info
+fn extract_client_ip(req: &Request) -> std::net::IpAddr {
+  // Try X-Forwarded-For first (common for proxies/load balancers)
+  if let Some(forwarded) = req.headers().get("X-Forwarded-For") {
+    if let Ok(s) = forwarded.to_str() {
+      // Take the first IP in the chain (original client)
+      if let Some(ip_str) = s.split(',').next() {
+        if let Ok(ip) = ip_str.trim().parse() {
+          return ip;
+        }
+      }
+    }
+  }
+
+  // Try X-Real-IP (nginx)
+  if let Some(real_ip) = req.headers().get("X-Real-IP") {
+    if let Ok(s) = real_ip.to_str() {
+      if let Ok(ip) = s.parse() {
+        return ip;
+      }
+    }
+  }
+
+  // Fallback to localhost if no IP can be extracted
+  // In production, you should ensure connection info is available
+  std::net::IpAddr::V4(std::net::Ipv4Addr::LOCALHOST)
 }
 
 // =============================================================================

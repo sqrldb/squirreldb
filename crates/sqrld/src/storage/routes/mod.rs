@@ -13,6 +13,7 @@ use axum::{
 use std::sync::Arc;
 
 use super::server::StorageState;
+use crate::security::headers::SecurityHeadersLayer;
 
 /// Build S3 API router
 pub fn build_router(state: Arc<StorageState>) -> Router {
@@ -30,5 +31,6 @@ pub fn build_router(state: Arc<StorageState>) -> Router {
     .route("/{bucket}/{*key}", head(head_object))
     .route("/{bucket}/{*key}", delete(delete_object_or_operation))
     .route("/{bucket}/{*key}", post(post_object_operation))
+    .layer(SecurityHeadersLayer)
     .with_state(state)
 }

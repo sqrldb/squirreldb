@@ -1,4 +1,5 @@
 use futures_util::{SinkExt, StreamExt};
+use sha2::{Digest, Sha256};
 use std::collections::HashMap;
 use std::net::IpAddr;
 use std::sync::Arc;
@@ -7,7 +8,7 @@ use tokio::sync::{broadcast, mpsc, RwLock};
 use tokio_tungstenite::tungstenite::Message;
 use uuid::Uuid;
 
-use super::{MessageHandler, RateLimiter};
+use super::{MessageHandler, RateLimiter, ServerConfig};
 use crate::db::DatabaseBackend;
 use crate::query::QueryEnginePool;
 use crate::subscriptions::SubscriptionManager;
@@ -22,6 +23,7 @@ pub struct WebSocketServer {
   rate_limiter: Arc<RateLimiter>,
   clients: Clients,
   shutdown_rx: broadcast::Receiver<()>,
+  config: ServerConfig,
 }
 
 impl WebSocketServer {
@@ -31,6 +33,7 @@ impl WebSocketServer {
     engine_pool: Arc<QueryEnginePool>,
     rate_limiter: Arc<RateLimiter>,
     shutdown_rx: broadcast::Receiver<()>,
+    config: ServerConfig,
   ) -> Self {
     Self {
       backend,
@@ -39,6 +42,7 @@ impl WebSocketServer {
       rate_limiter,
       clients: Arc::new(RwLock::new(HashMap::new())),
       shutdown_rx,
+      config,
     }
   }
 
@@ -73,6 +77,7 @@ impl WebSocketServer {
           let engine_pool = self.engine_pool.clone();
           let rate_limiter = self.rate_limiter.clone();
           let clients = self.clients.clone();
+          let config = self.config.clone();
           tokio::spawn(handle_client(
             stream,
             peer_ip,
@@ -81,12 +86,66 @@ impl WebSocketServer {
             engine_pool,
             rate_limiter,
             clients,
+            config,
           ));
         }
         _ = self.shutdown_rx.recv() => break,
       }
     }
     Ok(())
+  }
+}
+
+/// Hash a token using SHA-256 for validation
+fn hash_token(token: &str) -> String {
+  let mut hasher = Sha256::new();
+  hasher.update(token.as_bytes());
+  format!("{:x}", hasher.finalize())
+}
+
+/// Authenticate a WebSocket client
+/// Returns Ok(project_id) if authentication is successful, or None if auth is disabled
+async fn authenticate_client(
+  backend: &Arc<dyn DatabaseBackend>,
+  config: &ServerConfig,
+  first_message: Option<&str>,
+) -> Result<Option<Uuid>, String> {
+  // If auth is disabled, allow all connections
+  if !config.auth.enabled {
+    return Ok(None);
+  }
+
+  // Extract token from first message (expected format: {"type":"Auth","token":"..."})
+  let token = match first_message {
+    Some(msg) => {
+      if let Ok(parsed) = serde_json::from_str::<serde_json::Value>(msg) {
+        if parsed.get("type").and_then(|t| t.as_str()) == Some("Auth") {
+          parsed.get("token").and_then(|t| t.as_str()).map(|s| s.to_string())
+        } else {
+          None
+        }
+      } else {
+        None
+      }
+    }
+    None => None,
+  };
+
+  let token = token.ok_or_else(|| "Authentication required. Send {\"type\":\"Auth\",\"token\":\"your_token\"} as first message".to_string())?;
+
+  // Check if it's the admin token
+  if let Some(ref admin_token) = config.auth.admin_token {
+    if !admin_token.is_empty() && crate::security::constant_time_compare(&token, admin_token) {
+      return Ok(None); // Admin token grants access to all projects
+    }
+  }
+
+  // Validate as API token
+  let token_hash = hash_token(&token);
+  match backend.validate_token(&token_hash).await {
+    Ok(Some(project_id)) => Ok(Some(project_id)),
+    Ok(None) => Err("Invalid token".to_string()),
+    Err(e) => Err(format!("Authentication error: {}", e)),
   }
 }
 
@@ -98,6 +157,7 @@ async fn handle_client(
   engine_pool: Arc<QueryEnginePool>,
   rate_limiter: Arc<RateLimiter>,
   clients: Clients,
+  config: ServerConfig,
 ) {
   let Ok(ws) = tokio_tungstenite::accept_async(stream).await else {
     rate_limiter.release_connection(peer_ip);
@@ -106,6 +166,63 @@ async fn handle_client(
   let client_id = Uuid::new_v4();
   let (mut sink, mut stream) = ws.split();
   let (tx, mut rx) = mpsc::unbounded_channel();
+
+  // If auth is enabled, require authentication as first message
+  let mut authenticated = !config.auth.enabled;
+  let mut _project_id: Option<Uuid> = None;
+
+  if config.auth.enabled {
+    // Wait for auth message with timeout
+    let auth_timeout = tokio::time::Duration::from_secs(30);
+    let auth_result = tokio::time::timeout(auth_timeout, stream.next()).await;
+
+    match auth_result {
+      Ok(Some(Ok(Message::Text(text)))) => {
+        match authenticate_client(&backend, &config, Some(&text)).await {
+          Ok(pid) => {
+            authenticated = true;
+            _project_id = pid;
+            // Send auth success
+            let success = serde_json::json!({"type": "AuthSuccess"});
+            if sink.send(Message::Text(success.to_string().into())).await.is_err() {
+              rate_limiter.release_connection(peer_ip);
+              return;
+            }
+          }
+          Err(e) => {
+            // Send auth failure and close
+            let failure = serde_json::json!({"type": "AuthFailure", "error": e});
+            let _ = sink.send(Message::Text(failure.to_string().into())).await;
+            tracing::warn!("WebSocket auth failed from {}: {}", peer_ip, e);
+            rate_limiter.release_connection(peer_ip);
+            return;
+          }
+        }
+      }
+      Ok(Some(Ok(_))) => {
+        let failure = serde_json::json!({"type": "AuthFailure", "error": "Expected text message for authentication"});
+        let _ = sink.send(Message::Text(failure.to_string().into())).await;
+        rate_limiter.release_connection(peer_ip);
+        return;
+      }
+      Ok(Some(Err(_))) | Ok(None) => {
+        rate_limiter.release_connection(peer_ip);
+        return;
+      }
+      Err(_) => {
+        // Timeout
+        let failure = serde_json::json!({"type": "AuthFailure", "error": "Authentication timeout"});
+        let _ = sink.send(Message::Text(failure.to_string().into())).await;
+        rate_limiter.release_connection(peer_ip);
+        return;
+      }
+    }
+  }
+
+  if !authenticated {
+    rate_limiter.release_connection(peer_ip);
+    return;
+  }
 
   clients.write().await.insert(client_id, tx);
   let handler = MessageHandler::new(backend, subs.clone(), engine_pool);

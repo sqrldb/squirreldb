@@ -169,7 +169,7 @@ async fn test_sqlite_backend_create_token() {
 
   let token_hash = "abc123def456";
   let token_info = backend
-    .create_token("test-token", token_hash)
+    .create_token(DEFAULT_PROJECT_ID, "test-token", token_hash)
     .await
     .unwrap();
 
@@ -183,11 +183,11 @@ async fn test_sqlite_backend_list_tokens() {
   backend.init_schema().await.unwrap();
 
   // Create some tokens
-  backend.create_token("token-1", "hash1").await.unwrap();
-  backend.create_token("token-2", "hash2").await.unwrap();
-  backend.create_token("token-3", "hash3").await.unwrap();
+  backend.create_token(DEFAULT_PROJECT_ID, "token-1", "hash1").await.unwrap();
+  backend.create_token(DEFAULT_PROJECT_ID, "token-2", "hash2").await.unwrap();
+  backend.create_token(DEFAULT_PROJECT_ID, "token-3", "hash3").await.unwrap();
 
-  let tokens = backend.list_tokens().await.unwrap();
+  let tokens = backend.list_tokens(DEFAULT_PROJECT_ID).await.unwrap();
   assert_eq!(tokens.len(), 3);
 
   let names: Vec<&str> = tokens.iter().map(|t| t.name.as_str()).collect();
@@ -201,22 +201,22 @@ async fn test_sqlite_backend_delete_token() {
   let backend = SqliteBackend::in_memory().await.unwrap();
   backend.init_schema().await.unwrap();
 
-  let token_info = backend.create_token("to-delete", "hash123").await.unwrap();
+  let token_info = backend.create_token(DEFAULT_PROJECT_ID, "to-delete", "hash123").await.unwrap();
 
   // Verify it exists
-  let tokens = backend.list_tokens().await.unwrap();
+  let tokens = backend.list_tokens(DEFAULT_PROJECT_ID).await.unwrap();
   assert_eq!(tokens.len(), 1);
 
   // Delete it
-  let deleted = backend.delete_token(token_info.id).await.unwrap();
+  let deleted = backend.delete_token(DEFAULT_PROJECT_ID, token_info.id).await.unwrap();
   assert!(deleted);
 
   // Verify it's gone
-  let tokens = backend.list_tokens().await.unwrap();
+  let tokens = backend.list_tokens(DEFAULT_PROJECT_ID).await.unwrap();
   assert_eq!(tokens.len(), 0);
 
   // Delete non-existent should return false
-  let deleted_again = backend.delete_token(token_info.id).await.unwrap();
+  let deleted_again = backend.delete_token(DEFAULT_PROJECT_ID, token_info.id).await.unwrap();
   assert!(!deleted_again);
 }
 
@@ -227,17 +227,17 @@ async fn test_sqlite_backend_validate_token() {
 
   let valid_hash = "valid_token_hash_123";
   backend
-    .create_token("valid-token", valid_hash)
+    .create_token(DEFAULT_PROJECT_ID, "valid-token", valid_hash)
     .await
     .unwrap();
 
-  // Valid token should return true
-  let is_valid = backend.validate_token(valid_hash).await.unwrap();
-  assert!(is_valid);
+  // Valid token should return Some(project_id)
+  let result = backend.validate_token(valid_hash).await.unwrap();
+  assert!(result.is_some());
 
-  // Invalid token should return false
-  let is_invalid = backend.validate_token("invalid_hash").await.unwrap();
-  assert!(!is_invalid);
+  // Invalid token should return None
+  let result = backend.validate_token("invalid_hash").await.unwrap();
+  assert!(result.is_none());
 }
 
 #[tokio::test]
@@ -246,9 +246,9 @@ async fn test_sqlite_backend_token_name_unique() {
   backend.init_schema().await.unwrap();
 
   // Create first token
-  backend.create_token("unique-name", "hash1").await.unwrap();
+  backend.create_token(DEFAULT_PROJECT_ID, "unique-name", "hash1").await.unwrap();
 
   // Creating token with same name should fail
-  let result = backend.create_token("unique-name", "hash2").await;
+  let result = backend.create_token(DEFAULT_PROJECT_ID, "unique-name", "hash2").await;
   assert!(result.is_err());
 }

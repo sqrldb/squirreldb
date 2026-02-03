@@ -94,7 +94,7 @@ async fn test_create_token_generates_uuid() {
 
   let token_hash = hash_token("sqrl_testtoken123");
   let info = backend
-    .create_token("test-token", &token_hash)
+    .create_token(DEFAULT_PROJECT_ID, "test-token", &token_hash)
     .await
     .unwrap();
 
@@ -120,7 +120,7 @@ async fn test_create_token_with_various_names() {
 
   for name in names {
     let hash = hash_token(&format!("sqrl_{}", name));
-    let info = backend.create_token(name, &hash).await.unwrap();
+    let info = backend.create_token(DEFAULT_PROJECT_ID, name, &hash).await.unwrap();
     assert_eq!(info.name, name);
   }
 }
@@ -133,8 +133,8 @@ async fn test_create_token_duplicate_name_fails() {
   let hash1 = hash_token("sqrl_token1");
   let hash2 = hash_token("sqrl_token2");
 
-  backend.create_token("duplicate", &hash1).await.unwrap();
-  let result = backend.create_token("duplicate", &hash2).await;
+  backend.create_token(DEFAULT_PROJECT_ID, "duplicate", &hash1).await.unwrap();
+  let result = backend.create_token(DEFAULT_PROJECT_ID, "duplicate", &hash2).await;
 
   assert!(result.is_err(), "Duplicate name should fail");
 }
@@ -147,10 +147,10 @@ async fn test_create_multiple_tokens() {
   for i in 0..10 {
     let name = format!("token-{}", i);
     let hash = hash_token(&format!("sqrl_hash{}", i));
-    backend.create_token(&name, &hash).await.unwrap();
+    backend.create_token(DEFAULT_PROJECT_ID, &name, &hash).await.unwrap();
   }
 
-  let tokens = backend.list_tokens().await.unwrap();
+  let tokens = backend.list_tokens(DEFAULT_PROJECT_ID).await.unwrap();
   assert_eq!(tokens.len(), 10);
 }
 
@@ -163,10 +163,10 @@ async fn test_list_tokens_returns_all() {
 
   for name in &expected_names {
     let hash = hash_token(&format!("sqrl_{}", name));
-    backend.create_token(name, &hash).await.unwrap();
+    backend.create_token(DEFAULT_PROJECT_ID, name, &hash).await.unwrap();
   }
 
-  let tokens = backend.list_tokens().await.unwrap();
+  let tokens = backend.list_tokens(DEFAULT_PROJECT_ID).await.unwrap();
   let actual_names: Vec<String> = tokens.iter().map(|t| t.name.clone()).collect();
 
   for name in &expected_names {
@@ -179,7 +179,7 @@ async fn test_list_tokens_empty() {
   let backend = SqliteBackend::in_memory().await.unwrap();
   backend.init_schema().await.unwrap();
 
-  let tokens = backend.list_tokens().await.unwrap();
+  let tokens = backend.list_tokens(DEFAULT_PROJECT_ID).await.unwrap();
   assert!(tokens.is_empty());
 }
 
@@ -189,14 +189,14 @@ async fn test_delete_token_removes_from_list() {
   backend.init_schema().await.unwrap();
 
   let hash = hash_token("sqrl_todelete");
-  let info = backend.create_token("to-delete", &hash).await.unwrap();
+  let info = backend.create_token(DEFAULT_PROJECT_ID, "to-delete", &hash).await.unwrap();
 
-  assert_eq!(backend.list_tokens().await.unwrap().len(), 1);
+  assert_eq!(backend.list_tokens(DEFAULT_PROJECT_ID).await.unwrap().len(), 1);
 
-  let deleted = backend.delete_token(info.id).await.unwrap();
+  let deleted = backend.delete_token(DEFAULT_PROJECT_ID, info.id).await.unwrap();
   assert!(deleted);
 
-  assert_eq!(backend.list_tokens().await.unwrap().len(), 0);
+  assert_eq!(backend.list_tokens(DEFAULT_PROJECT_ID).await.unwrap().len(), 0);
 }
 
 #[tokio::test]
@@ -205,7 +205,7 @@ async fn test_delete_nonexistent_token() {
   backend.init_schema().await.unwrap();
 
   let fake_id = uuid::Uuid::new_v4();
-  let deleted = backend.delete_token(fake_id).await.unwrap();
+  let deleted = backend.delete_token(DEFAULT_PROJECT_ID, fake_id).await.unwrap();
   assert!(!deleted);
 }
 
@@ -215,12 +215,12 @@ async fn test_delete_token_twice() {
   backend.init_schema().await.unwrap();
 
   let hash = hash_token("sqrl_once");
-  let info = backend.create_token("once", &hash).await.unwrap();
+  let info = backend.create_token(DEFAULT_PROJECT_ID, "once", &hash).await.unwrap();
 
-  let first = backend.delete_token(info.id).await.unwrap();
+  let first = backend.delete_token(DEFAULT_PROJECT_ID, info.id).await.unwrap();
   assert!(first);
 
-  let second = backend.delete_token(info.id).await.unwrap();
+  let second = backend.delete_token(DEFAULT_PROJECT_ID, info.id).await.unwrap();
   assert!(!second);
 }
 
@@ -236,10 +236,10 @@ async fn test_validate_token_correct_hash() {
   let token = "sqrl_validtoken123";
   let hash = hash_token(token);
 
-  backend.create_token("valid", &hash).await.unwrap();
+  backend.create_token(DEFAULT_PROJECT_ID, "valid", &hash).await.unwrap();
 
-  let is_valid = backend.validate_token(&hash).await.unwrap();
-  assert!(is_valid);
+  let result = backend.validate_token(&hash).await.unwrap();
+  assert!(result.is_some());
 }
 
 #[tokio::test]
@@ -250,11 +250,11 @@ async fn test_validate_token_wrong_hash() {
   let token = "sqrl_validtoken123";
   let hash = hash_token(token);
 
-  backend.create_token("valid", &hash).await.unwrap();
+  backend.create_token(DEFAULT_PROJECT_ID, "valid", &hash).await.unwrap();
 
   let wrong_hash = hash_token("sqrl_wrongtoken");
-  let is_valid = backend.validate_token(&wrong_hash).await.unwrap();
-  assert!(!is_valid);
+  let result = backend.validate_token(&wrong_hash).await.unwrap();
+  assert!(result.is_none());
 }
 
 #[tokio::test]
@@ -263,8 +263,8 @@ async fn test_validate_token_no_tokens_exist() {
   backend.init_schema().await.unwrap();
 
   let hash = hash_token("sqrl_nonexistent");
-  let is_valid = backend.validate_token(&hash).await.unwrap();
-  assert!(!is_valid);
+  let result = backend.validate_token(&hash).await.unwrap();
+  assert!(result.is_none());
 }
 
 #[tokio::test]
@@ -275,16 +275,16 @@ async fn test_validate_token_after_deletion() {
   let token = "sqrl_temporary";
   let hash = hash_token(token);
 
-  let info = backend.create_token("temp", &hash).await.unwrap();
+  let info = backend.create_token(DEFAULT_PROJECT_ID, "temp", &hash).await.unwrap();
 
   // Valid before deletion
-  assert!(backend.validate_token(&hash).await.unwrap());
+  assert!(backend.validate_token(&hash).await.unwrap().is_some());
 
   // Delete
-  backend.delete_token(info.id).await.unwrap();
+  backend.delete_token(DEFAULT_PROJECT_ID, info.id).await.unwrap();
 
   // Invalid after deletion
-  assert!(!backend.validate_token(&hash).await.unwrap());
+  assert!(backend.validate_token(&hash).await.unwrap().is_none());
 }
 
 #[tokio::test]
@@ -301,17 +301,17 @@ async fn test_validate_multiple_tokens() {
 
   for (i, hash) in hashes.iter().enumerate() {
     let name = format!("token-{}", i);
-    backend.create_token(&name, hash).await.unwrap();
+    backend.create_token(DEFAULT_PROJECT_ID, &name, hash).await.unwrap();
   }
 
   // All should be valid
   for hash in &hashes {
-    assert!(backend.validate_token(hash).await.unwrap());
+    assert!(backend.validate_token(hash).await.unwrap().is_some());
   }
 
   // Random hash should be invalid
   let fake_hash = hash_token("sqrl_fake");
-  assert!(!backend.validate_token(&fake_hash).await.unwrap());
+  assert!(backend.validate_token(&fake_hash).await.unwrap().is_none());
 }
 
 #[tokio::test]
@@ -319,8 +319,8 @@ async fn test_validate_empty_hash() {
   let backend = SqliteBackend::in_memory().await.unwrap();
   backend.init_schema().await.unwrap();
 
-  let is_valid = backend.validate_token("").await.unwrap();
-  assert!(!is_valid);
+  let result = backend.validate_token("").await.unwrap();
+  assert!(result.is_none());
 }
 
 // =============================================================================
@@ -333,7 +333,7 @@ async fn test_token_info_has_created_at() {
   backend.init_schema().await.unwrap();
 
   let hash = hash_token("sqrl_withdate");
-  let info = backend.create_token("dated", &hash).await.unwrap();
+  let info = backend.create_token(DEFAULT_PROJECT_ID, "dated", &hash).await.unwrap();
 
   // created_at should be recent (within last minute)
   let now = chrono::Utc::now();
@@ -348,11 +348,11 @@ async fn test_token_info_preserves_name() {
 
   let name = "my-special-token-name";
   let hash = hash_token("sqrl_special");
-  let info = backend.create_token(name, &hash).await.unwrap();
+  let info = backend.create_token(DEFAULT_PROJECT_ID, name, &hash).await.unwrap();
 
   assert_eq!(info.name, name);
 
-  let tokens = backend.list_tokens().await.unwrap();
+  let tokens = backend.list_tokens(DEFAULT_PROJECT_ID).await.unwrap();
   assert_eq!(tokens[0].name, name);
 }
 
@@ -370,10 +370,10 @@ async fn test_token_with_sql_injection_attempt() {
   let hash = hash_token("sqrl_safe");
 
   // Should either fail gracefully or store safely
-  let result = backend.create_token(malicious_name, &hash).await;
+  let result = backend.create_token(DEFAULT_PROJECT_ID, malicious_name, &hash).await;
   if result.is_ok() {
     // If it succeeded, the token should be stored safely
-    let tokens = backend.list_tokens().await.unwrap();
+    let tokens = backend.list_tokens(DEFAULT_PROJECT_ID).await.unwrap();
     assert_eq!(tokens.len(), 1);
     assert_eq!(tokens[0].name, malicious_name);
   }
@@ -393,7 +393,7 @@ async fn test_token_concurrent_creation() {
     let handle = tokio::spawn(async move {
       let name = format!("concurrent-{}", i);
       let hash = hash_token(&format!("sqrl_concurrent{}", i));
-      backend.create_token(&name, &hash).await
+      backend.create_token(DEFAULT_PROJECT_ID, &name, &hash).await
     });
     handles.push(handle);
   }
@@ -402,7 +402,7 @@ async fn test_token_concurrent_creation() {
     handle.await.unwrap().unwrap();
   }
 
-  let tokens = backend.list_tokens().await.unwrap();
+  let tokens = backend.list_tokens(DEFAULT_PROJECT_ID).await.unwrap();
   assert_eq!(tokens.len(), 10);
 }
 
@@ -414,12 +414,12 @@ async fn test_token_hash_not_stored_as_plaintext() {
   let original_token = "sqrl_secrettoken12345";
   let hash = hash_token(original_token);
 
-  backend.create_token("secret", &hash).await.unwrap();
+  backend.create_token(DEFAULT_PROJECT_ID, "secret", &hash).await.unwrap();
 
   // The original token should not be recoverable
   // Only the hash is stored and can be validated
-  assert!(backend.validate_token(&hash).await.unwrap());
-  assert!(!backend.validate_token(original_token).await.unwrap());
+  assert!(backend.validate_token(&hash).await.unwrap().is_some());
+  assert!(backend.validate_token(original_token).await.unwrap().is_none());
 }
 
 // =============================================================================
@@ -433,7 +433,7 @@ async fn test_document_ops_work_with_tokens_present() {
 
   // Create some tokens
   backend
-    .create_token("api-token", &hash_token("sqrl_api"))
+    .create_token(DEFAULT_PROJECT_ID, "api-token", &hash_token("sqrl_api"))
     .await
     .unwrap();
 

@@ -1,0 +1,131 @@
+name: Update Homebrew
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to update (e.g., 0.3.0)'
+        required: true
+
+jobs:
+  update-homebrew:
+    name: Update Homebrew Formula
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get version
+        id: version
+        run: |
+          if [ -n "${{ github.event.inputs.version }}" ]; then
+            VERSION="${{ github.event.inputs.version }}"
+          else
+            VERSION="${{ github.event.release.tag_name }}"
+            VERSION="${VERSION#v}"  # Remove 'v' prefix
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Checkout homebrew-packages
+        uses: actions/checkout@v4
+        with:
+          repository: sqrldb/homebrew-packages
+          token: ${{ secrets.GITHUB_TOKEN }}
+          path: homebrew-packages
+
+      - name: Download release assets
+        run: |
+          VERSION=${{ steps.version.outputs.version }}
+          cd homebrew-packages
+
+          # Download checksums
+          curl -fsSL "https://github.com/sqrldb/squirreldb/releases/download/v${VERSION}/checksums.txt" -o checksums.txt
+
+          # Extract SHA256 for each platform
+          DARWIN_ARM64_SHA=$(grep "darwin-arm64" checksums.txt | awk '{print $1}')
+          DARWIN_X86_64_SHA=$(grep "darwin-x86_64" checksums.txt | awk '{print $1}')
+          LINUX_ARM64_SHA=$(grep "linux-arm64" checksums.txt | awk '{print $1}')
+          LINUX_X86_64_SHA=$(grep "linux-x86_64" checksums.txt | awk '{print $1}')
+
+          echo "DARWIN_ARM64_SHA=$DARWIN_ARM64_SHA" >> $GITHUB_ENV
+          echo "DARWIN_X86_64_SHA=$DARWIN_X86_64_SHA" >> $GITHUB_ENV
+          echo "LINUX_ARM64_SHA=$LINUX_ARM64_SHA" >> $GITHUB_ENV
+          echo "LINUX_X86_64_SHA=$LINUX_X86_64_SHA" >> $GITHUB_ENV
+
+      - name: Update formula
+        run: |
+          VERSION=${{ steps.version.outputs.version }}
+          cd homebrew-packages
+
+          cat > Formula/squirreldb.rb << EOF
+          class Squirreldb < Formula
+            desc "Real-time document database with WebSocket subscriptions"
+            homepage "https://squirreldb.dev"
+            version "${VERSION}"
+            license "MIT"
+
+            on_macos do
+              on_arm do
+                url "https://github.com/sqrldb/squirreldb/releases/download/v${VERSION}/squirreldb-darwin-arm64.tar.gz"
+                sha256 "${DARWIN_ARM64_SHA}"
+              end
+              on_intel do
+                url "https://github.com/sqrldb/squirreldb/releases/download/v${VERSION}/squirreldb-darwin-x86_64.tar.gz"
+                sha256 "${DARWIN_X86_64_SHA}"
+              end
+            end
+
+            on_linux do
+              on_arm do
+                url "https://github.com/sqrldb/squirreldb/releases/download/v${VERSION}/squirreldb-linux-arm64.tar.gz"
+                sha256 "${LINUX_ARM64_SHA}"
+              end
+              on_intel do
+                url "https://github.com/sqrldb/squirreldb/releases/download/v${VERSION}/squirreldb-linux-x86_64.tar.gz"
+                sha256 "${LINUX_X86_64_SHA}"
+              end
+            end
+
+            def install
+              bin.install "sqrld"
+              bin.install "sqrl"
+            end
+
+            def caveats
+              <<~EOS
+                To start SquirrelDB server:
+                  sqrld
+
+                To connect with the CLI:
+                  sqrl
+
+                Admin UI available at:
+                  http://localhost:8081
+
+                Documentation:
+                  https://squirreldb.dev/docs
+              EOS
+            end
+
+            service do
+              run [opt_bin/"sqrld"]
+              keep_alive true
+              working_dir var/"squirreldb"
+              log_path var/"log/squirreldb.log"
+              error_log_path var/"log/squirreldb.error.log"
+            end
+
+            test do
+              assert_match version.to_s, shell_output("#{bin}/sqrld --version")
+            end
+          end
+          EOF
+
+      - name: Commit and push
+        run: |
+          VERSION=${{ steps.version.outputs.version }}
+          cd homebrew-packages
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add Formula/squirreldb.rb
+          git commit -m "Update squirreldb to ${VERSION}"
+          git push

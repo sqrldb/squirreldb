@@ -114,6 +114,7 @@ impl Daemon {
         self.shutdown_tx.clone(),
         self.config.clone(),
         self.feature_registry.clone(),
+        self.rate_limiter.clone(),
       );
       let admin_addr = self.config.admin_address();
       emit_log(
@@ -286,6 +287,7 @@ impl Daemon {
         self.engine_pool.clone(),
         self.rate_limiter.clone(),
         self.shutdown_tx.subscribe(),
+        self.config.clone(),
       );
       emit_log(
         "info",

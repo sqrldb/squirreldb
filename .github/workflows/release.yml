@@ -8,8 +8,8 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
-  REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository_owner }}/squirreldb
+  REGISTRY: docker.io
+  IMAGE_NAME: squirreldb/squirreldb
 
 permissions:
   contents: write
@@ -209,12 +209,11 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Log in to GitHub Container Registry
+      - name: Log in to Docker Hub
         uses: docker/login-action@v3
         with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Extract metadata
         id: meta
@@ -271,38 +270,75 @@ jobs:
             artifacts/*.zip
             artifacts/checksums.txt
           body: |
+            ## Quick Install
+
+            ```bash
+            curl -fsSL https://squirreldb.dev/install.sh | bash
+            ```
+
+            Or install a specific version:
+
+            ```bash
+            curl -fsSL https://squirreldb.dev/install.sh | bash -s -- --version ${{ needs.check-version.outputs.version }}
+            ```
+
             ## Docker
 
             ```bash
-            docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.create-tag.outputs.tag }}
+            docker pull squirreldb/squirreldb:${{ needs.create-tag.outputs.tag }}
+
+            # Run with persistence
+            docker run -d \
+              --name squirreldb \
+              -p 8080:8080 \
+              -p 8081:8081 \
+              -v squirreldb-data:/app/data \
+              squirreldb/squirreldb:${{ needs.create-tag.outputs.tag }}
+            ```
+
+            ## Docker Compose
+
+            ```bash
+            curl -fsSL https://squirreldb.dev/docker-compose.yml | docker compose -f - up -d
+            ```
+
+            ## Manual Installation
+
+            Download the appropriate archive for your platform:
+
+            | Platform | Architecture | File |
+            |----------|--------------|------|
+            | Linux | x86_64 | `squirreldb-linux-x86_64.tar.gz` |
+            | Linux | ARM64 | `squirreldb-linux-arm64.tar.gz` |
+            | macOS | Intel | `squirreldb-darwin-x86_64.tar.gz` |
+            | macOS | Apple Silicon | `squirreldb-darwin-arm64.tar.gz` |
+            | Windows | x86_64 | `squirreldb-windows-x86_64.zip` |
+
+            Extract and install:
+
+            ```bash
+            # Linux/macOS
+            tar -xzf squirreldb-*.tar.gz
+            sudo mv sqrld sqrl /usr/local/bin/
+
+            # Start the server
+            sqrld
             ```
 
             ## Checksums
 
             See `checksums.txt` for SHA256 checksums of all release artifacts.
 
-            ## Installation
+            ## Ports
 
-            Download the appropriate archive for your platform, extract it, and add the binaries to your PATH.
-
-            ### Linux (x86_64)
-            ```bash
-            tar -xzf squirreldb-linux-x86_64.tar.gz
-            sudo mv sqrld sqrl /usr/local/bin/
-            ```
-
-            ### macOS (Apple Silicon)
-            ```bash
-            tar -xzf squirreldb-darwin-arm64.tar.gz
-            sudo mv sqrld sqrl /usr/local/bin/
-            ```
-
-            ### Windows
-            Extract `squirreldb-windows-x86_64.zip` and add the directory to your PATH.
+            | Port | Service |
+            |------|---------|
+            | 8080 | WebSocket/REST API |
+            | 8081 | Admin UI |
+            | 6379 | Redis-compatible cache |
+            | 9000 | S3-compatible storage |
 
             ## MCP Server (Claude Desktop)
-
-            To use SquirrelDB with Claude Desktop, add to your config:
 
             ```json
             {
@@ -314,3 +350,9 @@ jobs:
               }
             }
             ```
+
+            ## Documentation
+
+            - [Getting Started](https://squirreldb.dev/docs)
+            - [Installation Guide](https://squirreldb.dev/docs/installation)
+            - [SDK Documentation](https://squirreldb.dev/docs/sdks)
