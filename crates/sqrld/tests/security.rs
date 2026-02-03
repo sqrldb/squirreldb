@@ -294,7 +294,9 @@ async fn test_backend_rejects_sql_injection_in_collection() {
   ];
 
   for attempt in injection_attempts {
-    let result = backend.insert(DEFAULT_PROJECT_ID, attempt, serde_json::json!({})).await;
+    let result = backend
+      .insert(DEFAULT_PROJECT_ID, attempt, serde_json::json!({}))
+      .await;
     assert!(
       result.is_err(),
       "Collection name '{}' should be rejected",
@@ -320,7 +322,9 @@ async fn test_backend_rejects_invalid_collection_names() {
   ];
 
   for name in invalid_names {
-    let result = backend.insert(DEFAULT_PROJECT_ID, name, serde_json::json!({})).await;
+    let result = backend
+      .insert(DEFAULT_PROJECT_ID, name, serde_json::json!({}))
+      .await;
     assert!(
       result.is_err(),
       "Collection name '{}' should be rejected",

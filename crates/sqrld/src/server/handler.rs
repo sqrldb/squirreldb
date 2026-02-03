@@ -79,7 +79,11 @@ impl MessageHandler {
         id,
         collection,
         data,
-      } => match self.backend.insert(DEFAULT_PROJECT_ID, &collection, data).await {
+      } => match self
+        .backend
+        .insert(DEFAULT_PROJECT_ID, &collection, data)
+        .await
+      {
         Ok(doc) => {
           // Invalidate cache for this table after write
           self.engine_pool.invalidate_table(&collection);

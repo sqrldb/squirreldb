@@ -347,7 +347,9 @@ impl StorageBackend for LocalFileStorage {
     if self.base_path.exists() {
       Ok(())
     } else {
-      Err(StorageError::internal_error("Storage directory does not exist"))
+      Err(StorageError::internal_error(
+        "Storage directory does not exist",
+      ))
     }
   }
 

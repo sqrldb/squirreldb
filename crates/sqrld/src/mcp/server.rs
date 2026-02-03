@@ -133,7 +133,11 @@ impl McpServer {
   async fn insert(&self, params: Parameters<InsertParams>) -> Result<CallToolResult, McpError> {
     let doc = self
       .backend
-      .insert(DEFAULT_PROJECT_ID, &params.0.collection, params.0.data.clone())
+      .insert(
+        DEFAULT_PROJECT_ID,
+        &params.0.collection,
+        params.0.data.clone(),
+      )
       .await
       .map_err(|e| McpError::internal_error(e.to_string(), None))?;
 
@@ -259,9 +263,11 @@ impl McpServer {
       .ok_or_else(|| McpError::internal_error("Cache not enabled", None))?;
 
     let deleted = store.delete(&params.0.key).await;
-    Ok(CallToolResult::success(vec![Content::text(
-      if deleted { "1" } else { "0" },
-    )]))
+    Ok(CallToolResult::success(vec![Content::text(if deleted {
+      "1"
+    } else {
+      "0"
+    })]))
   }
 
   #[tool(description = "List cache keys matching a pattern")]

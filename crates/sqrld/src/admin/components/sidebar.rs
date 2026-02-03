@@ -149,11 +149,7 @@ fn ProjectSelector() -> impl IntoView {
 }
 
 #[component]
-fn NavLink(
-  href: &'static str,
-  label: &'static str,
-  icon: &'static str,
-) -> impl IntoView {
+fn NavLink(href: &'static str, label: &'static str, icon: &'static str) -> impl IntoView {
   view! {
     <A href=href class="nav-link" active_class="active">
       <Icon name=icon size=18/>

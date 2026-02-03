@@ -1,11 +1,11 @@
 //! Cache module tests
 
-use squirreldb::cache::{
-  CacheConfig, CacheEntry, CacheValue, CacheChange, CacheChangeOperation,
-  CacheStore, EvictionPolicy, InMemoryCacheStore, RespValue,
-};
 use squirreldb::cache::config::parse_memory_size;
-use squirreldb::cache::resp::{parse_resp, extract_command, RespParser};
+use squirreldb::cache::resp::{extract_command, parse_resp, RespParser};
+use squirreldb::cache::{
+  CacheChange, CacheChangeOperation, CacheConfig, CacheEntry, CacheStore, CacheValue,
+  EvictionPolicy, InMemoryCacheStore, RespValue,
+};
 use std::time::Duration;
 
 // =============================================================================
@@ -35,10 +35,22 @@ fn test_parse_memory_size() {
 
 #[test]
 fn test_eviction_policy_parse() {
-  assert_eq!("lru".parse::<EvictionPolicy>().unwrap(), EvictionPolicy::Lru);
-  assert_eq!("lfu".parse::<EvictionPolicy>().unwrap(), EvictionPolicy::Lfu);
-  assert_eq!("random".parse::<EvictionPolicy>().unwrap(), EvictionPolicy::Random);
-  assert_eq!("noeviction".parse::<EvictionPolicy>().unwrap(), EvictionPolicy::NoEviction);
+  assert_eq!(
+    "lru".parse::<EvictionPolicy>().unwrap(),
+    EvictionPolicy::Lru
+  );
+  assert_eq!(
+    "lfu".parse::<EvictionPolicy>().unwrap(),
+    EvictionPolicy::Lfu
+  );
+  assert_eq!(
+    "random".parse::<EvictionPolicy>().unwrap(),
+    EvictionPolicy::Random
+  );
+  assert_eq!(
+    "noeviction".parse::<EvictionPolicy>().unwrap(),
+    EvictionPolicy::NoEviction
+  );
 }
 
 // =============================================================================
@@ -160,7 +172,10 @@ fn test_cache_value_from_string() {
 
 #[test]
 fn test_cache_value_to_resp_string() {
-  assert_eq!(CacheValue::String("hello".to_string()).to_resp_string(), "hello");
+  assert_eq!(
+    CacheValue::String("hello".to_string()).to_resp_string(),
+    "hello"
+  );
   assert_eq!(CacheValue::Integer(42).to_resp_string(), "42");
   assert_eq!(CacheValue::Null.to_resp_string(), "");
 }
@@ -173,7 +188,10 @@ fn test_cache_value_to_resp_string() {
 async fn test_store_set_get() {
   let store = InMemoryCacheStore::new(1024 * 1024, EvictionPolicy::Lru, None);
 
-  store.set("key1", CacheValue::String("value1".to_string()), None).await.unwrap();
+  store
+    .set("key1", CacheValue::String("value1".to_string()), None)
+    .await
+    .unwrap();
 
   let entry = store.get("key1").await.unwrap();
   assert_eq!(entry.value, CacheValue::String("value1".to_string()));
@@ -183,7 +201,10 @@ async fn test_store_set_get() {
 async fn test_store_del_exists() {
   let store = InMemoryCacheStore::new(1024 * 1024, EvictionPolicy::Lru, None);
 
-  store.set("key1", CacheValue::String("value1".to_string()), None).await.unwrap();
+  store
+    .set("key1", CacheValue::String("value1".to_string()), None)
+    .await
+    .unwrap();
   assert!(store.exists("key1").await);
 
   assert!(store.delete("key1").await);
@@ -194,7 +215,14 @@ async fn test_store_del_exists() {
 async fn test_store_expire_ttl() {
   let store = InMemoryCacheStore::new(1024 * 1024, EvictionPolicy::Lru, None);
 
-  store.set("key1", CacheValue::String("value1".to_string()), Some(Duration::from_secs(100))).await.unwrap();
+  store
+    .set(
+      "key1",
+      CacheValue::String("value1".to_string()),
+      Some(Duration::from_secs(100)),
+    )
+    .await
+    .unwrap();
 
   let ttl = store.ttl("key1").await.unwrap();
   assert!(ttl > 0 && ttl <= 100);
@@ -226,9 +254,18 @@ async fn test_store_incr_decr() {
 async fn test_store_keys_pattern() {
   let store = InMemoryCacheStore::new(1024 * 1024, EvictionPolicy::Lru, None);
 
-  store.set("user:1", CacheValue::String("alice".to_string()), None).await.unwrap();
-  store.set("user:2", CacheValue::String("bob".to_string()), None).await.unwrap();
-  store.set("order:1", CacheValue::String("order1".to_string()), None).await.unwrap();
+  store
+    .set("user:1", CacheValue::String("alice".to_string()), None)
+    .await
+    .unwrap();
+  store
+    .set("user:2", CacheValue::String("bob".to_string()), None)
+    .await
+    .unwrap();
+  store
+    .set("order:1", CacheValue::String("order1".to_string()), None)
+    .await
+    .unwrap();
 
   let keys = store.keys("user:*").await;
   assert_eq!(keys.len(), 2);
@@ -243,7 +280,10 @@ async fn test_store_keys_pattern() {
 async fn test_store_memory_tracking() {
   let store = InMemoryCacheStore::new(1024 * 1024, EvictionPolicy::Lru, None);
 
-  store.set("key1", CacheValue::String("value1".to_string()), None).await.unwrap();
+  store
+    .set("key1", CacheValue::String("value1".to_string()), None)
+    .await
+    .unwrap();
 
   let stats = store.info().await;
   assert!(stats.memory_used > 0);
@@ -258,21 +298,40 @@ async fn test_store_lru_eviction() {
   // Insert multiple items with values that are bigger than limit combined
   for i in 0..10 {
     let value = format!("this_is_a_longer_value_for_key_{}", i);
-    store.set(&format!("key{}", i), CacheValue::String(value), None).await.ok();
+    store
+      .set(&format!("key{}", i), CacheValue::String(value), None)
+      .await
+      .ok();
   }
 
   let stats = store.info().await;
   // Memory used should be within limit
-  assert!(stats.memory_used <= 50, "memory_used {} > limit 50", stats.memory_used);
+  assert!(
+    stats.memory_used <= 50,
+    "memory_used {} > limit 50",
+    stats.memory_used
+  );
   // Some keys should have been evicted (we can't fit 10 keys with ~40+ byte values in 50 bytes)
-  assert!(stats.evictions > 0 || stats.keys < 10, "evictions={} keys={}", stats.evictions, stats.keys);
+  assert!(
+    stats.evictions > 0 || stats.keys < 10,
+    "evictions={} keys={}",
+    stats.evictions,
+    stats.keys
+  );
 }
 
 #[tokio::test]
 async fn test_store_ttl_expiration() {
   let store = InMemoryCacheStore::new(1024 * 1024, EvictionPolicy::Lru, None);
 
-  store.set("key1", CacheValue::String("value1".to_string()), Some(Duration::from_millis(50))).await.unwrap();
+  store
+    .set(
+      "key1",
+      CacheValue::String("value1".to_string()),
+      Some(Duration::from_millis(50)),
+    )
+    .await
+    .unwrap();
 
   // Key exists initially
   assert!(store.exists("key1").await);
@@ -288,8 +347,14 @@ async fn test_store_ttl_expiration() {
 async fn test_store_flush() {
   let store = InMemoryCacheStore::new(1024 * 1024, EvictionPolicy::Lru, None);
 
-  store.set("key1", CacheValue::String("value1".to_string()), None).await.unwrap();
-  store.set("key2", CacheValue::String("value2".to_string()), None).await.unwrap();
+  store
+    .set("key1", CacheValue::String("value1".to_string()), None)
+    .await
+    .unwrap();
+  store
+    .set("key2", CacheValue::String("value2".to_string()), None)
+    .await
+    .unwrap();
 
   assert_eq!(store.dbsize().await, 2);
 

@@ -9,7 +9,11 @@ pub fn PreviewModal<F>(bucket: String, object_key: String, on_close: F) -> impl 
 where
   F: Fn() + Clone + 'static,
 {
-  let filename = object_key.rsplit('/').next().unwrap_or(&object_key).to_string();
+  let filename = object_key
+    .rsplit('/')
+    .next()
+    .unwrap_or(&object_key)
+    .to_string();
   let ext = filename.rsplit('.').next().unwrap_or("").to_lowercase();
   let download_url = apiclient::get_download_url(&bucket, &object_key);
 
@@ -19,8 +23,12 @@ where
     "mp4" | "webm" | "ogg" => "video",
     "mp3" | "wav" | "flac" | "aac" => "audio",
     "pdf" => "pdf",
-    "txt" | "md" | "json" | "xml" | "yaml" | "yml" | "toml" | "ini" | "cfg" | "conf" | "log" => "text",
-    "js" | "ts" | "jsx" | "tsx" | "rs" | "py" | "go" | "java" | "c" | "cpp" | "h" | "hpp" | "cs" | "rb" | "php" | "swift" | "kt" | "scala" | "sh" | "bash" | "zsh" | "ps1" | "sql" | "html" | "css" | "scss" | "sass" | "less" => "code",
+    "txt" | "md" | "json" | "xml" | "yaml" | "yml" | "toml" | "ini" | "cfg" | "conf" | "log" => {
+      "text"
+    }
+    "js" | "ts" | "jsx" | "tsx" | "rs" | "py" | "go" | "java" | "c" | "cpp" | "h" | "hpp"
+    | "cs" | "rb" | "php" | "swift" | "kt" | "scala" | "sh" | "bash" | "zsh" | "ps1" | "sql"
+    | "html" | "css" | "scss" | "sass" | "less" => "code",
     _ => "unsupported",
   };
 

@@ -30,7 +30,8 @@ pub fn CachingSettings() -> impl IntoView {
   let (proxy_database, set_proxy_database) = create_signal(String::from("0"));
   let (proxy_tls_enabled, set_proxy_tls_enabled) = create_signal(false);
   let (testing_connection, set_testing_connection) = create_signal(false);
-  let (connection_status, set_connection_status) = create_signal(Option::<Result<(), String>>::None);
+  let (connection_status, set_connection_status) =
+    create_signal(Option::<Result<(), String>>::None);
 
   // Sync with state on load
   create_effect(move |_| {
@@ -123,7 +124,11 @@ pub fn CachingSettings() -> impl IntoView {
         Some(mode_val.clone()),
         Some(proxy_host_val.clone()),
         Some(proxy_port_val),
-        if proxy_password_val.is_empty() { None } else { Some(proxy_password_val) },
+        if proxy_password_val.is_empty() {
+          None
+        } else {
+          Some(proxy_password_val)
+        },
         Some(proxy_database_val),
         Some(proxy_tls_val),
       )
@@ -177,7 +182,11 @@ pub fn CachingSettings() -> impl IntoView {
       match apiclient::test_cache_connection(
         &host,
         port,
-        if password.is_empty() { None } else { Some(&password) },
+        if password.is_empty() {
+          None
+        } else {
+          Some(&password)
+        },
         database,
         tls_enabled,
       )

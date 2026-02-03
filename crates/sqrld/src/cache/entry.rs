@@ -109,7 +109,6 @@ impl CacheValue {
   }
 }
 
-
 impl From<String> for CacheValue {
   fn from(s: String) -> Self {
     // Try to parse as JSON first
@@ -168,12 +167,10 @@ fn estimate_json_size(v: &serde_json::Value) -> usize {
     serde_json::Value::Number(_) => 8,
     serde_json::Value::String(s) => s.len() + 2,
     serde_json::Value::Array(arr) => arr.iter().map(estimate_json_size).sum::<usize>() + arr.len(),
-    serde_json::Value::Object(map) => {
-      map
-        .iter()
-        .map(|(k, v)| k.len() + estimate_json_size(v) + 4)
-        .sum()
-    }
+    serde_json::Value::Object(map) => map
+      .iter()
+      .map(|(k, v)| k.len() + estimate_json_size(v) + 4)
+      .sum(),
   }
 }
 

@@ -36,7 +36,9 @@ impl SnapshotManager {
 
     // Ensure parent directory exists
     if let Some(parent) = Path::new(&self.path).parent() {
-      fs::create_dir_all(parent).await.map_err(SnapshotError::Io)?;
+      fs::create_dir_all(parent)
+        .await
+        .map_err(SnapshotError::Io)?;
     }
 
     // Write to temp file first
@@ -44,12 +46,21 @@ impl SnapshotManager {
     let mut file = File::create(&temp_path).await.map_err(SnapshotError::Io)?;
 
     // Write header
-    file.write_all(SNAPSHOT_MAGIC).await.map_err(SnapshotError::Io)?;
-    file.write_all(&[SNAPSHOT_VERSION]).await.map_err(SnapshotError::Io)?;
+    file
+      .write_all(SNAPSHOT_MAGIC)
+      .await
+      .map_err(SnapshotError::Io)?;
+    file
+      .write_all(&[SNAPSHOT_VERSION])
+      .await
+      .map_err(SnapshotError::Io)?;
 
     // Write entry count
     let count_bytes = (entries.len() as u64).to_le_bytes();
-    file.write_all(&count_bytes).await.map_err(SnapshotError::Io)?;
+    file
+      .write_all(&count_bytes)
+      .await
+      .map_err(SnapshotError::Io)?;
 
     // Serialize entries as JSON (simple, human-readable)
     let json = serde_json::to_vec(&entries).map_err(SnapshotError::Serialize)?;
@@ -62,7 +73,9 @@ impl SnapshotManager {
     drop(file);
 
     // Atomic rename
-    fs::rename(&temp_path, &self.path).await.map_err(SnapshotError::Io)?;
+    fs::rename(&temp_path, &self.path)
+      .await
+      .map_err(SnapshotError::Io)?;
 
     tracing::info!("Cache snapshot saved: {} entries to {}", count, self.path);
     Ok(count)
@@ -78,13 +91,21 @@ impl SnapshotManager {
 
     // Read and verify header
     let mut magic = [0u8; 9];
-    file.read_exact(&mut magic).await.map_err(SnapshotError::Io)?;
+    file
+      .read_exact(&mut magic)
+      .await
+      .map_err(SnapshotError::Io)?;
     if magic != SNAPSHOT_MAGIC {
-      return Err(SnapshotError::InvalidFormat("invalid magic header".to_string()));
+      return Err(SnapshotError::InvalidFormat(
+        "invalid magic header".to_string(),
+      ));
     }
 
     let mut version = [0u8; 1];
-    file.read_exact(&mut version).await.map_err(SnapshotError::Io)?;
+    file
+      .read_exact(&mut version)
+      .await
+      .map_err(SnapshotError::Io)?;
     if version[0] != SNAPSHOT_VERSION {
       return Err(SnapshotError::InvalidFormat(format!(
         "unsupported version: {}",
@@ -94,16 +115,25 @@ impl SnapshotManager {
 
     // Read entry count
     let mut count_bytes = [0u8; 8];
-    file.read_exact(&mut count_bytes).await.map_err(SnapshotError::Io)?;
+    file
+      .read_exact(&mut count_bytes)
+      .await
+      .map_err(SnapshotError::Io)?;
     let _expected_count = u64::from_le_bytes(count_bytes);
 
     // Read JSON length and data
     let mut json_len_bytes = [0u8; 8];
-    file.read_exact(&mut json_len_bytes).await.map_err(SnapshotError::Io)?;
+    file
+      .read_exact(&mut json_len_bytes)
+      .await
+      .map_err(SnapshotError::Io)?;
     let json_len = u64::from_le_bytes(json_len_bytes) as usize;
 
     let mut json_data = vec![0u8; json_len];
-    file.read_exact(&mut json_data).await.map_err(SnapshotError::Io)?;
+    file
+      .read_exact(&mut json_data)
+      .await
+      .map_err(SnapshotError::Io)?;
 
     // Deserialize entries
     let entries: Vec<SnapshotEntry> =
@@ -112,14 +142,20 @@ impl SnapshotManager {
     let count = entries.len();
     store.restore_from_snapshot(entries);
 
-    tracing::info!("Cache snapshot loaded: {} entries from {}", count, self.path);
+    tracing::info!(
+      "Cache snapshot loaded: {} entries from {}",
+      count,
+      self.path
+    );
     Ok(count)
   }
 
   /// Delete snapshot file
   pub async fn delete(&self) -> Result<(), SnapshotError> {
     if Path::new(&self.path).exists() {
-      fs::remove_file(&self.path).await.map_err(SnapshotError::Io)?;
+      fs::remove_file(&self.path)
+        .await
+        .map_err(SnapshotError::Io)?;
     }
     Ok(())
   }
@@ -153,11 +189,7 @@ impl std::fmt::Display for SnapshotError {
 impl std::error::Error for SnapshotError {}
 
 /// Periodic snapshot task
-pub async fn run_snapshot_task(
-  store: Arc<InMemoryCacheStore>,
-  path: String,
-  interval_secs: u64,
-) {
+pub async fn run_snapshot_task(store: Arc<InMemoryCacheStore>, path: String, interval_secs: u64) {
   let manager = SnapshotManager::new(&path);
 
   loop {

@@ -22,13 +22,20 @@ async fn test_sqlite_backend_insert_and_get() {
   backend.init_schema().await.unwrap();
 
   let data = json!({"name": "Alice", "age": 30});
-  let doc = backend.insert(DEFAULT_PROJECT_ID, "users", data.clone()).await.unwrap();
+  let doc = backend
+    .insert(DEFAULT_PROJECT_ID, "users", data.clone())
+    .await
+    .unwrap();
 
   assert_eq!(doc.collection, "users");
   assert_eq!(doc.data["name"], "Alice");
   assert_eq!(doc.data["age"], 30);
 
-  let retrieved = backend.get(DEFAULT_PROJECT_ID, "users", doc.id).await.unwrap().unwrap();
+  let retrieved = backend
+    .get(DEFAULT_PROJECT_ID, "users", doc.id)
+    .await
+    .unwrap()
+    .unwrap();
   assert_eq!(retrieved.id, doc.id);
   assert_eq!(retrieved.data["name"], "Alice");
 }
@@ -39,7 +46,10 @@ async fn test_sqlite_backend_update() {
   backend.init_schema().await.unwrap();
 
   let data = json!({"name": "Bob", "age": 25});
-  let doc = backend.insert(DEFAULT_PROJECT_ID, "users", data).await.unwrap();
+  let doc = backend
+    .insert(DEFAULT_PROJECT_ID, "users", data)
+    .await
+    .unwrap();
 
   let updated_data = json!({"name": "Bob", "age": 26});
   let updated = backend
@@ -56,12 +66,22 @@ async fn test_sqlite_backend_delete() {
   backend.init_schema().await.unwrap();
 
   let data = json!({"name": "Charlie"});
-  let doc = backend.insert(DEFAULT_PROJECT_ID, "users", data).await.unwrap();
+  let doc = backend
+    .insert(DEFAULT_PROJECT_ID, "users", data)
+    .await
+    .unwrap();
 
-  let deleted = backend.delete(DEFAULT_PROJECT_ID, "users", doc.id).await.unwrap().unwrap();
+  let deleted = backend
+    .delete(DEFAULT_PROJECT_ID, "users", doc.id)
+    .await
+    .unwrap()
+    .unwrap();
   assert_eq!(deleted.id, doc.id);
 
-  let retrieved = backend.get(DEFAULT_PROJECT_ID, "users", doc.id).await.unwrap();
+  let retrieved = backend
+    .get(DEFAULT_PROJECT_ID, "users", doc.id)
+    .await
+    .unwrap();
   assert!(retrieved.is_none());
 }
 
@@ -83,10 +103,16 @@ async fn test_sqlite_backend_list() {
     .await
     .unwrap();
 
-  let users = backend.list(DEFAULT_PROJECT_ID, "users", None, None, None, None).await.unwrap();
+  let users = backend
+    .list(DEFAULT_PROJECT_ID, "users", None, None, None, None)
+    .await
+    .unwrap();
   assert_eq!(users.len(), 2);
 
-  let posts = backend.list(DEFAULT_PROJECT_ID, "posts", None, None, None, None).await.unwrap();
+  let posts = backend
+    .list(DEFAULT_PROJECT_ID, "posts", None, None, None, None)
+    .await
+    .unwrap();
   assert_eq!(posts.len(), 1);
 }
 
@@ -96,7 +122,10 @@ async fn test_sqlite_backend_list_with_limit() {
   backend.init_schema().await.unwrap();
 
   for i in 0..10 {
-    backend.insert(DEFAULT_PROJECT_ID, "items", json!({"index": i})).await.unwrap();
+    backend
+      .insert(DEFAULT_PROJECT_ID, "items", json!({"index": i}))
+      .await
+      .unwrap();
   }
 
   let items = backend
@@ -137,15 +166,27 @@ async fn test_sqlite_backend_filter() {
   backend.init_schema().await.unwrap();
 
   backend
-    .insert(DEFAULT_PROJECT_ID, "users", json!({"name": "Alice", "age": 30}))
+    .insert(
+      DEFAULT_PROJECT_ID,
+      "users",
+      json!({"name": "Alice", "age": 30}),
+    )
     .await
     .unwrap();
   backend
-    .insert(DEFAULT_PROJECT_ID, "users", json!({"name": "Bob", "age": 25}))
+    .insert(
+      DEFAULT_PROJECT_ID,
+      "users",
+      json!({"name": "Bob", "age": 25}),
+    )
     .await
     .unwrap();
   backend
-    .insert(DEFAULT_PROJECT_ID, "users", json!({"name": "Charlie", "age": 35}))
+    .insert(
+      DEFAULT_PROJECT_ID,
+      "users",
+      json!({"name": "Charlie", "age": 35}),
+    )
     .await
     .unwrap();
 
@@ -183,9 +224,18 @@ async fn test_sqlite_backend_list_tokens() {
   backend.init_schema().await.unwrap();
 
   // Create some tokens
-  backend.create_token(DEFAULT_PROJECT_ID, "token-1", "hash1").await.unwrap();
-  backend.create_token(DEFAULT_PROJECT_ID, "token-2", "hash2").await.unwrap();
-  backend.create_token(DEFAULT_PROJECT_ID, "token-3", "hash3").await.unwrap();
+  backend
+    .create_token(DEFAULT_PROJECT_ID, "token-1", "hash1")
+    .await
+    .unwrap();
+  backend
+    .create_token(DEFAULT_PROJECT_ID, "token-2", "hash2")
+    .await
+    .unwrap();
+  backend
+    .create_token(DEFAULT_PROJECT_ID, "token-3", "hash3")
+    .await
+    .unwrap();
 
   let tokens = backend.list_tokens(DEFAULT_PROJECT_ID).await.unwrap();
   assert_eq!(tokens.len(), 3);
@@ -201,14 +251,20 @@ async fn test_sqlite_backend_delete_token() {
   let backend = SqliteBackend::in_memory().await.unwrap();
   backend.init_schema().await.unwrap();
 
-  let token_info = backend.create_token(DEFAULT_PROJECT_ID, "to-delete", "hash123").await.unwrap();
+  let token_info = backend
+    .create_token(DEFAULT_PROJECT_ID, "to-delete", "hash123")
+    .await
+    .unwrap();
 
   // Verify it exists
   let tokens = backend.list_tokens(DEFAULT_PROJECT_ID).await.unwrap();
   assert_eq!(tokens.len(), 1);
 
   // Delete it
-  let deleted = backend.delete_token(DEFAULT_PROJECT_ID, token_info.id).await.unwrap();
+  let deleted = backend
+    .delete_token(DEFAULT_PROJECT_ID, token_info.id)
+    .await
+    .unwrap();
   assert!(deleted);
 
   // Verify it's gone
@@ -216,7 +272,10 @@ async fn test_sqlite_backend_delete_token() {
   assert_eq!(tokens.len(), 0);
 
   // Delete non-existent should return false
-  let deleted_again = backend.delete_token(DEFAULT_PROJECT_ID, token_info.id).await.unwrap();
+  let deleted_again = backend
+    .delete_token(DEFAULT_PROJECT_ID, token_info.id)
+    .await
+    .unwrap();
   assert!(!deleted_again);
 }
 
@@ -246,9 +305,14 @@ async fn test_sqlite_backend_token_name_unique() {
   backend.init_schema().await.unwrap();
 
   // Create first token
-  backend.create_token(DEFAULT_PROJECT_ID, "unique-name", "hash1").await.unwrap();
+  backend
+    .create_token(DEFAULT_PROJECT_ID, "unique-name", "hash1")
+    .await
+    .unwrap();
 
   // Creating token with same name should fail
-  let result = backend.create_token(DEFAULT_PROJECT_ID, "unique-name", "hash2").await;
+  let result = backend
+    .create_token(DEFAULT_PROJECT_ID, "unique-name", "hash2")
+    .await;
   assert!(result.is_err());
 }

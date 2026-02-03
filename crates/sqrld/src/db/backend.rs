@@ -245,8 +245,12 @@ pub trait DatabaseBackend: Send + Sync {
   async fn start_change_listener(&self) -> Result<(), anyhow::Error>;
 
   // Token management methods (project-scoped)
-  async fn create_token(&self, project_id: Uuid, name: &str, token_hash: &str)
-    -> Result<ApiTokenInfo, anyhow::Error>;
+  async fn create_token(
+    &self,
+    project_id: Uuid,
+    name: &str,
+    token_hash: &str,
+  ) -> Result<ApiTokenInfo, anyhow::Error>;
   async fn delete_token(&self, project_id: Uuid, id: Uuid) -> Result<bool, anyhow::Error>;
   async fn list_tokens(&self, project_id: Uuid) -> Result<Vec<ApiTokenInfo>, anyhow::Error>;
   async fn validate_token(&self, token_hash: &str) -> Result<Option<Uuid>, anyhow::Error>;
@@ -521,7 +525,11 @@ pub trait DatabaseBackend: Send + Sync {
   async fn update_admin_user_role(&self, id: Uuid, role: AdminRole) -> Result<bool, anyhow::Error>;
 
   /// Update admin user password
-  async fn update_admin_user_password(&self, id: &Uuid, password_hash: &str) -> Result<bool, anyhow::Error>;
+  async fn update_admin_user_password(
+    &self,
+    id: &Uuid,
+    password_hash: &str,
+  ) -> Result<bool, anyhow::Error>;
 
   // =========================================================================
   // Admin Sessions

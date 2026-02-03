@@ -26,7 +26,8 @@ pub fn StorageSettings() -> impl IntoView {
   let (proxy_bucket_prefix, set_proxy_bucket_prefix) = create_signal(String::new());
   let (proxy_force_path_style, set_proxy_force_path_style) = create_signal(false);
   let (testing_connection, set_testing_connection) = create_signal(false);
-  let (connection_status, set_connection_status) = create_signal(Option::<Result<(), String>>::None);
+  let (connection_status, set_connection_status) =
+    create_signal(Option::<Result<(), String>>::None);
 
   // Sync with state on load
   create_effect(move |_| {
@@ -96,9 +97,17 @@ pub fn StorageSettings() -> impl IntoView {
         Some(mode_val.clone()),
         Some(proxy_endpoint_val.clone()),
         Some(proxy_access_key_id_val.clone()),
-        if proxy_secret_val.is_empty() { None } else { Some(proxy_secret_val) },
+        if proxy_secret_val.is_empty() {
+          None
+        } else {
+          Some(proxy_secret_val)
+        },
         Some(proxy_region_val.clone()),
-        if proxy_bucket_prefix_val.is_empty() { None } else { Some(proxy_bucket_prefix_val.clone()) },
+        if proxy_bucket_prefix_val.is_empty() {
+          None
+        } else {
+          Some(proxy_bucket_prefix_val.clone())
+        },
         Some(proxy_force_path_style_val),
       )
       .await
@@ -115,7 +124,11 @@ pub fn StorageSettings() -> impl IntoView {
             s.proxy_endpoint = proxy_endpoint_val;
             s.proxy_access_key_id = proxy_access_key_id_val;
             s.proxy_region = proxy_region_val;
-            s.proxy_bucket_prefix = if proxy_bucket_prefix_val.is_empty() { None } else { Some(proxy_bucket_prefix_val) };
+            s.proxy_bucket_prefix = if proxy_bucket_prefix_val.is_empty() {
+              None
+            } else {
+              Some(proxy_bucket_prefix_val)
+            };
             s.proxy_force_path_style = proxy_force_path_style_val;
           });
           if is_running {

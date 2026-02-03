@@ -72,7 +72,11 @@ impl BackupFeature {
 
   /// Check if storage backend is available
   pub fn has_storage(&self) -> bool {
-    self.storage_backend.try_read().ok().map_or(false, |g| g.is_some())
+    self
+      .storage_backend
+      .try_read()
+      .ok()
+      .is_some_and(|g| g.is_some())
   }
 
   /// Create a backup now
@@ -182,12 +186,12 @@ impl BackupFeature {
         }
 
         // Sort by name (contains timestamp) descending
-        entries.sort_by(|a, b| b.file_name().cmp(&a.file_name()));
+        entries.sort_by_key(|e| std::cmp::Reverse(e.file_name()));
 
         // Delete backups beyond retention limit
         for entry in entries.iter().skip(config.backup.retention as usize) {
           let path = entry.path();
-          if path.extension().map_or(false, |ext| ext == "sql") {
+          if path.extension().is_some_and(|ext| ext == "sql") {
             if let Err(e) = tokio::fs::remove_file(&path).await {
               tracing::warn!("Failed to delete old backup {:?}: {}", path, e);
             } else {
@@ -202,7 +206,10 @@ impl BackupFeature {
   }
 
   /// List all backups
-  pub async fn list_backups(&self, config: &ServerConfig) -> Result<Vec<BackupInfo>, anyhow::Error> {
+  pub async fn list_backups(
+    &self,
+    config: &ServerConfig,
+  ) -> Result<Vec<BackupInfo>, anyhow::Error> {
     let mut backups = Vec::new();
 
     // Get storage backend if available
@@ -225,15 +232,23 @@ impl BackupFeature {
 
         while let Some(entry) = entries.next_entry().await? {
           let path = entry.path();
-          if path.extension().map_or(false, |ext| ext == "sql") {
+          if path.extension().is_some_and(|ext| ext == "sql") {
             let metadata = entry.metadata().await?;
-            let filename = path.file_name().unwrap_or_default().to_string_lossy().to_string();
+            let filename = path
+              .file_name()
+              .unwrap_or_default()
+              .to_string_lossy()
+              .to_string();
 
             // Parse timestamp from filename
             let created_at = parse_backup_timestamp(&filename);
 
             backups.push(BackupInfo {
-              id: filename.split('_').last().unwrap_or("unknown").replace(".sql", ""),
+              id: filename
+                .split('_')
+                .next_back()
+                .unwrap_or("unknown")
+                .replace(".sql", ""),
               filename: filename.clone(),
               size: metadata.len() as i64,
               created_at,
@@ -252,7 +267,11 @@ impl BackupFeature {
   }
 
   /// Delete a specific backup
-  pub async fn delete_backup(&self, config: &ServerConfig, backup_id: &str) -> Result<bool, anyhow::Error> {
+  pub async fn delete_backup(
+    &self,
+    config: &ServerConfig,
+    backup_id: &str,
+  ) -> Result<bool, anyhow::Error> {
     // Get storage backend if available
     let storage = {
       let guard = self.storage_backend.read().await;
@@ -274,7 +293,11 @@ impl BackupFeature {
 
       while let Some(entry) = entries.next_entry().await? {
         let path = entry.path();
-        let filename = path.file_name().unwrap_or_default().to_string_lossy().to_string();
+        let filename = path
+          .file_name()
+          .unwrap_or_default()
+          .to_string_lossy()
+          .to_string();
 
         // Check if this backup matches the ID
         if filename.contains(backup_id) && filename.ends_with(".sql") {
@@ -429,7 +452,7 @@ fn parse_backup_timestamp(filename: &str) -> DateTime<Utc> {
     if parts.len() >= 2 {
       if let Ok(dt) = chrono::NaiveDateTime::parse_from_str(
         &format!("{}_{}", parts[0], parts[1]),
-        "%Y%m%d_%H%M%S"
+        "%Y%m%d_%H%M%S",
       ) {
         return DateTime::<Utc>::from_naive_utc_and_offset(dt, Utc);
       }
@@ -454,17 +477,19 @@ async fn generate_backup_sql(
 
   sql.push_str("-- Projects\n");
   for project in &projects {
-    sql.push_str(&format!(
-      "-- Project: {} ({})\n",
-      project.name, project.id
-    ));
+    sql.push_str(&format!("-- Project: {} ({})\n", project.name, project.id));
 
     let collections = backend.list_collections(project.id).await?;
 
     for collection in &collections {
-      sql.push_str(&format!("\n-- Collection: {}.{}\n", project.name, collection));
+      sql.push_str(&format!(
+        "\n-- Collection: {}.{}\n",
+        project.name, collection
+      ));
 
-      let docs = backend.list(project.id, collection, None, None, None, None).await?;
+      let docs = backend
+        .list(project.id, collection, None, None, None, None)
+        .await?;
 
       for doc in docs {
         let data_json = serde_json::to_string(&doc.data)?;

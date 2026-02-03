@@ -49,7 +49,10 @@ pub fn Projects() -> impl IntoView {
           new_project_description.set(String::new());
         }
         Err(e) => {
-          state.show_toast(&format!("Failed to create project: {}", e), ToastLevel::Error);
+          state.show_toast(
+            &format!("Failed to create project: {}", e),
+            ToastLevel::Error,
+          );
         }
       }
       creating.set(false);
@@ -62,7 +65,10 @@ pub fn Projects() -> impl IntoView {
     let state = state_stored.get_value();
     let nav = navigate_stored.get_value();
     current_project.set(Some(project.id.clone()));
-    state.show_toast(&format!("Switched to project: {}", project.name), ToastLevel::Info);
+    state.show_toast(
+      &format!("Switched to project: {}", project.name),
+      ToastLevel::Info,
+    );
     nav("/dashboard", Default::default());
   };
 
@@ -71,7 +77,9 @@ pub fn Projects() -> impl IntoView {
     spawn_local(async move {
       match apiclient::delete_project(&project_id).await {
         Ok(_) => {
-          state.projects.update(|ps| ps.retain(|p| p.id != project_id));
+          state
+            .projects
+            .update(|ps| ps.retain(|p| p.id != project_id));
           state.show_toast("Project deleted", ToastLevel::Success);
           // If we deleted the current project, switch to none
           if current_project.get() == Some(project_id.clone()) {

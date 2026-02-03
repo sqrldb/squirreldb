@@ -379,7 +379,11 @@ mod integration {
 
     // Insert a document
     let doc = backend
-      .insert(DEFAULT_PROJECT_ID, "users", json!({"name": "Alice", "age": 30}))
+      .insert(
+        DEFAULT_PROJECT_ID,
+        "users",
+        json!({"name": "Alice", "age": 30}),
+      )
       .await
       .unwrap();
 
@@ -387,7 +391,10 @@ mod integration {
     assert_eq!(doc.data["name"], "Alice");
 
     // Query should find it
-    let docs = backend.list(DEFAULT_PROJECT_ID, "users", None, None, None, None).await.unwrap();
+    let docs = backend
+      .list(DEFAULT_PROJECT_ID, "users", None, None, None, None)
+      .await
+      .unwrap();
     assert_eq!(docs.len(), 1);
     assert_eq!(docs[0].data["name"], "Alice");
   }
@@ -398,18 +405,31 @@ mod integration {
 
     // Create
     let doc = backend
-      .insert(DEFAULT_PROJECT_ID, "items", json!({"name": "Widget", "price": 9.99}))
+      .insert(
+        DEFAULT_PROJECT_ID,
+        "items",
+        json!({"name": "Widget", "price": 9.99}),
+      )
       .await
       .unwrap();
     let id = doc.id;
 
     // Read
-    let retrieved = backend.get(DEFAULT_PROJECT_ID, "items", id).await.unwrap().unwrap();
+    let retrieved = backend
+      .get(DEFAULT_PROJECT_ID, "items", id)
+      .await
+      .unwrap()
+      .unwrap();
     assert_eq!(retrieved.data["name"], "Widget");
 
     // Update
     let updated = backend
-      .update(DEFAULT_PROJECT_ID, "items", id, json!({"name": "Super Widget", "price": 19.99}))
+      .update(
+        DEFAULT_PROJECT_ID,
+        "items",
+        id,
+        json!({"name": "Super Widget", "price": 19.99}),
+      )
       .await
       .unwrap()
       .unwrap();
@@ -417,7 +437,11 @@ mod integration {
     assert_eq!(updated.data["price"], 19.99);
 
     // Delete
-    let deleted = backend.delete(DEFAULT_PROJECT_ID, "items", id).await.unwrap().unwrap();
+    let deleted = backend
+      .delete(DEFAULT_PROJECT_ID, "items", id)
+      .await
+      .unwrap()
+      .unwrap();
     assert_eq!(deleted.id, id);
 
     // Verify deleted
@@ -456,15 +480,27 @@ mod integration {
 
     // Insert test data
     backend
-      .insert(DEFAULT_PROJECT_ID, "users", json!({"name": "Alice", "age": 25}))
+      .insert(
+        DEFAULT_PROJECT_ID,
+        "users",
+        json!({"name": "Alice", "age": 25}),
+      )
       .await
       .unwrap();
     backend
-      .insert(DEFAULT_PROJECT_ID, "users", json!({"name": "Bob", "age": 30}))
+      .insert(
+        DEFAULT_PROJECT_ID,
+        "users",
+        json!({"name": "Bob", "age": 30}),
+      )
       .await
       .unwrap();
     backend
-      .insert(DEFAULT_PROJECT_ID, "users", json!({"name": "Charlie", "age": 35}))
+      .insert(
+        DEFAULT_PROJECT_ID,
+        "users",
+        json!({"name": "Charlie", "age": 35}),
+      )
       .await
       .unwrap();
 
@@ -490,7 +526,12 @@ mod integration {
 
     let fake_id = uuid::Uuid::new_v4();
     let result = backend
-      .update(DEFAULT_PROJECT_ID, "users", fake_id, json!({"name": "Ghost"}))
+      .update(
+        DEFAULT_PROJECT_ID,
+        "users",
+        fake_id,
+        json!({"name": "Ghost"}),
+      )
       .await
       .unwrap();
 
@@ -502,7 +543,10 @@ mod integration {
     let (_server, backend) = create_test_server().await;
 
     let fake_id = uuid::Uuid::new_v4();
-    let result = backend.delete(DEFAULT_PROJECT_ID, "users", fake_id).await.unwrap();
+    let result = backend
+      .delete(DEFAULT_PROJECT_ID, "users", fake_id)
+      .await
+      .unwrap();
 
     assert!(result.is_none());
   }
@@ -512,7 +556,14 @@ mod integration {
     let (_server, backend) = create_test_server().await;
 
     let docs = backend
-      .list(DEFAULT_PROJECT_ID, "empty_collection", None, None, None, None)
+      .list(
+        DEFAULT_PROJECT_ID,
+        "empty_collection",
+        None,
+        None,
+        None,
+        None,
+      )
       .await
       .unwrap();
     assert!(docs.is_empty());
@@ -561,11 +612,19 @@ mod integration {
     }
 
     let doc = backend
-      .insert(DEFAULT_PROJECT_ID, "large", serde_json::Value::Object(large_data))
+      .insert(
+        DEFAULT_PROJECT_ID,
+        "large",
+        serde_json::Value::Object(large_data),
+      )
       .await
       .unwrap();
 
-    let retrieved = backend.get(DEFAULT_PROJECT_ID, "large", doc.id).await.unwrap().unwrap();
+    let retrieved = backend
+      .get(DEFAULT_PROJECT_ID, "large", doc.id)
+      .await
+      .unwrap()
+      .unwrap();
     assert_eq!(retrieved.data["field_50"], "value_50");
     assert_eq!(retrieved.data["field_99"], "value_99");
   }
@@ -590,7 +649,11 @@ mod integration {
       .await
       .unwrap();
 
-    let retrieved = backend.get(DEFAULT_PROJECT_ID, "special", doc.id).await.unwrap().unwrap();
+    let retrieved = backend
+      .get(DEFAULT_PROJECT_ID, "special", doc.id)
+      .await
+      .unwrap()
+      .unwrap();
     assert_eq!(retrieved.data["text"], "Hello \"World\"!");
     assert_eq!(retrieved.data["unicode"], "日本語 🎉");
   }
@@ -615,7 +678,11 @@ mod integration {
       .await
       .unwrap();
 
-    let retrieved = backend.get(DEFAULT_PROJECT_ID, "numbers", doc.id).await.unwrap().unwrap();
+    let retrieved = backend
+      .get(DEFAULT_PROJECT_ID, "numbers", doc.id)
+      .await
+      .unwrap()
+      .unwrap();
     assert_eq!(retrieved.data["integer"], 42);
     assert_eq!(retrieved.data["negative"], -17);
     assert!((retrieved.data["float"].as_f64().unwrap() - 12.345).abs() < 0.0001);
@@ -638,7 +705,11 @@ mod integration {
       .await
       .unwrap();
 
-    let retrieved = backend.get(DEFAULT_PROJECT_ID, "booleans", doc.id).await.unwrap().unwrap();
+    let retrieved = backend
+      .get(DEFAULT_PROJECT_ID, "booleans", doc.id)
+      .await
+      .unwrap()
+      .unwrap();
     assert_eq!(retrieved.data["active"], true);
     assert_eq!(retrieved.data["deleted"], false);
     assert!(retrieved.data["optional"].is_null());
@@ -669,7 +740,11 @@ mod integration {
       .await
       .unwrap();
 
-    let retrieved = backend.get(DEFAULT_PROJECT_ID, "nested", doc.id).await.unwrap().unwrap();
+    let retrieved = backend
+      .get(DEFAULT_PROJECT_ID, "nested", doc.id)
+      .await
+      .unwrap()
+      .unwrap();
     assert_eq!(
       retrieved.data["level1"]["level2"]["level3"]["level4"]["level5"]["value"],
       "deep"
@@ -695,7 +770,11 @@ mod integration {
       .await
       .unwrap();
 
-    let retrieved = backend.get(DEFAULT_PROJECT_ID, "arrays", doc.id).await.unwrap().unwrap();
+    let retrieved = backend
+      .get(DEFAULT_PROJECT_ID, "arrays", doc.id)
+      .await
+      .unwrap()
+      .unwrap();
     assert!(retrieved.data["empty"].as_array().unwrap().is_empty());
     assert_eq!(retrieved.data["numbers"].as_array().unwrap().len(), 5);
     assert_eq!(retrieved.data["mixed"][4]["nested"], "object");
@@ -717,8 +796,14 @@ mod query_engine {
     let backend = Arc::new(SqliteBackend::in_memory().await.unwrap());
     backend.init_schema().await.unwrap();
 
-    backend.insert(DEFAULT_PROJECT_ID, "test", json!({"x": 1})).await.unwrap();
-    backend.insert(DEFAULT_PROJECT_ID, "test", json!({"x": 2})).await.unwrap();
+    backend
+      .insert(DEFAULT_PROJECT_ID, "test", json!({"x": 1}))
+      .await
+      .unwrap();
+    backend
+      .insert(DEFAULT_PROJECT_ID, "test", json!({"x": 2}))
+      .await
+      .unwrap();
 
     let engine_pool = Arc::new(QueryEnginePool::new(1, backend.dialect()));
     let result = engine_pool
@@ -735,7 +820,10 @@ mod query_engine {
     backend.init_schema().await.unwrap();
 
     for i in 0..10 {
-      backend.insert(DEFAULT_PROJECT_ID, "items", json!({"index": i})).await.unwrap();
+      backend
+        .insert(DEFAULT_PROJECT_ID, "items", json!({"index": i}))
+        .await
+        .unwrap();
     }
 
     let engine_pool = Arc::new(QueryEnginePool::new(1, backend.dialect()));
@@ -753,15 +841,27 @@ mod query_engine {
     backend.init_schema().await.unwrap();
 
     backend
-      .insert(DEFAULT_PROJECT_ID, "users", json!({"name": "Alice", "role": "admin"}))
+      .insert(
+        DEFAULT_PROJECT_ID,
+        "users",
+        json!({"name": "Alice", "role": "admin"}),
+      )
       .await
       .unwrap();
     backend
-      .insert(DEFAULT_PROJECT_ID, "users", json!({"name": "Bob", "role": "user"}))
+      .insert(
+        DEFAULT_PROJECT_ID,
+        "users",
+        json!({"name": "Bob", "role": "user"}),
+      )
       .await
       .unwrap();
     backend
-      .insert(DEFAULT_PROJECT_ID, "users", json!({"name": "Charlie", "role": "admin"}))
+      .insert(
+        DEFAULT_PROJECT_ID,
+        "users",
+        json!({"name": "Charlie", "role": "admin"}),
+      )
       .await
       .unwrap();
 
@@ -783,15 +883,27 @@ mod query_engine {
     backend.init_schema().await.unwrap();
 
     backend
-      .insert(DEFAULT_PROJECT_ID, "products", json!({"name": "A", "price": 10}))
+      .insert(
+        DEFAULT_PROJECT_ID,
+        "products",
+        json!({"name": "A", "price": 10}),
+      )
       .await
       .unwrap();
     backend
-      .insert(DEFAULT_PROJECT_ID, "products", json!({"name": "B", "price": 25}))
+      .insert(
+        DEFAULT_PROJECT_ID,
+        "products",
+        json!({"name": "B", "price": 25}),
+      )
       .await
       .unwrap();
     backend
-      .insert(DEFAULT_PROJECT_ID, "products", json!({"name": "C", "price": 50}))
+      .insert(
+        DEFAULT_PROJECT_ID,
+        "products",
+        json!({"name": "C", "price": 50}),
+      )
       .await
       .unwrap();
 
@@ -812,7 +924,10 @@ mod query_engine {
     let backend = Arc::new(SqliteBackend::in_memory().await.unwrap());
     backend.init_schema().await.unwrap();
 
-    backend.insert(DEFAULT_PROJECT_ID, "data", json!({"value": 1})).await.unwrap();
+    backend
+      .insert(DEFAULT_PROJECT_ID, "data", json!({"value": 1}))
+      .await
+      .unwrap();
 
     let engine_pool = Arc::new(QueryEnginePool::new(1, backend.dialect()));
     let result = engine_pool
@@ -832,7 +947,11 @@ mod query_engine {
     backend.init_schema().await.unwrap();
 
     backend
-      .insert(DEFAULT_PROJECT_ID, "users", json!({"firstName": "Alice", "lastName": "Smith"}))
+      .insert(
+        DEFAULT_PROJECT_ID,
+        "users",
+        json!({"firstName": "Alice", "lastName": "Smith"}),
+      )
       .await
       .unwrap();
 

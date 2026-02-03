@@ -95,92 +95,92 @@ impl Feature for CacheFeature {
     }
 
     // Load config from database if available
-    let config = if let Ok(Some((_, settings))) = state.backend.get_feature_settings("caching").await
-    {
-      let port = settings
-        .get("port")
-        .and_then(|v| v.as_u64())
-        .unwrap_or(self.config.read().port as u64) as u16;
-      let max_memory = settings
-        .get("max_memory")
-        .and_then(|v| v.as_str())
-        .map(String::from)
-        .unwrap_or_else(|| self.config.read().max_memory.clone());
-      let eviction = settings
-        .get("eviction")
-        .and_then(|v| v.as_str())
-        .and_then(|s| s.parse().ok())
-        .unwrap_or(self.config.read().eviction);
-      let default_ttl = settings
-        .get("default_ttl")
-        .and_then(|v| v.as_u64())
-        .unwrap_or(self.config.read().default_ttl);
-      let snapshot_enabled = settings
-        .get("snapshot_enabled")
-        .and_then(|v| v.as_bool())
-        .unwrap_or(self.config.read().snapshot.enabled);
-      let snapshot_path = settings
-        .get("snapshot_path")
-        .and_then(|v| v.as_str())
-        .map(String::from)
-        .unwrap_or_else(|| self.config.read().snapshot.path.clone());
-      let snapshot_interval = settings
-        .get("snapshot_interval")
-        .and_then(|v| v.as_u64())
-        .unwrap_or(self.config.read().snapshot.interval);
+    let config =
+      if let Ok(Some((_, settings))) = state.backend.get_feature_settings("caching").await {
+        let port = settings
+          .get("port")
+          .and_then(|v| v.as_u64())
+          .unwrap_or(self.config.read().port as u64) as u16;
+        let max_memory = settings
+          .get("max_memory")
+          .and_then(|v| v.as_str())
+          .map(String::from)
+          .unwrap_or_else(|| self.config.read().max_memory.clone());
+        let eviction = settings
+          .get("eviction")
+          .and_then(|v| v.as_str())
+          .and_then(|s| s.parse().ok())
+          .unwrap_or(self.config.read().eviction);
+        let default_ttl = settings
+          .get("default_ttl")
+          .and_then(|v| v.as_u64())
+          .unwrap_or(self.config.read().default_ttl);
+        let snapshot_enabled = settings
+          .get("snapshot_enabled")
+          .and_then(|v| v.as_bool())
+          .unwrap_or(self.config.read().snapshot.enabled);
+        let snapshot_path = settings
+          .get("snapshot_path")
+          .and_then(|v| v.as_str())
+          .map(String::from)
+          .unwrap_or_else(|| self.config.read().snapshot.path.clone());
+        let snapshot_interval = settings
+          .get("snapshot_interval")
+          .and_then(|v| v.as_u64())
+          .unwrap_or(self.config.read().snapshot.interval);
 
-      // Parse cache mode
-      let mode = settings
-        .get("mode")
-        .and_then(|v| v.as_str())
-        .and_then(|s| s.parse().ok())
-        .unwrap_or(self.config.read().mode);
+        // Parse cache mode
+        let mode = settings
+          .get("mode")
+          .and_then(|v| v.as_str())
+          .and_then(|s| s.parse().ok())
+          .unwrap_or(self.config.read().mode);
 
-      // Parse proxy config
-      let proxy = if mode == CacheMode::Proxy {
-        CacheProxyConfig {
-          host: settings
-            .get("proxy_host")
-            .and_then(|v| v.as_str())
-            .map(String::from)
-            .unwrap_or_else(|| "localhost".to_string()),
-          port: settings
-            .get("proxy_port")
-            .and_then(|v| v.as_u64())
-            .unwrap_or(6379) as u16,
-          password: settings
-            .get("proxy_password")
-            .and_then(|v| v.as_str())
-            .map(String::from),
-          database: settings
-            .get("proxy_database")
-            .and_then(|v| v.as_u64())
-            .unwrap_or(0) as u8,
-          tls_enabled: settings
-            .get("proxy_tls_enabled")
-            .and_then(|v| v.as_bool())
-            .unwrap_or(false),
+        // Parse proxy config
+        let proxy = if mode == CacheMode::Proxy {
+          CacheProxyConfig {
+            host: settings
+              .get("proxy_host")
+              .and_then(|v| v.as_str())
+              .map(String::from)
+              .unwrap_or_else(|| "localhost".to_string()),
+            port: settings
+              .get("proxy_port")
+              .and_then(|v| v.as_u64())
+              .unwrap_or(6379) as u16,
+            password: settings
+              .get("proxy_password")
+              .and_then(|v| v.as_str())
+              .map(String::from),
+            database: settings
+              .get("proxy_database")
+              .and_then(|v| v.as_u64())
+              .unwrap_or(0) as u8,
+            tls_enabled: settings
+              .get("proxy_tls_enabled")
+              .and_then(|v| v.as_bool())
+              .unwrap_or(false),
+          }
+        } else {
+          self.config.read().proxy.clone()
+        };
+
+        CacheConfig {
+          port,
+          max_memory,
+          eviction,
+          default_ttl,
+          snapshot: super::config::CacheSnapshotConfig {
+            enabled: snapshot_enabled,
+            path: snapshot_path,
+            interval: snapshot_interval,
+          },
+          mode,
+          proxy,
         }
       } else {
-        self.config.read().proxy.clone()
+        self.config.read().clone()
       };
-
-      CacheConfig {
-        port,
-        max_memory,
-        eviction,
-        default_ttl,
-        snapshot: super::config::CacheSnapshotConfig {
-          enabled: snapshot_enabled,
-          path: snapshot_path,
-          interval: snapshot_interval,
-        },
-        mode,
-        proxy,
-      }
-    } else {
-      self.config.read().clone()
-    };
 
     // Update stored config
     *self.config.write() = config.clone();

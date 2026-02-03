@@ -67,15 +67,24 @@ impl CacheChange {
         format!(
           "set {} {}",
           self.key,
-          self.new_value.as_ref().map(|v| v.to_resp_string()).unwrap_or_default()
+          self
+            .new_value
+            .as_ref()
+            .map(|v| v.to_resp_string())
+            .unwrap_or_default()
         )
       }
       CacheChangeOperation::Delete => format!("del {}", self.key),
       CacheChangeOperation::Expire => format!("expired {}", self.key),
       CacheChangeOperation::Flush => "flushdb".to_string(),
     };
-    format!("*3\r\n$7\r\nmessage\r\n${}\r\n{}\r\n${}\r\n{}\r\n",
-      channel.len(), channel, payload.len(), payload)
+    format!(
+      "*3\r\n$7\r\nmessage\r\n${}\r\n{}\r\n${}\r\n{}\r\n",
+      channel.len(),
+      channel,
+      payload.len(),
+      payload
+    )
   }
 }
 

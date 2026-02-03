@@ -18,11 +18,7 @@ pub struct CommandContext {
 }
 
 /// Execute a Redis command
-pub async fn execute_command(
-  ctx: &CommandContext,
-  cmd: &str,
-  args: &[String],
-) -> RespValue {
+pub async fn execute_command(ctx: &CommandContext, cmd: &str, args: &[String]) -> RespValue {
   match cmd {
     "PING" => cmd_ping(args),
     "ECHO" => cmd_echo(args),

@@ -72,7 +72,10 @@ pub fn TokensSettings() -> impl IntoView {
         }
         Err(e) => {
           let st = state_stored.get_value();
-          st.show_toast(&format!("Failed to update auth settings: {}", e), ToastLevel::Error);
+          st.show_toast(
+            &format!("Failed to update auth settings: {}", e),
+            ToastLevel::Error,
+          );
         }
       }
       auth_loading.set(false);

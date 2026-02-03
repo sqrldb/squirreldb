@@ -22,7 +22,11 @@ pub fn Settings() -> impl IntoView {
   let params = use_params_map();
 
   let current_tab = move || {
-    params.with(|p| p.get("tab").cloned().unwrap_or_else(|| "general".to_string()))
+    params.with(|p| {
+      p.get("tab")
+        .cloned()
+        .unwrap_or_else(|| "general".to_string())
+    })
   };
 
   let is_owner = move || {
@@ -61,11 +65,7 @@ pub fn Settings() -> impl IntoView {
 }
 
 #[component]
-fn TabLink<F>(
-  tab: &'static str,
-  label: &'static str,
-  current_tab: F,
-) -> impl IntoView
+fn TabLink<F>(tab: &'static str, label: &'static str, current_tab: F) -> impl IntoView
 where
   F: Fn() -> String + 'static + Copy,
 {

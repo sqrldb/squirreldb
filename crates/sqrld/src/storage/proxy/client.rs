@@ -16,12 +16,14 @@ use crate::storage::config::ProxyConfig;
 use crate::storage::error::StorageError;
 use crate::storage::filesystem::LocalFileStorage;
 
+type PartCache = HashMap<Uuid, HashMap<i32, Vec<u8>>>;
+
 /// S3 proxy client that connects to external S3 providers
 pub struct S3ProxyClient {
   client: S3Client,
   config: ProxyConfig,
   /// Cache for part data during multipart uploads (upload_id -> part_number -> data)
-  part_cache: Arc<RwLock<HashMap<Uuid, HashMap<i32, Vec<u8>>>>>,
+  part_cache: Arc<RwLock<PartCache>>,
 }
 
 impl S3ProxyClient {
@@ -69,7 +71,12 @@ impl S3ProxyClient {
 
   /// Generate a storage path for proxy objects (virtual path, not filesystem)
   fn storage_path(&self, bucket: &str, key: &str, version_id: Uuid) -> String {
-    format!("s3://{}/{}/{}", self.effective_bucket(bucket), key, version_id)
+    format!(
+      "s3://{}/{}/{}",
+      self.effective_bucket(bucket),
+      key,
+      version_id
+    )
   }
 
   /// Parse a storage path back to bucket and key

@@ -25,11 +25,11 @@ use tower_http::services::{ServeDir, ServeFile};
 use uuid::Uuid;
 
 use super::auth;
-use crate::security::headers::SecurityHeadersLayer;
 use crate::cache::CacheStore;
 use crate::db::{AdminRole, AdminUser, ApiTokenInfo, DatabaseBackend, SqlDialect};
 use crate::features::{FeatureInfo, FeatureRegistry};
 use crate::query::{QueryEngine, QueryEnginePool};
+use crate::security::headers::SecurityHeadersLayer;
 use crate::server::{MessageHandler, RateLimiter, ServerConfig};
 use crate::subscriptions::SubscriptionManager;
 use crate::types::{ClientMessage, ServerMessage, DEFAULT_PROJECT_ID};
@@ -103,6 +103,7 @@ pub struct AdminServer {
 }
 
 impl AdminServer {
+  #[allow(clippy::too_many_arguments)]
   pub fn new(
     backend: Backend,
     subs: Arc<SubscriptionManager>,
@@ -746,7 +747,10 @@ async fn api_drop_collection(
     .await?;
   let mut deleted = 0;
   for doc in docs {
-    state.backend.delete(DEFAULT_PROJECT_ID, &name, doc.id).await?;
+    state
+      .backend
+      .delete(DEFAULT_PROJECT_ID, &name, doc.id)
+      .await?;
     deleted += 1;
   }
   Ok(Json(serde_json::json!({ "deleted": deleted })))
@@ -757,7 +761,10 @@ async fn api_insert_doc(
   Path(name): Path<String>,
   Json(data): Json<serde_json::Value>,
 ) -> Result<Json<serde_json::Value>, AppError> {
-  let doc = state.backend.insert(DEFAULT_PROJECT_ID, &name, data).await?;
+  let doc = state
+    .backend
+    .insert(DEFAULT_PROJECT_ID, &name, data)
+    .await?;
   emit_log(
     "info",
     "squirreldb::api",
@@ -788,7 +795,10 @@ async fn api_update_doc(
   let id = id
     .parse()
     .map_err(|_| AppError::BadRequest("Invalid UUID".into()))?;
-  let doc = state.backend.update(DEFAULT_PROJECT_ID, &name, id, data).await?;
+  let doc = state
+    .backend
+    .update(DEFAULT_PROJECT_ID, &name, id, data)
+    .await?;
   match doc {
     Some(d) => Ok(Json(serde_json::to_value(d)?)),
     None => Err(AppError::NotFound("Not found".to_string())),
@@ -1235,20 +1245,29 @@ async fn api_auth_change_password(
 
   // Verify current password
   if !auth::verify_password(&req.current_password, &password_hash) {
-    return Err(AppError::Unauthorized("Current password is incorrect".to_string()));
+    return Err(AppError::Unauthorized(
+      "Current password is incorrect".to_string(),
+    ));
   }
 
   // Validate new password
   if req.new_password.len() < 8 {
-    return Err(AppError::BadRequest("New password must be at least 8 characters".to_string()));
+    return Err(AppError::BadRequest(
+      "New password must be at least 8 characters".to_string(),
+    ));
   }
 
   // Hash and update password
   let new_hash = auth::hash_password(&req.new_password)
     .map_err(|e| AppError::Internal(anyhow::anyhow!("Password hash error: {}", e)))?;
-  state.backend.update_admin_user_password(&user.id, &new_hash).await?;
+  state
+    .backend
+    .update_admin_user_password(&user.id, &new_hash)
+    .await?;
 
-  Ok(Json(serde_json::json!({"message": "Password changed successfully"})))
+  Ok(Json(
+    serde_json::json!({"message": "Password changed successfully"}),
+  ))
 }
 
 // =============================================================================
@@ -1486,7 +1505,8 @@ async fn api_setup_token(
   // Verify setup is actually needed
   if !needs_setup(&state).await {
     return Err(AppError::BadRequest(
-      "Setup already completed. Use /api/projects/{project_id}/tokens to create additional tokens.".into(),
+      "Setup already completed. Use /api/projects/{project_id}/tokens to create additional tokens."
+        .into(),
     ));
   }
 
@@ -1499,7 +1519,10 @@ async fn api_setup_token(
   let token_hash = hash_token(&token);
 
   // Store in database (default project)
-  let info = state.backend.create_token(DEFAULT_PROJECT_ID, &req.name, &token_hash).await?;
+  let info = state
+    .backend
+    .create_token(DEFAULT_PROJECT_ID, &req.name, &token_hash)
+    .await?;
 
   emit_log(
     "info",
@@ -1529,7 +1552,10 @@ async fn api_create_token(
   let token_hash = hash_token(&token);
 
   // Store in database
-  let info = state.backend.create_token(project_id, &req.name, &token_hash).await?;
+  let info = state
+    .backend
+    .create_token(project_id, &req.name, &token_hash)
+    .await?;
 
   // Return full token only once
   Ok(Json(CreateTokenResponse { token, info }))
@@ -1545,10 +1571,12 @@ async fn api_delete_token(
   State(state): State<AppState>,
   Path(path): Path<DeleteTokenPath>,
 ) -> Result<Json<serde_json::Value>, AppError> {
-  let project_id: Uuid = path.project_id
+  let project_id: Uuid = path
+    .project_id
     .parse()
     .map_err(|_| AppError::BadRequest("Invalid project ID".to_string()))?;
-  let id: Uuid = path.id
+  let id: Uuid = path
+    .id
     .parse()
     .map_err(|_| AppError::BadRequest("Invalid token ID".into()))?;
   let deleted = state.backend.delete_token(project_id, id).await?;
@@ -1673,7 +1701,11 @@ async fn api_update_auth_settings(
     "squirreldb::admin",
     &format!(
       "API authentication {}",
-      if req.auth_required { "enabled" } else { "disabled" }
+      if req.auth_required {
+        "enabled"
+      } else {
+        "disabled"
+      }
     ),
   );
 
@@ -1687,7 +1719,11 @@ async fn api_update_auth_settings(
 // =============================================================================
 
 async fn api_restart_server(State(state): State<AppState>) -> Json<serde_json::Value> {
-  emit_log("info", "squirreldb::admin", "Server restart requested via admin UI");
+  emit_log(
+    "info",
+    "squirreldb::admin",
+    "Server restart requested via admin UI",
+  );
 
   // Clone the shutdown signal sender
   let shutdown_tx = state.shutdown_tx.clone();
@@ -1727,7 +1763,9 @@ struct ProtocolSettingsResponse {
   mcp: bool,
 }
 
-async fn api_get_protocol_settings(State(state): State<AppState>) -> Json<ProtocolSettingsResponse> {
+async fn api_get_protocol_settings(
+  State(state): State<AppState>,
+) -> Json<ProtocolSettingsResponse> {
   // Get protocol settings from database, fallback to config
   let (_, settings) = state
     .backend
@@ -1738,11 +1776,26 @@ async fn api_get_protocol_settings(State(state): State<AppState>) -> Json<Protoc
     .unwrap_or((true, serde_json::json!({})));
 
   Json(ProtocolSettingsResponse {
-    rest: settings.get("rest").and_then(|v| v.as_bool()).unwrap_or(state.config.server.protocols.rest),
-    websocket: settings.get("websocket").and_then(|v| v.as_bool()).unwrap_or(state.config.server.protocols.websocket),
-    sse: settings.get("sse").and_then(|v| v.as_bool()).unwrap_or(state.config.server.protocols.sse),
-    tcp: settings.get("tcp").and_then(|v| v.as_bool()).unwrap_or(state.config.server.protocols.tcp),
-    mcp: settings.get("mcp").and_then(|v| v.as_bool()).unwrap_or(state.config.server.protocols.mcp),
+    rest: settings
+      .get("rest")
+      .and_then(|v| v.as_bool())
+      .unwrap_or(state.config.server.protocols.rest),
+    websocket: settings
+      .get("websocket")
+      .and_then(|v| v.as_bool())
+      .unwrap_or(state.config.server.protocols.websocket),
+    sse: settings
+      .get("sse")
+      .and_then(|v| v.as_bool())
+      .unwrap_or(state.config.server.protocols.sse),
+    tcp: settings
+      .get("tcp")
+      .and_then(|v| v.as_bool())
+      .unwrap_or(state.config.server.protocols.tcp),
+    mcp: settings
+      .get("mcp")
+      .and_then(|v| v.as_bool())
+      .unwrap_or(state.config.server.protocols.mcp),
   })
 }
 
@@ -1769,11 +1822,36 @@ async fn api_update_protocol_settings(
     .unwrap_or((true, serde_json::json!({})));
 
   // Merge with new values
-  let rest = req.rest.unwrap_or_else(|| existing.get("rest").and_then(|v| v.as_bool()).unwrap_or(state.config.server.protocols.rest));
-  let websocket = req.websocket.unwrap_or_else(|| existing.get("websocket").and_then(|v| v.as_bool()).unwrap_or(state.config.server.protocols.websocket));
-  let sse = req.sse.unwrap_or_else(|| existing.get("sse").and_then(|v| v.as_bool()).unwrap_or(state.config.server.protocols.sse));
-  let tcp = req.tcp.unwrap_or_else(|| existing.get("tcp").and_then(|v| v.as_bool()).unwrap_or(state.config.server.protocols.tcp));
-  let mcp = req.mcp.unwrap_or_else(|| existing.get("mcp").and_then(|v| v.as_bool()).unwrap_or(state.config.server.protocols.mcp));
+  let rest = req.rest.unwrap_or_else(|| {
+    existing
+      .get("rest")
+      .and_then(|v| v.as_bool())
+      .unwrap_or(state.config.server.protocols.rest)
+  });
+  let websocket = req.websocket.unwrap_or_else(|| {
+    existing
+      .get("websocket")
+      .and_then(|v| v.as_bool())
+      .unwrap_or(state.config.server.protocols.websocket)
+  });
+  let sse = req.sse.unwrap_or_else(|| {
+    existing
+      .get("sse")
+      .and_then(|v| v.as_bool())
+      .unwrap_or(state.config.server.protocols.sse)
+  });
+  let tcp = req.tcp.unwrap_or_else(|| {
+    existing
+      .get("tcp")
+      .and_then(|v| v.as_bool())
+      .unwrap_or(state.config.server.protocols.tcp)
+  });
+  let mcp = req.mcp.unwrap_or_else(|| {
+    existing
+      .get("mcp")
+      .and_then(|v| v.as_bool())
+      .unwrap_or(state.config.server.protocols.mcp)
+  });
 
   let new_settings = serde_json::json!({
     "rest": rest,
@@ -1887,7 +1965,10 @@ async fn api_update_cors_settings(
   emit_log(
     "info",
     "squirreldb::admin",
-    &format!("CORS settings updated: {:?} (restart required)", valid_origins),
+    &format!(
+      "CORS settings updated: {:?} (restart required)",
+      valid_origins
+    ),
   );
 
   Ok(Json(CorsSettingsResponse {
@@ -2105,7 +2186,10 @@ async fn api_update_storage_settings(
       .map(String::from)
       .unwrap_or_default()
   });
-  settings.insert("proxy_endpoint".to_string(), serde_json::json!(proxy_endpoint));
+  settings.insert(
+    "proxy_endpoint".to_string(),
+    serde_json::json!(proxy_endpoint),
+  );
 
   let proxy_access_key_id = req.proxy_access_key_id.clone().unwrap_or_else(|| {
     existing_settings
@@ -2114,15 +2198,24 @@ async fn api_update_storage_settings(
       .map(String::from)
       .unwrap_or_default()
   });
-  settings.insert("proxy_access_key_id".to_string(), serde_json::json!(proxy_access_key_id));
+  settings.insert(
+    "proxy_access_key_id".to_string(),
+    serde_json::json!(proxy_access_key_id),
+  );
 
   // Only update secret if provided (don't overwrite with empty)
   if let Some(secret) = req.proxy_secret_access_key.clone() {
     if !secret.is_empty() {
-      settings.insert("proxy_secret_access_key".to_string(), serde_json::json!(secret));
+      settings.insert(
+        "proxy_secret_access_key".to_string(),
+        serde_json::json!(secret),
+      );
     }
   } else if let Some(existing_secret) = existing_settings.get("proxy_secret_access_key") {
-    settings.insert("proxy_secret_access_key".to_string(), existing_secret.clone());
+    settings.insert(
+      "proxy_secret_access_key".to_string(),
+      existing_secret.clone(),
+    );
   }
 
   let proxy_region = req.proxy_region.clone().unwrap_or_else(|| {
@@ -2150,7 +2243,10 @@ async fn api_update_storage_settings(
       .and_then(|v| v.as_bool())
       .unwrap_or(false)
   });
-  settings.insert("proxy_force_path_style".to_string(), serde_json::json!(proxy_force_path_style));
+  settings.insert(
+    "proxy_force_path_style".to_string(),
+    serde_json::json!(proxy_force_path_style),
+  );
 
   // Save settings to database
   let settings_json = serde_json::Value::Object(settings.clone());
@@ -2664,14 +2760,29 @@ async fn api_update_cache_settings(
   settings_map.insert("max_memory".to_string(), serde_json::json!(max_memory));
   settings_map.insert("eviction".to_string(), serde_json::json!(eviction));
   settings_map.insert("default_ttl".to_string(), serde_json::json!(default_ttl));
-  settings_map.insert("snapshot_enabled".to_string(), serde_json::json!(snapshot_enabled));
-  settings_map.insert("snapshot_path".to_string(), serde_json::json!(snapshot_path));
-  settings_map.insert("snapshot_interval".to_string(), serde_json::json!(snapshot_interval));
+  settings_map.insert(
+    "snapshot_enabled".to_string(),
+    serde_json::json!(snapshot_enabled),
+  );
+  settings_map.insert(
+    "snapshot_path".to_string(),
+    serde_json::json!(snapshot_path),
+  );
+  settings_map.insert(
+    "snapshot_interval".to_string(),
+    serde_json::json!(snapshot_interval),
+  );
   settings_map.insert("mode".to_string(), serde_json::json!(mode));
   settings_map.insert("proxy_host".to_string(), serde_json::json!(proxy_host));
   settings_map.insert("proxy_port".to_string(), serde_json::json!(proxy_port));
-  settings_map.insert("proxy_database".to_string(), serde_json::json!(proxy_database));
-  settings_map.insert("proxy_tls_enabled".to_string(), serde_json::json!(proxy_tls_enabled));
+  settings_map.insert(
+    "proxy_database".to_string(),
+    serde_json::json!(proxy_database),
+  );
+  settings_map.insert(
+    "proxy_tls_enabled".to_string(),
+    serde_json::json!(proxy_tls_enabled),
+  );
 
   // Only update password if provided
   if let Some(pwd) = req.proxy_password.clone() {
@@ -2784,7 +2895,9 @@ async fn api_get_cache_stats(State(state): State<AppState>) -> Json<CacheStatsRe
   })
 }
 
-async fn api_flush_cache(State(state): State<AppState>) -> Result<Json<serde_json::Value>, AppError> {
+async fn api_flush_cache(
+  State(state): State<AppState>,
+) -> Result<Json<serde_json::Value>, AppError> {
   // Try to flush running cache
   if let Some(feature) = state.feature_registry.get("caching") {
     if feature.is_running() {
@@ -2795,7 +2908,9 @@ async fn api_flush_cache(State(state): State<AppState>) -> Result<Json<serde_jso
         if let Some(store) = cache_feature.get_store() {
           store.flush().await;
           emit_log("info", "squirreldb::admin", "Cache flushed via admin API");
-          return Ok(Json(serde_json::json!({"message": "Cache flushed", "flushed": true})));
+          return Ok(Json(
+            serde_json::json!({"message": "Cache flushed", "flushed": true}),
+          ));
         }
       }
     }
@@ -2915,7 +3030,9 @@ struct BackupInfoResponse {
   location: String,
 }
 
-async fn api_list_backups(State(state): State<AppState>) -> Result<Json<Vec<BackupInfoResponse>>, AppError> {
+async fn api_list_backups(
+  State(state): State<AppState>,
+) -> Result<Json<Vec<BackupInfoResponse>>, AppError> {
   if let Some(feature) = state.feature_registry.get("backup") {
     if let Some(backup_feature) = feature
       .as_any()
@@ -2950,19 +3067,25 @@ async fn api_list_backups(State(state): State<AppState>) -> Result<Json<Vec<Back
     if let Ok(mut entries) = tokio::fs::read_dir(&local_path).await {
       while let Ok(Some(entry)) = entries.next_entry().await {
         let path = entry.path();
-        if path.extension().map_or(false, |ext| ext == "sql") {
+        if path.extension().is_some_and(|ext| ext == "sql") {
           if let Ok(metadata) = entry.metadata().await {
-            let filename = path.file_name().unwrap_or_default().to_string_lossy().to_string();
+            let filename = path
+              .file_name()
+              .unwrap_or_default()
+              .to_string_lossy()
+              .to_string();
             backups.push(BackupInfoResponse {
-              id: filename.split('_').last().unwrap_or("unknown").replace(".sql", ""),
+              id: filename
+                .split('_')
+                .next_back()
+                .unwrap_or("unknown")
+                .replace(".sql", ""),
               filename: filename.clone(),
               size: metadata.len() as i64,
               created_at: metadata
                 .modified()
                 .ok()
-                .map(|t| {
-                  chrono::DateTime::<chrono::Utc>::from(t).to_rfc3339()
-                })
+                .map(|t| chrono::DateTime::<chrono::Utc>::from(t).to_rfc3339())
                 .unwrap_or_default(),
               backend: "unknown".to_string(),
               location: path.to_string_lossy().to_string(),
@@ -2976,7 +3099,9 @@ async fn api_list_backups(State(state): State<AppState>) -> Result<Json<Vec<Back
   Ok(Json(backups))
 }
 
-async fn api_create_backup(State(state): State<AppState>) -> Result<Json<BackupInfoResponse>, AppError> {
+async fn api_create_backup(
+  State(state): State<AppState>,
+) -> Result<Json<BackupInfoResponse>, AppError> {
   if let Some(feature) = state.feature_registry.get("backup") {
     if let Some(backup_feature) = feature
       .as_any()
@@ -3004,7 +3129,9 @@ async fn api_create_backup(State(state): State<AppState>) -> Result<Json<BackupI
     }
   }
 
-  Err(AppError::BadRequest("Backup feature is not available".to_string()))
+  Err(AppError::BadRequest(
+    "Backup feature is not available".to_string(),
+  ))
 }
 
 async fn api_delete_backup(
@@ -3034,7 +3161,9 @@ async fn api_delete_backup(
     }
   }
 
-  Err(AppError::BadRequest("Backup feature is not available".to_string()))
+  Err(AppError::BadRequest(
+    "Backup feature is not available".to_string(),
+  ))
 }
 
 // =============================================================================
@@ -3333,7 +3462,11 @@ async fn api_update_project(
   match role {
     Some(crate::types::ProjectRole::Owner) | Some(crate::types::ProjectRole::Admin) => {}
     _ if user.role == AdminRole::Owner => {} // System owners can manage all
-    _ => return Err(AppError::Forbidden("Cannot update this project".to_string())),
+    _ => {
+      return Err(AppError::Forbidden(
+        "Cannot update this project".to_string(),
+      ))
+    }
   }
 
   let project = state
@@ -3720,14 +3853,20 @@ async fn api_download_object(
 
   // Read object data from storage
   let data = if let Some(feature) = state.feature_registry.get("storage") {
-    if feature.as_any().downcast_ref::<crate::storage::StorageFeature>().is_some() {
+    if feature
+      .as_any()
+      .downcast_ref::<crate::storage::StorageFeature>()
+      .is_some()
+    {
       // Access storage directly via backend read
       // For now, read from filesystem path
       tokio::fs::read(&obj.storage_path)
         .await
         .map_err(|e| AppError::Internal(anyhow::anyhow!("Failed to read object: {}", e)))?
     } else {
-      return Err(AppError::Internal(anyhow::anyhow!("Storage feature not available")));
+      return Err(AppError::Internal(anyhow::anyhow!(
+        "Storage feature not available"
+      )));
     }
   } else {
     return Err(AppError::Internal(anyhow::anyhow!("Storage not running")));
@@ -3737,7 +3876,7 @@ async fn api_download_object(
   let content_type = obj.content_type.clone();
 
   // Build response with file download headers
-  let filename = key.split('/').last().unwrap_or(&key);
+  let filename = key.split('/').next_back().unwrap_or(&key);
   let disposition = format!("attachment; filename=\"{}\"", filename);
 
   Ok(
@@ -3781,8 +3920,9 @@ async fn api_upload_object(
 
     // Get storage feature and write object
     if let Some(feature) = state.feature_registry.get("storage") {
-      if let Some(_storage_feature) =
-        feature.as_any().downcast_ref::<crate::storage::StorageFeature>()
+      if let Some(_storage_feature) = feature
+        .as_any()
+        .downcast_ref::<crate::storage::StorageFeature>()
       {
         // Generate version ID
         let version_id = uuid::Uuid::new_v4();
@@ -3797,7 +3937,11 @@ async fn api_upload_object(
           .await
           .ok()
           .flatten()
-          .and_then(|(_, s)| s.get("storage_path").and_then(|v| v.as_str()).map(String::from))
+          .and_then(|(_, s)| {
+            s.get("storage_path")
+              .and_then(|v| v.as_str())
+              .map(String::from)
+          })
           .unwrap_or_else(|| state.config.storage.storage_path.clone());
 
         // Create storage path

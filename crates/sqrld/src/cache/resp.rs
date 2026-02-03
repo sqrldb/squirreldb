@@ -249,7 +249,9 @@ impl RespParser {
       return Err(RespError::Incomplete);
     }
     if &self.buffer[self.pos..self.pos + 2] != b"\r\n" {
-      return Err(RespError::Invalid("missing CRLF after bulk string".to_string()));
+      return Err(RespError::Invalid(
+        "missing CRLF after bulk string".to_string(),
+      ));
     }
     self.pos += 2;
 

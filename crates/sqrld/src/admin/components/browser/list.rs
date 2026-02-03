@@ -118,12 +118,20 @@ pub fn BucketBrowser(bucket: String) -> impl IntoView {
         }
       }
       if errors > 0 {
-        state.show_toast(&format!("{} objects failed to delete", errors), ToastLevel::Error);
+        state.show_toast(
+          &format!("{} objects failed to delete", errors),
+          ToastLevel::Error,
+        );
       } else {
-        state.show_toast(&format!("{} objects deleted", keys.len()), ToastLevel::Success);
+        state.show_toast(
+          &format!("{} objects deleted", keys.len()),
+          ToastLevel::Success,
+        );
       }
       // Refresh list
-      if let Ok((objs, fldrs)) = apiclient::list_bucket_objects(&bucket, Some(&current_prefix)).await {
+      if let Ok((objs, fldrs)) =
+        apiclient::list_bucket_objects(&bucket, Some(&current_prefix)).await
+      {
         set_objects.set(objs);
         set_folders.set(fldrs);
       }
@@ -141,7 +149,9 @@ pub fn BucketBrowser(bucket: String) -> impl IntoView {
   // Format file size
   let format_size = |size: Option<i64>| -> String {
     match size {
-      Some(s) if s >= 1024 * 1024 * 1024 => format!("{:.1} GB", s as f64 / (1024.0 * 1024.0 * 1024.0)),
+      Some(s) if s >= 1024 * 1024 * 1024 => {
+        format!("{:.1} GB", s as f64 / (1024.0 * 1024.0 * 1024.0))
+      }
       Some(s) if s >= 1024 * 1024 => format!("{:.1} MB", s as f64 / (1024.0 * 1024.0)),
       Some(s) if s >= 1024 => format!("{:.1} KB", s as f64 / 1024.0),
       Some(s) => format!("{} B", s),

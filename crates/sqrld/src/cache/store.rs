@@ -287,9 +287,7 @@ impl InMemoryCacheStore {
         self
           .memory_used
           .fetch_add(new_entry.size, Ordering::Relaxed);
-        self
-          .memory_used
-          .fetch_sub(entry.size, Ordering::Relaxed);
+        self.memory_used.fetch_sub(entry.size, Ordering::Relaxed);
         *entry = new_entry;
         return Ok(delta);
       }
@@ -419,10 +417,7 @@ impl CacheStore for InMemoryCacheStore {
 
   async fn exists(&self, key: &str) -> bool {
     let data = self.data.read();
-    data
-      .get(key)
-      .map(|e| !e.is_expired())
-      .unwrap_or(false)
+    data.get(key).map(|e| !e.is_expired()).unwrap_or(false)
   }
 
   async fn expire(&self, key: &str, ttl: Duration) -> bool {
@@ -458,7 +453,10 @@ impl CacheStore for InMemoryCacheStore {
       if entry.is_expired() {
         Some(-2) // Key doesn't exist (expired)
       } else {
-        entry.ttl_remaining().map(|d| d.as_secs() as i64).or(Some(-1))
+        entry
+          .ttl_remaining()
+          .map(|d| d.as_secs() as i64)
+          .or(Some(-1))
       }
     })
   }

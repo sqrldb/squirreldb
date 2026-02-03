@@ -120,7 +120,10 @@ async fn authenticate_client(
     Some(msg) => {
       if let Ok(parsed) = serde_json::from_str::<serde_json::Value>(msg) {
         if parsed.get("type").and_then(|t| t.as_str()) == Some("Auth") {
-          parsed.get("token").and_then(|t| t.as_str()).map(|s| s.to_string())
+          parsed
+            .get("token")
+            .and_then(|t| t.as_str())
+            .map(|s| s.to_string())
         } else {
           None
         }
@@ -131,7 +134,10 @@ async fn authenticate_client(
     None => None,
   };
 
-  let token = token.ok_or_else(|| "Authentication required. Send {\"type\":\"Auth\",\"token\":\"your_token\"} as first message".to_string())?;
+  let token = token.ok_or_else(|| {
+    "Authentication required. Send {\"type\":\"Auth\",\"token\":\"your_token\"} as first message"
+      .to_string()
+  })?;
 
   // Check if it's the admin token
   if let Some(ref admin_token) = config.auth.admin_token {
@@ -149,6 +155,7 @@ async fn authenticate_client(
   }
 }
 
+#[allow(clippy::too_many_arguments)]
 async fn handle_client(
   stream: TcpStream,
   peer_ip: IpAddr,
@@ -184,7 +191,11 @@ async fn handle_client(
             _project_id = pid;
             // Send auth success
             let success = serde_json::json!({"type": "AuthSuccess"});
-            if sink.send(Message::Text(success.to_string().into())).await.is_err() {
+            if sink
+              .send(Message::Text(success.to_string().into()))
+              .await
+              .is_err()
+            {
               rate_limiter.release_connection(peer_ip);
               return;
             }

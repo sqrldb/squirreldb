@@ -52,7 +52,9 @@ pub fn GeneralSettings() -> impl IntoView {
     spawn_local(async move {
       let result = match protocol {
         "rest" => apiclient::update_protocol_settings(Some(checked), None, None, None, None).await,
-        "websocket" => apiclient::update_protocol_settings(None, Some(checked), None, None, None).await,
+        "websocket" => {
+          apiclient::update_protocol_settings(None, Some(checked), None, None, None).await
+        }
         "sse" => apiclient::update_protocol_settings(None, None, Some(checked), None, None).await,
         "tcp" => apiclient::update_protocol_settings(None, None, None, Some(checked), None).await,
         "mcp" => apiclient::update_protocol_settings(None, None, None, None, Some(checked)).await,
@@ -139,11 +141,17 @@ pub fn GeneralSettings() -> impl IntoView {
         Ok(settings) => {
           cors_settings.set(settings);
           let st = state_stored.get_value();
-          st.show_toast("CORS origin removed (restart required)", ToastLevel::Success);
+          st.show_toast(
+            "CORS origin removed (restart required)",
+            ToastLevel::Success,
+          );
         }
         Err(e) => {
           let st = state_stored.get_value();
-          st.show_toast(&format!("Failed to remove origin: {}", e), ToastLevel::Error);
+          st.show_toast(
+            &format!("Failed to remove origin: {}", e),
+            ToastLevel::Error,
+          );
         }
       }
       cors_loading.set(false);
@@ -157,7 +165,10 @@ pub fn GeneralSettings() -> impl IntoView {
         Ok(settings) => {
           cors_settings.set(settings);
           let st = state_stored.get_value();
-          st.show_toast("CORS set to permissive (restart required)", ToastLevel::Success);
+          st.show_toast(
+            "CORS set to permissive (restart required)",
+            ToastLevel::Success,
+          );
         }
         Err(e) => {
           let st = state_stored.get_value();
@@ -176,7 +187,10 @@ pub fn GeneralSettings() -> impl IntoView {
         Ok(settings) => {
           cors_settings.set(settings);
           let st = state_stored.get_value();
-          st.show_toast("CORS set to restricted mode - add allowed origins (restart required)", ToastLevel::Success);
+          st.show_toast(
+            "CORS set to restricted mode - add allowed origins (restart required)",
+            ToastLevel::Success,
+          );
         }
         Err(e) => {
           let st = state_stored.get_value();

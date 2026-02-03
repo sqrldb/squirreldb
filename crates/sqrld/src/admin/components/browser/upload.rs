@@ -31,7 +31,10 @@ where
 
   // Handle file input change
   let on_file_input = move |ev: web_sys::Event| {
-    if let Some(input) = ev.target().and_then(|t| t.dyn_into::<HtmlInputElement>().ok()) {
+    if let Some(input) = ev
+      .target()
+      .and_then(|t| t.dyn_into::<HtmlInputElement>().ok())
+    {
       if let Some(file_list) = input.files() {
         handle_files(file_list);
       }
@@ -108,7 +111,8 @@ where
 
           // Create form data
           let form_data = web_sys::FormData::new().unwrap();
-          let blob = web_sys::Blob::new_with_u8_array_sequence(&js_sys::Array::of1(&uint8_array)).ok();
+          let blob =
+            web_sys::Blob::new_with_u8_array_sequence(&js_sys::Array::of1(&uint8_array)).ok();
           if let Some(b) = blob {
             let _ = form_data.append_with_blob_and_filename(&name, &b, &name);
           }
@@ -124,7 +128,9 @@ where
           let request = web_sys::Request::new_with_str_and_init(&url, &init).ok();
 
           if let Some(req) = request {
-            let _ = req.headers().set("Authorization", &format!("Bearer {}", token));
+            let _ = req
+              .headers()
+              .set("Authorization", &format!("Bearer {}", token));
             let response = wasm_bindgen_futures::JsFuture::from(window.fetch_with_request(&req))
               .await
               .ok();
@@ -150,7 +156,10 @@ where
       }
 
       if errors > 0 {
-        state.show_toast(&format!("Uploaded {} files, {} failed", uploaded, errors), ToastLevel::Warning);
+        state.show_toast(
+          &format!("Uploaded {} files, {} failed", uploaded, errors),
+          ToastLevel::Warning,
+        );
       } else {
         state.show_toast(&format!("Uploaded {} files", uploaded), ToastLevel::Success);
       }

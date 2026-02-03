@@ -200,7 +200,8 @@ pub async fn update_auth_settings(auth_required: bool) -> Result<bool, String> {
   struct AuthSettingsResp {
     auth_required: bool,
   }
-  let resp: AuthSettingsResp = put_with_auth("/api/settings/auth", &UpdateReq { auth_required }).await?;
+  let resp: AuthSettingsResp =
+    put_with_auth("/api/settings/auth", &UpdateReq { auth_required }).await?;
   Ok(resp.auth_required)
 }
 
@@ -230,7 +231,17 @@ pub async fn update_protocol_settings(
     #[serde(skip_serializing_if = "Option::is_none")]
     mcp: Option<bool>,
   }
-  put_with_auth("/api/settings/protocols", &UpdateReq { rest, websocket, sse, tcp, mcp }).await
+  put_with_auth(
+    "/api/settings/protocols",
+    &UpdateReq {
+      rest,
+      websocket,
+      sse,
+      tcp,
+      mcp,
+    },
+  )
+  .await
 }
 
 #[cfg(feature = "csr")]
@@ -239,7 +250,9 @@ pub async fn fetch_cors_settings() -> Result<crate::admin::state::CorsSettings, 
 }
 
 #[cfg(feature = "csr")]
-pub async fn update_cors_settings(origins: Vec<String>) -> Result<crate::admin::state::CorsSettings, String> {
+pub async fn update_cors_settings(
+  origins: Vec<String>,
+) -> Result<crate::admin::state::CorsSettings, String> {
   #[derive(serde::Serialize)]
   struct UpdateReq {
     origins: Vec<String>,
@@ -309,7 +322,8 @@ pub async fn fetch_tokens(project_id: &str) -> Result<Vec<TokenInfo>, String> {
     name: String,
     created_at: String,
   }
-  let tokens: Vec<TokenResp> = fetch_with_auth(&format!("/api/projects/{}/tokens", project_id)).await?;
+  let tokens: Vec<TokenResp> =
+    fetch_with_auth(&format!("/api/projects/{}/tokens", project_id)).await?;
   Ok(
     tokens
       .into_iter()
@@ -494,7 +508,10 @@ pub async fn logout() -> Result<serde_json::Value, String> {
 }
 
 #[cfg(feature = "csr")]
-pub async fn change_password(current_password: &str, new_password: &str) -> Result<serde_json::Value, String> {
+pub async fn change_password(
+  current_password: &str,
+  new_password: &str,
+) -> Result<serde_json::Value, String> {
   #[derive(serde::Serialize)]
   struct ChangePasswordReq {
     current_password: String,
@@ -637,10 +654,7 @@ pub async fn fetch_projects() -> Result<Vec<ProjectInfo>, String> {
 }
 
 #[cfg(feature = "csr")]
-pub async fn create_project(
-  name: &str,
-  description: Option<&str>,
-) -> Result<ProjectInfo, String> {
+pub async fn create_project(name: &str, description: Option<&str>) -> Result<ProjectInfo, String> {
   #[derive(serde::Serialize)]
   struct CreateReq {
     name: String,
@@ -744,7 +758,11 @@ pub async fn remove_project_member(
 
 #[cfg(feature = "csr")]
 pub async fn select_project(id: &str) -> Result<ProjectInfo, String> {
-  post_with_auth(&format!("/api/projects/{}/select", id), &serde_json::json!({})).await
+  post_with_auth(
+    &format!("/api/projects/{}/select", id),
+    &serde_json::json!({}),
+  )
+  .await
 }
 
 // =============================================================================

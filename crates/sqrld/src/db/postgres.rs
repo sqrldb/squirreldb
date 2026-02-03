@@ -1414,7 +1414,10 @@ impl DatabaseBackend for PostgresBackend {
       .pool
       .get()
       .await?
-      .execute("DELETE FROM api_tokens WHERE id = $1 AND project_id = $2", &[&id, &project_id])
+      .execute(
+        "DELETE FROM api_tokens WHERE id = $1 AND project_id = $2",
+        &[&id, &project_id],
+      )
       .await?;
     Ok(result > 0)
   }
@@ -2375,7 +2378,11 @@ impl DatabaseBackend for PostgresBackend {
     Ok(result > 0)
   }
 
-  async fn update_admin_user_password(&self, id: &Uuid, password_hash: &str) -> Result<bool, anyhow::Error> {
+  async fn update_admin_user_password(
+    &self,
+    id: &Uuid,
+    password_hash: &str,
+  ) -> Result<bool, anyhow::Error> {
     let result = self
       .pool
       .get()

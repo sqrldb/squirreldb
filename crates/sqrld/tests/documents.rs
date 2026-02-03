@@ -14,7 +14,10 @@ async fn test_insert_simple_document() {
   backend.init_schema().await.unwrap();
 
   let data = json!({"name": "Alice"});
-  let doc = backend.insert(DEFAULT_PROJECT_ID, "users", data).await.unwrap();
+  let doc = backend
+    .insert(DEFAULT_PROJECT_ID, "users", data)
+    .await
+    .unwrap();
 
   assert!(!doc.id.is_nil());
   assert_eq!(doc.collection, "users");
@@ -40,7 +43,10 @@ async fn test_insert_complex_document() {
     "score": 95.5
   });
 
-  let doc = backend.insert(DEFAULT_PROJECT_ID, "users", data.clone()).await.unwrap();
+  let doc = backend
+    .insert(DEFAULT_PROJECT_ID, "users", data.clone())
+    .await
+    .unwrap();
 
   assert_eq!(doc.data["name"], "Alice");
   assert_eq!(doc.data["age"], 30);
@@ -56,7 +62,10 @@ async fn test_insert_empty_document() {
   backend.init_schema().await.unwrap();
 
   let data = json!({});
-  let doc = backend.insert(DEFAULT_PROJECT_ID, "empty", data).await.unwrap();
+  let doc = backend
+    .insert(DEFAULT_PROJECT_ID, "empty", data)
+    .await
+    .unwrap();
 
   assert!(!doc.id.is_nil());
   assert_eq!(doc.data, json!({}));
@@ -73,7 +82,10 @@ async fn test_insert_null_values() {
     "nickname": null
   });
 
-  let doc = backend.insert(DEFAULT_PROJECT_ID, "users", data).await.unwrap();
+  let doc = backend
+    .insert(DEFAULT_PROJECT_ID, "users", data)
+    .await
+    .unwrap();
   assert_eq!(doc.data["name"], "Bob");
   assert!(doc.data["middle_name"].is_null());
 }
@@ -88,7 +100,10 @@ async fn test_insert_array_document() {
     "nested": [{"a": 1}, {"b": 2}]
   });
 
-  let doc = backend.insert(DEFAULT_PROJECT_ID, "arrays", data).await.unwrap();
+  let doc = backend
+    .insert(DEFAULT_PROJECT_ID, "arrays", data)
+    .await
+    .unwrap();
   assert_eq!(doc.data["items"].as_array().unwrap().len(), 5);
   assert_eq!(doc.data["nested"][0]["a"], 1);
 }
@@ -106,7 +121,10 @@ async fn test_insert_special_characters() {
     "emoji": "🦀🔥"
   });
 
-  let doc = backend.insert(DEFAULT_PROJECT_ID, "special", data.clone()).await.unwrap();
+  let doc = backend
+    .insert(DEFAULT_PROJECT_ID, "special", data.clone())
+    .await
+    .unwrap();
   assert_eq!(doc.data["name"], "O'Brien");
   assert_eq!(doc.data["message"], "Hello \"World\"");
   assert_eq!(doc.data["unicode"], "日本語テスト");
@@ -124,7 +142,10 @@ async fn test_insert_large_document() {
   }
 
   let data = serde_json::Value::Object(obj);
-  let doc = backend.insert(DEFAULT_PROJECT_ID, "large", data).await.unwrap();
+  let doc = backend
+    .insert(DEFAULT_PROJECT_ID, "large", data)
+    .await
+    .unwrap();
 
   assert_eq!(doc.data["field_0"], "value_0");
   assert_eq!(doc.data["field_99"], "value_99");
@@ -169,7 +190,10 @@ async fn test_get_existing_document() {
     .await
     .unwrap();
 
-  let retrieved = backend.get(DEFAULT_PROJECT_ID, "users", doc.id).await.unwrap();
+  let retrieved = backend
+    .get(DEFAULT_PROJECT_ID, "users", doc.id)
+    .await
+    .unwrap();
   assert!(retrieved.is_some());
 
   let retrieved = retrieved.unwrap();
@@ -183,7 +207,10 @@ async fn test_get_nonexistent_document() {
   backend.init_schema().await.unwrap();
 
   let fake_id = uuid::Uuid::new_v4();
-  let result = backend.get(DEFAULT_PROJECT_ID, "users", fake_id).await.unwrap();
+  let result = backend
+    .get(DEFAULT_PROJECT_ID, "users", fake_id)
+    .await
+    .unwrap();
   assert!(result.is_none());
 }
 
@@ -198,7 +225,10 @@ async fn test_get_from_wrong_collection() {
     .unwrap();
 
   // Try to get from different collection
-  let result = backend.get(DEFAULT_PROJECT_ID, "posts", doc.id).await.unwrap();
+  let result = backend
+    .get(DEFAULT_PROJECT_ID, "posts", doc.id)
+    .await
+    .unwrap();
   assert!(result.is_none());
 }
 
@@ -217,8 +247,15 @@ async fn test_get_preserves_data_types() {
     "object": {"nested": true}
   });
 
-  let doc = backend.insert(DEFAULT_PROJECT_ID, "types", data).await.unwrap();
-  let retrieved = backend.get(DEFAULT_PROJECT_ID, "types", doc.id).await.unwrap().unwrap();
+  let doc = backend
+    .insert(DEFAULT_PROJECT_ID, "types", data)
+    .await
+    .unwrap();
+  let retrieved = backend
+    .get(DEFAULT_PROJECT_ID, "types", doc.id)
+    .await
+    .unwrap()
+    .unwrap();
 
   assert!(retrieved.data["string"].is_string());
   assert!(retrieved.data["number"].is_number());
@@ -239,12 +276,21 @@ async fn test_update_document() {
   backend.init_schema().await.unwrap();
 
   let doc = backend
-    .insert(DEFAULT_PROJECT_ID, "users", json!({"name": "Alice", "age": 30}))
+    .insert(
+      DEFAULT_PROJECT_ID,
+      "users",
+      json!({"name": "Alice", "age": 30}),
+    )
     .await
     .unwrap();
 
   let updated = backend
-    .update(DEFAULT_PROJECT_ID, "users", doc.id, json!({"name": "Alice", "age": 31}))
+    .update(
+      DEFAULT_PROJECT_ID,
+      "users",
+      doc.id,
+      json!({"name": "Alice", "age": 31}),
+    )
     .await
     .unwrap()
     .unwrap();
@@ -284,13 +330,22 @@ async fn test_update_replaces_entire_data() {
   backend.init_schema().await.unwrap();
 
   let doc = backend
-    .insert(DEFAULT_PROJECT_ID, "users", json!({"name": "Alice", "age": 30, "city": "NYC"}))
+    .insert(
+      DEFAULT_PROJECT_ID,
+      "users",
+      json!({"name": "Alice", "age": 30, "city": "NYC"}),
+    )
     .await
     .unwrap();
 
   // Update with completely different data
   let updated = backend
-    .update(DEFAULT_PROJECT_ID, "users", doc.id, json!({"status": "inactive"}))
+    .update(
+      DEFAULT_PROJECT_ID,
+      "users",
+      doc.id,
+      json!({"status": "inactive"}),
+    )
     .await
     .unwrap()
     .unwrap();
@@ -306,7 +361,12 @@ async fn test_update_nonexistent_document() {
 
   let fake_id = uuid::Uuid::new_v4();
   let result = backend
-    .update(DEFAULT_PROJECT_ID, "users", fake_id, json!({"name": "Nobody"}))
+    .update(
+      DEFAULT_PROJECT_ID,
+      "users",
+      fake_id,
+      json!({"name": "Nobody"}),
+    )
     .await
     .unwrap();
 
@@ -324,7 +384,12 @@ async fn test_update_wrong_collection() {
     .unwrap();
 
   let result = backend
-    .update(DEFAULT_PROJECT_ID, "posts", doc.id, json!({"title": "Hello"}))
+    .update(
+      DEFAULT_PROJECT_ID,
+      "posts",
+      doc.id,
+      json!({"title": "Hello"}),
+    )
     .await
     .unwrap();
 
@@ -348,7 +413,12 @@ async fn test_update_timestamps() {
   tokio::time::sleep(tokio::time::Duration::from_millis(10)).await;
 
   let updated = backend
-    .update(DEFAULT_PROJECT_ID, "users", doc.id, json!({"name": "Alice Updated"}))
+    .update(
+      DEFAULT_PROJECT_ID,
+      "users",
+      doc.id,
+      json!({"name": "Alice Updated"}),
+    )
     .await
     .unwrap()
     .unwrap();
@@ -371,7 +441,10 @@ async fn test_delete_document() {
     .await
     .unwrap();
 
-  let deleted = backend.delete(DEFAULT_PROJECT_ID, "users", doc.id).await.unwrap();
+  let deleted = backend
+    .delete(DEFAULT_PROJECT_ID, "users", doc.id)
+    .await
+    .unwrap();
   assert!(deleted.is_some());
 
   let deleted = deleted.unwrap();
@@ -389,9 +462,15 @@ async fn test_delete_removes_from_database() {
     .await
     .unwrap();
 
-  backend.delete(DEFAULT_PROJECT_ID, "users", doc.id).await.unwrap();
+  backend
+    .delete(DEFAULT_PROJECT_ID, "users", doc.id)
+    .await
+    .unwrap();
 
-  let result = backend.get(DEFAULT_PROJECT_ID, "users", doc.id).await.unwrap();
+  let result = backend
+    .get(DEFAULT_PROJECT_ID, "users", doc.id)
+    .await
+    .unwrap();
   assert!(result.is_none());
 }
 
@@ -401,7 +480,10 @@ async fn test_delete_nonexistent_document() {
   backend.init_schema().await.unwrap();
 
   let fake_id = uuid::Uuid::new_v4();
-  let result = backend.delete(DEFAULT_PROJECT_ID, "users", fake_id).await.unwrap();
+  let result = backend
+    .delete(DEFAULT_PROJECT_ID, "users", fake_id)
+    .await
+    .unwrap();
   assert!(result.is_none());
 }
 
@@ -415,11 +497,17 @@ async fn test_delete_from_wrong_collection() {
     .await
     .unwrap();
 
-  let result = backend.delete(DEFAULT_PROJECT_ID, "posts", doc.id).await.unwrap();
+  let result = backend
+    .delete(DEFAULT_PROJECT_ID, "posts", doc.id)
+    .await
+    .unwrap();
   assert!(result.is_none());
 
   // Original should still exist
-  let still_exists = backend.get(DEFAULT_PROJECT_ID, "users", doc.id).await.unwrap();
+  let still_exists = backend
+    .get(DEFAULT_PROJECT_ID, "users", doc.id)
+    .await
+    .unwrap();
   assert!(still_exists.is_some());
 }
 
@@ -433,10 +521,16 @@ async fn test_delete_twice() {
     .await
     .unwrap();
 
-  let first = backend.delete(DEFAULT_PROJECT_ID, "users", doc.id).await.unwrap();
+  let first = backend
+    .delete(DEFAULT_PROJECT_ID, "users", doc.id)
+    .await
+    .unwrap();
   assert!(first.is_some());
 
-  let second = backend.delete(DEFAULT_PROJECT_ID, "users", doc.id).await.unwrap();
+  let second = backend
+    .delete(DEFAULT_PROJECT_ID, "users", doc.id)
+    .await
+    .unwrap();
   assert!(second.is_none());
 }
 
@@ -451,12 +545,19 @@ async fn test_list_all_documents() {
 
   for i in 0..5 {
     backend
-      .insert(DEFAULT_PROJECT_ID, "users", json!({"name": format!("User {}", i)}))
+      .insert(
+        DEFAULT_PROJECT_ID,
+        "users",
+        json!({"name": format!("User {}", i)}),
+      )
       .await
       .unwrap();
   }
 
-  let docs = backend.list(DEFAULT_PROJECT_ID, "users", None, None, None, None).await.unwrap();
+  let docs = backend
+    .list(DEFAULT_PROJECT_ID, "users", None, None, None, None)
+    .await
+    .unwrap();
   assert_eq!(docs.len(), 5);
 }
 
@@ -465,7 +566,10 @@ async fn test_list_empty_collection() {
   let backend = SqliteBackend::in_memory().await.unwrap();
   backend.init_schema().await.unwrap();
 
-  let docs = backend.list(DEFAULT_PROJECT_ID, "empty", None, None, None, None).await.unwrap();
+  let docs = backend
+    .list(DEFAULT_PROJECT_ID, "empty", None, None, None, None)
+    .await
+    .unwrap();
   assert!(docs.is_empty());
 }
 
@@ -475,7 +579,10 @@ async fn test_list_with_limit() {
   backend.init_schema().await.unwrap();
 
   for i in 0..10 {
-    backend.insert(DEFAULT_PROJECT_ID, "items", json!({"index": i})).await.unwrap();
+    backend
+      .insert(DEFAULT_PROJECT_ID, "items", json!({"index": i}))
+      .await
+      .unwrap();
   }
 
   let docs = backend
@@ -491,7 +598,10 @@ async fn test_list_limit_larger_than_count() {
   backend.init_schema().await.unwrap();
 
   for i in 0..3 {
-    backend.insert(DEFAULT_PROJECT_ID, "items", json!({"index": i})).await.unwrap();
+    backend
+      .insert(DEFAULT_PROJECT_ID, "items", json!({"index": i}))
+      .await
+      .unwrap();
   }
 
   let docs = backend
@@ -507,15 +617,27 @@ async fn test_list_with_filter() {
   backend.init_schema().await.unwrap();
 
   backend
-    .insert(DEFAULT_PROJECT_ID, "users", json!({"name": "Alice", "age": 30}))
+    .insert(
+      DEFAULT_PROJECT_ID,
+      "users",
+      json!({"name": "Alice", "age": 30}),
+    )
     .await
     .unwrap();
   backend
-    .insert(DEFAULT_PROJECT_ID, "users", json!({"name": "Bob", "age": 25}))
+    .insert(
+      DEFAULT_PROJECT_ID,
+      "users",
+      json!({"name": "Bob", "age": 25}),
+    )
     .await
     .unwrap();
   backend
-    .insert(DEFAULT_PROJECT_ID, "users", json!({"name": "Charlie", "age": 35}))
+    .insert(
+      DEFAULT_PROJECT_ID,
+      "users",
+      json!({"name": "Charlie", "age": 35}),
+    )
     .await
     .unwrap();
 
@@ -547,10 +669,16 @@ async fn test_list_only_from_specified_collection() {
     .await
     .unwrap();
 
-  let users = backend.list(DEFAULT_PROJECT_ID, "users", None, None, None, None).await.unwrap();
+  let users = backend
+    .list(DEFAULT_PROJECT_ID, "users", None, None, None, None)
+    .await
+    .unwrap();
   assert_eq!(users.len(), 2);
 
-  let posts = backend.list(DEFAULT_PROJECT_ID, "posts", None, None, None, None).await.unwrap();
+  let posts = backend
+    .list(DEFAULT_PROJECT_ID, "posts", None, None, None, None)
+    .await
+    .unwrap();
   assert_eq!(posts.len(), 1);
 }
 
@@ -563,9 +691,18 @@ async fn test_list_collections() {
   let backend = SqliteBackend::in_memory().await.unwrap();
   backend.init_schema().await.unwrap();
 
-  backend.insert(DEFAULT_PROJECT_ID, "alpha", json!({})).await.unwrap();
-  backend.insert(DEFAULT_PROJECT_ID, "beta", json!({})).await.unwrap();
-  backend.insert(DEFAULT_PROJECT_ID, "gamma", json!({})).await.unwrap();
+  backend
+    .insert(DEFAULT_PROJECT_ID, "alpha", json!({}))
+    .await
+    .unwrap();
+  backend
+    .insert(DEFAULT_PROJECT_ID, "beta", json!({}))
+    .await
+    .unwrap();
+  backend
+    .insert(DEFAULT_PROJECT_ID, "gamma", json!({}))
+    .await
+    .unwrap();
 
   let collections = backend.list_collections(DEFAULT_PROJECT_ID).await.unwrap();
   assert_eq!(collections.len(), 3);
@@ -598,7 +735,10 @@ async fn test_collection_names() {
   ];
 
   for name in &names {
-    backend.insert(DEFAULT_PROJECT_ID, name, json!({})).await.unwrap();
+    backend
+      .insert(DEFAULT_PROJECT_ID, name, json!({}))
+      .await
+      .unwrap();
   }
 
   let collections = backend.list_collections(DEFAULT_PROJECT_ID).await.unwrap();
@@ -677,7 +817,11 @@ async fn test_document_collection_field() {
   backend.init_schema().await.unwrap();
 
   let doc = backend
-    .insert(DEFAULT_PROJECT_ID, "my_collection", json!({"field": "value"}))
+    .insert(
+      DEFAULT_PROJECT_ID,
+      "my_collection",
+      json!({"field": "value"}),
+    )
     .await
     .unwrap();
 
@@ -697,8 +841,12 @@ async fn test_concurrent_inserts() {
 
   for i in 0..20 {
     let backend = backend.clone();
-    let handle =
-      tokio::spawn(async move { backend.insert(DEFAULT_PROJECT_ID, "users", json!({"index": i})).await.unwrap() });
+    let handle = tokio::spawn(async move {
+      backend
+        .insert(DEFAULT_PROJECT_ID, "users", json!({"index": i}))
+        .await
+        .unwrap()
+    });
     handles.push(handle);
   }
 
@@ -706,7 +854,10 @@ async fn test_concurrent_inserts() {
     handle.await.unwrap();
   }
 
-  let docs = backend.list(DEFAULT_PROJECT_ID, "users", None, None, None, None).await.unwrap();
+  let docs = backend
+    .list(DEFAULT_PROJECT_ID, "users", None, None, None, None)
+    .await
+    .unwrap();
   assert_eq!(docs.len(), 20);
 }
 
@@ -727,7 +878,8 @@ async fn test_concurrent_read_write() {
   for _ in 0..10 {
     let backend = backend.clone();
     let id = doc.id;
-    let handle = tokio::spawn(async move { backend.get(DEFAULT_PROJECT_ID, "users", id).await.unwrap() });
+    let handle =
+      tokio::spawn(async move { backend.get(DEFAULT_PROJECT_ID, "users", id).await.unwrap() });
     handles.push(handle);
   }
 

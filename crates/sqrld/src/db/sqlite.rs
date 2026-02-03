@@ -566,7 +566,10 @@ impl DatabaseBackend for SqliteBackend {
       .conn
       .call(move |conn| {
         conn
-          .execute("DELETE FROM api_tokens WHERE id = ?1 AND project_id = ?2", params![id_str, project_id_str])
+          .execute(
+            "DELETE FROM api_tokens WHERE id = ?1 AND project_id = ?2",
+            params![id_str, project_id_str],
+          )
           .map_err(|e| e.into())
       })
       .await?;
@@ -606,7 +609,8 @@ impl DatabaseBackend for SqliteBackend {
     self
       .conn
       .call(move |conn| {
-        let mut stmt = conn.prepare_cached("SELECT project_id FROM api_tokens WHERE token_hash = ?1")?;
+        let mut stmt =
+          conn.prepare_cached("SELECT project_id FROM api_tokens WHERE token_hash = ?1")?;
         let mut rows = stmt.query(params![hash_owned])?;
         if let Some(row) = rows.next()? {
           let project_id_str: String = row.get(0)?;
